@@ -1,0 +1,8 @@
+{
+    "exportall.config.folderListener": [
+        "/src/components/sqlTable"
+    ],
+    "exportall.config.relExclusion": [
+        "/src/components/sqlTable"
+    ]
+}

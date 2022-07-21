@@ -1,0 +1,15 @@
+{
+  "extends": "next/core-web-vitals",
+  "root": true,
+  "rules": {
+    "semi": [
+      "error",
+      [
+        "always",
+        {
+          "omitLastInOneLineBlock": true
+        }
+      ]
+    ]
+  }
+}
