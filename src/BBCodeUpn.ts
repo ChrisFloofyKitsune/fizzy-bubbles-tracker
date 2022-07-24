@@ -178,7 +178,7 @@ const upnTagOptions: tagOption[] = [
     }]
 ]
 
-// @ts-ignore sorry ts, but gotta do this to ya
+// @ts-ignore
 upnTagOptions.forEach(([tag, options]) => BBCodeParser.registerTag.call(BBCodeParser, tag, options));
 
 Object.freeze(BBCodeParser);

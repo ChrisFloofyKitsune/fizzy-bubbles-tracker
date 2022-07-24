@@ -9,10 +9,19 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
     const switchProps: SwitchProps = Object.assign({},
         {
             size: 'lg',
-            label: (<Center><EditIcon/><Text weight='bold'>Edit Mode</Text></Center>),
+            label: (
+                <Center>
+                    <EditIcon />
+                    <Text
+                        weight='bold'
+                    >
+                        Edit Mode
+                    </Text>
+                </Center>
+            ),
             offLabel: 'OFF',
-            onLabel: 'ON'
-        }, 
+            onLabel: 'ON',
+        },
         props,
         {
             onChange: event => {
@@ -21,5 +30,14 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
             }
         } as SwitchProps
     )
-    return <Switch {...switchProps}/>
+    return <Switch
+        sx={{
+            userSelect: 'none',
+            cursor: 'pointer',
+            '& *': {
+                cursor: 'inherit'
+            }
+        }}
+        {...switchProps}
+    />
 }

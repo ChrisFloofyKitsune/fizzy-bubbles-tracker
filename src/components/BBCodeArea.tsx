@@ -4,9 +4,10 @@ import BBCodeParser from "~/BBCodeUpn";
 export type BBCodeAreaProps = {
     label?: string;
     bbCode: string;
+    stickyLabel?: boolean;
 }
 
-export const BBCodeArea = ({ label, bbCode }: BBCodeAreaProps) => {
+export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
     return <TypographyStylesProvider sx={{
         border: '#444 solid 1px',
         borderRadius: '0.5em',
@@ -37,14 +38,19 @@ export const BBCodeArea = ({ label, bbCode }: BBCodeAreaProps) => {
             borderStyle: 'inset',
             borderWidth: '1px',
             borderBottomWidth: '0px'
-        }
+        },
+        '.bbCodeLabel': (!stickyLabel ? {} : {
+            position: 'sticky',
+            top: '0px',
+            backgroundColor: '#252525'
+        })
     }}>
         {
             !label ? '' :
-                <>
+                <div className="bbCodeLabel">
                     <div className="smallfont"><strong>{label}</strong></div>
                     <hr />
-                </>
+                </div>
         }
         <div dangerouslySetInnerHTML={{ __html: BBCodeParser.parse(bbCode) }} />
     </TypographyStylesProvider>

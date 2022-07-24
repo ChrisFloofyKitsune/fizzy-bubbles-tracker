@@ -1,7 +1,7 @@
 import { RiAddCircleFill } from 'react-icons/ri';
 import { VscSaveAll } from 'react-icons/vsc';
 import { GiCancel } from 'react-icons/gi';
-import { TiDocumentDelete } from 'react-icons/ti';
+import { TiDocumentDelete, TiWarningOutline } from 'react-icons/ti';
 import { IconBaseProps, IconType } from 'react-icons/lib';
 import { TbEdit } from 'react-icons/tb';
 
@@ -20,4 +20,5 @@ export const DeleteIcon = wrap(TiDocumentDelete);
 export const CancelIcon = wrap(GiCancel);
 export const SaveIcon = wrap(VscSaveAll);
 export const EditIcon = wrap(TbEdit);
+export const WarningIcon = wrap(TiWarningOutline);
 

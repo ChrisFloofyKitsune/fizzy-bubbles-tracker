@@ -3,6 +3,7 @@ import { IconType } from "react-icons/lib";
 import { GiPokecog } from "react-icons/gi";
 import { BiIdCard } from 'react-icons/bi';
 import { TbHome, TbPokeball, TbBackpack, TbWallet, TbDatabase } from 'react-icons/tb';
+import { MdTextFields } from "react-icons/md";
 
 export class NavOption {
     useStyle: () => {
@@ -37,6 +38,7 @@ export const NavOptionList = [
     })),
     new NavOption('Items', '/items', TbBackpack),
     new NavOption('Wallet', '/wallet', TbWallet),
+    new NavOption('Word Counter', '/wordCounter', MdTextFields),
     new NavOption('Settings', '/settings', GiPokecog, () => ({
         marginTop: 'auto',
         '&:hover': {

@@ -38,14 +38,14 @@ export class Pokemon {
     gender: PokemonGenderOptions;
     
     @Column({ nullable: true })
-    evolutionStageOneSource?: string;
+    evolutionStageOneLink?: string;
     @Column({ nullable: true })
-    evolutionStageTwoSource?: string;
+    evolutionStageTwoLink?: string;
     
     @Column()
     obtained: string;
     @Column()
-    obtainedSourceLink: string;
+    obtainedLink: string;
 
     @Column({
         default: 'Pokeball',
@@ -53,17 +53,17 @@ export class Pokemon {
     })
     pokeball?: string;
     @Column({ nullable: true })
-    pokeballSourceLink?: string;
+    pokeballLink?: string;
     @Column({ nullable: true })
         
     heldItem?: string;
     @Column({ nullable: true })
-    heldItemSourceLink?: string;
+    heldItemLink?: string;
     
     @Column({ nullable: true })
     boutiqueMods?: string;
     @Column({ nullable: true })
-    boutiqueModsSourceLink: string;
+    boutiqueModsLink: string;
 
     @Column({ nullable: true })
     imageLink?: string;
@@ -72,22 +72,34 @@ export class Pokemon {
     levelUpMoves?: LevelUpMove[];
     
     @OneToMany(() => LevelLog, (log) => log.pokemon, {
-        cascade: true
+        cascade: true,
+        eager: true
     })
     levelLogs: LevelLog[];
     
     @OneToMany(() => LevelLog, (log) => log.pokemon, {
-        cascade: true
+        cascade: true,
+        eager: true
     })
     moveLogs: MoveLog[];
 
     @OneToMany(() => ContestStatLog, (log) => log.pokemon, {
-        cascade: true
+        cascade: true,
+        eager: true
     })
     contestStatsLogs: ContestStatLog[];
 
     @Column({
         nullable: true
     })
-    bbcodeProfile?: string;
+    bbcodeDescription?: string;
+
+    get levelNum() {
+        return this.levelLogs.reduce((level, log) => Math.max(level, log.newValue), 0);
+    }
+
+    get levelLink() {
+        return this.levelLogs.reduce((prev, current) => current.newValue >= prev.newValue ? current : prev).sourceUrl;
+    }
+
 }
