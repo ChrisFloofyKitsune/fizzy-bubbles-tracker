@@ -51,6 +51,7 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
 
     const [googleApi, setGoogleApi] = useState<GoogleApi | null>(null);
     useEffect(() => {
+        return;
         //Client only
         if (typeof window === 'undefined') return;
         const scriptTag = document.createElement('script');
@@ -58,7 +59,7 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
         scriptTag.addEventListener('load', () => { 
             window.gapi.load('client', () => {
                 window.gapi.client.init({
-                    apiKey: 'AIzaSyAPMwVpgvXuQI289M2vb1uDl32Y_F5eL5Y',
+                    apiKey: 'PROPER KEY HERE',
                     scope: 'https://www.googleapis.com/auth/drive.file',
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 }).then(() => {

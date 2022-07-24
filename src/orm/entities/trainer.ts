@@ -30,11 +30,5 @@ export class Trainer {
         onDelete: "SET NULL",
         eager: false,
     })
-    pokemon: Pokemon[]
-
-    @OneToMany(() => ItemLog, (log) => log.trainer, {
-        onDelete: 'SET NULL',
-        eager: false
-    })
-    itemLogs: ItemLog[];
+    pokemon: Pokemon[];
 }

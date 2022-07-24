@@ -4,7 +4,6 @@ import type { SqljsConnectionOptions } from 'typeorm/driver/sqljs/SqljsConnectio
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
 import useAsyncEffect from 'use-async-effect';
 import { Subject, Subscription } from 'rxjs';
-import { useForceUpdate } from '@mantine/hooks';
 
 export type DataSourceOptions = Partial<Omit<SqljsConnectionOptions, 'type' | 'driver' | 'useLocalForage' | 'sqlJsConfig' | 'location' | 'autoSave' | 'autoSaveCallback'>>
 
@@ -91,7 +90,7 @@ export class DBService {
     }
 
     public static async destroy() {
-        if (!(DBService.dataSource?.isInitialized)) return;
+        if (!DBService.dataSource?.isInitialized) return;
         await DBService.dataSource.destroy();
         DBService.dataSource = undefined;
     }
@@ -123,7 +122,9 @@ export const DataSourceProvider = ({ options, children }: DataSourceProviderProp
 
         try {
             await DBService.initialize(options);
-            if (!isActive) return;
+            if (!isActive) {
+                DBService.destroy();
+            };
             setDs(DBService.dataSource);
         } catch (err: any) {
             console.error(err);

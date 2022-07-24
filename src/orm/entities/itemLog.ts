@@ -22,9 +22,4 @@ export class ItemLog extends ShopTrackedChangeLog {
         nullable: true,
     })
     customDefinition?: Partial<ItemDefinition>;
-
-    @ManyToOne(() => Trainer, (trainer) => trainer.itemLogs, {
-        onDelete: 'SET NULL'
-    })
-    trainer?: Trainer
 }

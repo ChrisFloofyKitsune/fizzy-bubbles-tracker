@@ -1,7 +1,8 @@
 export enum PokemonGenderOptions {
     MALE = 'Male',
     FEMALE = 'Female',
-    GENDERLESS = 'Genderless'
+    GENDERLESS = 'Genderless',
+    UNDECIDED = ''
 }
 
 export enum PokemonContestStat {

@@ -1,17 +1,16 @@
 import '../styles/globals.css';
 import type { AppProps } from 'next/app';
-import { Box, Button, Center, Group, LoadingOverlay, MantineProvider, Paper, ScrollArea, Skeleton, Switch, Text, Title } from '@mantine/core';
+import { Box, Button, Center, Group, LoadingOverlay, MantineProvider, Paper, ScrollArea, Skeleton, Switch, Title } from '@mantine/core';
 import { AppShell, Header, Navbar, MediaQuery, Burger, useMantineTheme } from "@mantine/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AppNavbar, GoogleSessionProvider, GoogleLoginCredentials, GoogleDriveCommunicator } from "~/components/";
-import { DataSourceContext, DataSourceOptions, DataSourceProvider, useDataSource } from '~/services/';
+import { DataSourceContext, DataSourceOptions, DataSourceProvider } from '~/services/';
 import { BBCodeConfig, ContestStatLog, ItemDefinition, ItemLog, LevelLog, MoveLog, Pokemon, Trainer, WalletLog } from '~/orm/entities';
 import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/google';
 import jwt from 'jwt-decode';
-import { DataSource } from 'typeorm';
 import localforage from 'localforage';
-import useAsyncEffect from 'use-async-effect/types';
 import { TbBrandGoogleDrive } from 'react-icons/tb';
+import { useResizeObserver } from '@mantine/hooks';
 
 let DataSourceOpts: DataSourceOptions = {
   entities: [
@@ -27,8 +26,6 @@ let DataSourceOpts: DataSourceOptions = {
   ]
 }
 
-
-
 function MyApp({ Component, pageProps }: AppProps) {
 
   const theme = useMantineTheme();
@@ -43,9 +40,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     })
   }, [])
 
-  useEffect(() => {
-
-  })
+  const [contentBoxRef, contentBoxRect] = useResizeObserver();
 
   return (
     <GoogleOAuthProvider clientId='39206396503-heot00318gquae6rrc7diepb5uj4pa4i.apps.googleusercontent.com'>
@@ -55,13 +50,13 @@ function MyApp({ Component, pageProps }: AppProps) {
           <DataSourceContext.Consumer>
             {ds => (
               <MantineProvider
-                theme={{ colorScheme: 'dark' }}
-                withGlobalStyles
+              theme={{ colorScheme: 'dark' }}
+              withGlobalStyles
                 withNormalizeCSS
                 styles={{
                   Button: { root: { transitionDuration: '0.25s' }}
                 }}
-              >
+                >
                 <LoadingOverlay
                   visible={!ds}
                   sx={(theme) => ({
@@ -71,7 +66,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                       stroke: theme.colors.teal[9]
                     }
                   })}
-                />
+                  />
                 <AppShell
                   navbarOffsetBreakpoint="sm"
                   asideOffsetBreakpoint="sm"
@@ -82,13 +77,13 @@ function MyApp({ Component, pageProps }: AppProps) {
                     </Navbar>
                   }
                   // footer={
-                  //   <Footer height={60} p="md">
-                  //     Application footer
-                  //   </Footer>
+                    //   <Footer height={60} p="md">
+                    //     Application footer
+                    //   </Footer>
                   // }
                   header={
-                    <Header height={60} p="md">
-                      <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                    <Header height={64}>
+                      <Box p='md' sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                         <MediaQuery largerThan="sm" styles={{ display: 'none' }}>
                           <Burger
                             opened={opened}
@@ -96,21 +91,21 @@ function MyApp({ Component, pageProps }: AppProps) {
                             size="sm"
                             color={theme.colors.gray[6]}
                             mr="xl"
-                          />
+                            />
                         </MediaQuery>
                         <Title>Fizzy Tracker 2.0</Title>
                         <Box ml='auto'>
                           {
                             (!loginCredentials) ?
-                              <GoogleLogin
-                                onSuccess={(res) => res.credential && setLoginCredentials(jwt(res.credential))}
-                                onError={() => console.error('GSI Error')}
-                                context={'use'}
-                                useOneTap
-                                auto_select
-                                theme='filled_black'
-                              /> :
-                              <Group>
+                            <GoogleLogin
+                            onSuccess={(res) => res.credential && setLoginCredentials(jwt(res.credential))}
+                            onError={() => console.error('GSI Error')}
+                            context={'use'}
+                            useOneTap
+                            auto_select
+                            theme='filled_black'
+                            /> :
+                            <Group>
                                 <Switch
                                   label={<Center><TbBrandGoogleDrive size={32} />GDrive Sync</Center>}
                                   offLabel='OFF' onLabel='ON' size='lg'
@@ -121,7 +116,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                                       setGoogleSyncEnabled(result);
                                     });
                                   }}
-                                />
+                                  />
                                 <Button color='red' onClick={() => {
                                   googleLogout();
                                   setLoginCredentials(null);
@@ -131,25 +126,29 @@ function MyApp({ Component, pageProps }: AppProps) {
                               </Group>
                           }
                         </Box>
-                      </div>
+                      </Box>
                     </Header>
                   }
                   padding='0'
-                >
+                  >
                   <Box
+                    ref={contentBoxRef}
                     sx={{
+                      // paddingTop: headerRect.height,
                       width: '100%',
-                      height: '100%',
+                      height: `100%`,
                       backgroundColor: 'black'
                     }
-                    }>
-                    <ScrollArea type='auto' p='sm' sx={{
-                      height: '100%',
-                      '& > .mantine-ScrollArea-viewport > div': {
-                        display: 'block!important'
+                  }>
+                    <ScrollArea type='auto' styles={{
+                      viewport: {
+                        height: `${contentBoxRect.height}px`,
+                        '& > div': {
+                          display: 'block!important'
+                        }
                       }
                     }}>
-                      <Paper p='sm'>
+                      <Paper m='sm' p='sm'>
                         {
                           (!!ds) ?
                             <Component {...pageProps} /> :
