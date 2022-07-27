@@ -8,7 +8,7 @@ const Items: NextPage = () => {
             <Title order={3}>Output Preview</Title>
             <Title order={3}>Item Log</Title>
         </Stack>
-    </>
-}
+    </>;
+};
 
 export default Items;

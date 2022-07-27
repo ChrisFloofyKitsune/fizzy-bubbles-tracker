@@ -6,13 +6,6 @@ export abstract class ChangeLogBase {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @CreateDateColumn({
-        type: 'text',
-        transformer: UTCTransformer,
-
-    })
-    timestamp: Dayjs;
-
     @Column({ nullable: true })
     sourceUrl?: string;
 
@@ -21,6 +14,13 @@ export abstract class ChangeLogBase {
 }
 
 export abstract class ShopTrackedChangeLog extends ChangeLogBase {
+    @CreateDateColumn({
+        type: 'text',
+        transformer: UTCTransformer,
+
+    })
+    timestamp: Dayjs;
+
     @Column({
         type: 'boolean',
         default: false

@@ -25,50 +25,50 @@ export enum PropType {
 }
 
 export function classifyProp(entityMetadata: EntityMetadata, prop: string): PropType | null {
-    const $ = PropType;
+    const P = PropType;
 
     let relation: RelationMetadata | undefined;
-    if (relation = entityMetadata.findRelationWithPropertyPath(prop)) {
-        return relation.isManyToOne ? $.FOREIGN_KEY : $.FOREIGN_KEY_LIST;
+    if (!!(relation = entityMetadata.findRelationWithPropertyPath(prop) as any)) {
+        return relation.isManyToOne ? P.FOREIGN_KEY : P.FOREIGN_KEY_LIST;
     }
 
-    let propData = entityMetadata.findColumnWithPropertyName(prop)
+    let propData = entityMetadata.findColumnWithPropertyName(prop);
     if (!propData) return null;
     switch (propData.propertyName) {
         case 'uuid':
         case 'id':
-            return $.ID;
+            return P.ID;
         case 'gender':
-            return $.ENUM_GENDER;
+            return P.ENUM_GENDER;
         case 'stat':
-            return $.ENUM_CONTEST_STAT;
+            return P.ENUM_CONTEST_STAT;
         case 'currencyType':
-            return $.ENUM_CURRENCY_TYPE;
+            return P.ENUM_CURRENCY_TYPE;
         case 'category':
-            return $.ENUM_MOVE_SOURCE_CATEGORY;
+            return P.ENUM_MOVE_SOURCE_CATEGORY;
         case 'sourceURL':
         case 'evolutionStageOneSource':
         case 'evolutionStageTwoSource':
-            return $.URL
+            return P.URL;
         case 'imageLink':
-            return $.IMAGE_URL;
+            return P.IMAGE_URL;
         case 'template':
         case 'bbcodeProfile':
-            return $.BBCODE;
+            return P.BBCODE;
         case 'timestamp':
-            return $.TIMESTAMP;
+            return P.TIMESTAMP;
         case 'levelUpMoves':
-            return $.JSON_LIST;
+            return P.JSON_LIST;
         default:
             switch (propData.type) {
                 case 'integer':
-                    return $.INTEGER;
+                    return P.INTEGER;
                 case 'boolean':
-                    return $.BOOLEAN;
+                    return P.BOOLEAN;
                 case 'simple-json':
-                    return $.JSON
+                    return P.JSON;
                 default:
-                    return $.TEXT;
+                    return P.TEXT;
             }
     }
 }

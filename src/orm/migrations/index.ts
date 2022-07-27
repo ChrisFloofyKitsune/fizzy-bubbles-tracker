@@ -1,1 +1,1 @@
-export * from './initialBBCodeConfig';
+export * from './seed_bbCodeConfig';

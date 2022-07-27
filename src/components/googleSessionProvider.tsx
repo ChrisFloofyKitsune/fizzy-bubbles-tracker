@@ -64,11 +64,11 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
                     discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
                 }).then(() => {
                     setGoogleApi(window.gapi as GoogleApi);
-                })
+                });
             });
         });
         document.body.appendChild(scriptTag);
-    }, [])
+    }, []);
     
     const [token, setToken] = useState<TokenResponse | null>(null);
     
@@ -77,7 +77,7 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
         onSuccess: (token) => {
             setToken(token);
             //Refresh every 45 minutes
-            setTimeout(() => googleLogin(), 45 * 60 * 1000)
+            setTimeout(() => googleLogin(), 45 * 60 * 1000);
         },
         flow: 'implicit',
         onError(errorResponse) {
@@ -91,7 +91,7 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
 
         googleLogin({
             hint: loginCredentials.email,
-        })
+        });
 
     }, [loginCredentials, googleLogin, requestAuth]);
     
@@ -101,5 +101,5 @@ export function GoogleSessionProvider({ requestAuth, loginCredentials, children 
                 {children}
             </GoogleApiContext.Provider>
         </GoogleTokenContext.Provider>
-    </GoogleLoginCredentialsContext.Provider>
+    </GoogleLoginCredentialsContext.Provider>;
 }

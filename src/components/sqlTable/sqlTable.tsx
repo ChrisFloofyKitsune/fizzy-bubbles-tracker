@@ -1,12 +1,12 @@
 import { ReactNode, useCallback, useEffect, useState } from 'react';
 import DataGrid, { Column, RowsChangeData, TextEditor, SelectColumn } from 'react-data-grid';
 import { DataSource, EntityMetadata, TypeORMError } from 'typeorm';
-import { toHeaderCase, toLowerCase } from 'js-convert-case'
+import { toHeaderCase } from 'js-convert-case';
 import { useAsyncEffect } from 'use-async-effect';
 import { classifyProp, PropType } from './util';
 import { Blockquote, Box, Button, Code, createStyles, Group, Paper, Text } from '@mantine/core';
-import { sha1 } from 'object-hash'
-import { MdReportGmailerrorred } from 'react-icons/md'
+import { sha1 } from 'object-hash';
+import { MdReportGmailerrorred } from 'react-icons/md';
 import { AddIcon, DeleteIcon, CancelIcon, SaveIcon } from '~/appIcons';
 
 
@@ -63,15 +63,15 @@ const useStyles = createStyles((theme) => ({
             textDecoration: 'line-through'
         }
     }
-}))
+}));
 
-const defaultPlaceholder = <div>No data loaded</div>
+const defaultPlaceholder = <div>No data loaded</div>;
 
 export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlaceholder, changesPendingCallback = () => { } }: SqlTableProps) {
 
     const tableStyles = useStyles();
 
-    const [columns, setColumns] = useState<SqlColumn[]>([])
+    const [columns, setColumns] = useState<SqlColumn[]>([]);
     const [rows, setRows] = useState<SqlRow[] | null>(null);
     const [changesPending, setChangesPending] = useState<boolean>(false);
     const [refresher, setRefresher] = useState<boolean>(false);
@@ -101,7 +101,7 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
             let required = false;
 
             if (colData) {
-                required = !colData.isNullable && !colData.isGenerated && colData.default === undefined
+                required = !colData.isNullable && !colData.isGenerated && colData.default === undefined;
             }
 
             const columnOpts: SqlColumn = {
@@ -114,13 +114,13 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
                 summaryFormatter: () => <>{toHeaderCase(propType as string)}</>,
                 headerCellClass: required ? tableStyles.classes.requiredColHeader : undefined,
                 cellClass: () => `${prop}-cell`
-            }
+            };
 
             if (propType === PropType.TEXT) {
                 Object.assign(columnOpts, {
                     editable: true,
                     editor: TextEditor,
-                } as typeof columnOpts)
+                } as typeof columnOpts);
             }
 
             result.push(columnOpts);
@@ -132,7 +132,7 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
         changesPendingCallback(false);
         setSelectedRows(undefined);
 
-    }, [entityMetadata, refresher])
+    }, [tableStyles.classes.requiredColHeader, tableStyles.classes.hiddenCol, changesPendingCallback, entityMetadata, refresher]);
 
 
     // ASYNC get data and turn into rows
@@ -145,16 +145,16 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
         const results = await dataSource.getRepository(entityMetadata.name).find({
             loadEagerRelations: false,
             loadRelationIds: true,
-        })
+        });
 
         const rows = [];
 
         for (const r of results as SqlRow[]) {
             Object.keys(r).forEach(k => {
                 if (r[k] === null) {
-                    r[k] = undefined
+                    r[k] = undefined;
                 }
-            })
+            });
             r.tempId = self.crypto.randomUUID();
 
             //ADD TEMP DATA
@@ -185,13 +185,13 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
         changesPendingCallback(pending);
 
         setRows(rows);
-    }, [])
+    }, [changesPendingCallback]);
 
 
     const addRowFunc = useCallback(() => {
         const repo = dataSource.getRepository(entityMetadata.target);
         let newEntity = repo.create() as SqlRow;
-        newEntity.tempId = self.crypto.randomUUID()
+        newEntity.tempId = self.crypto.randomUUID();
         newEntity.state = RowState.NEW;
         for (const prop of Object.values(entityMetadata.propertiesMap)) {
             newEntity[prop] = undefined;
@@ -200,7 +200,7 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
         setChangesPending(true);
         changesPendingCallback(true);
         setSaveError(undefined);
-    }, [entityMetadata, rows]);
+    }, [entityMetadata, rows, changesPendingCallback, dataSource]);
 
     const deleteRowFunc = useCallback(() => {
         const rowsToRemove: SqlRow[] = [];
@@ -221,17 +221,17 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
         setChangesPending(changed);
         changesPendingCallback(changed);
 
-        const _rows = rows!.filter(r => !rowsToRemove.includes(r))
+        const _rows = rows!.filter(r => !rowsToRemove.includes(r));
         setRows(_rows);
         setSelectedRows(undefined);
-    }, [rows, selectedRows]);
+    }, [rows, selectedRows, changesPendingCallback]);
 
     const saveTableFunc = useCallback(async () => {
         setSaveError(undefined);
         const repo = dataSource.getRepository(entityMetadata.target);
         const changes = rows!.filter(r => r.state !== RowState.EXISTS);
 
-        changes.forEach(c => Object.keys(c).forEach(k => c[k] = c[k] === '' ? null : c[k]))
+        changes.forEach(c => Object.keys(c).forEach(k => c[k] = c[k] === '' ? null : c[k]));
 
         const rowsToSave = changes.filter(r => r.state !== RowState.DELETING);
         const rowsToDelete = changes.filter(r => r.state === RowState.DELETING);
@@ -247,11 +247,11 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
                 throw error;
             }
         }
-    }, [entityMetadata, rows, refresher]);
+    }, [entityMetadata, rows, refresher, dataSource]);
 
     // NO HOOKS PAST THIS POINT //
     if (!columns || rows === null) {
-        return <>{placeholder}</>
+        return <>{placeholder}</>;
     }
 
     return (
@@ -310,5 +310,5 @@ export function SqlTable({ entityMetadata, dataSource, placeholder = defaultPlac
             }
 
         </>
-    )
+    );
 }

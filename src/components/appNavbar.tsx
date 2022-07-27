@@ -9,8 +9,8 @@ import { optimize } from "webpack";
 const borderRadius = {
     normal: '1em',
     hover: '0.5em'
-}
-const transitionTime = '0.25s'
+};
+const transitionTime = '0.25s';
 
 const useStyles = createStyles((theme) => ({
     Link: {
@@ -50,7 +50,7 @@ const useStyles = createStyles((theme) => ({
             }
         },
     }
-}))
+}));
 
 export const AppNavbar = () => {
     const [title, setTitle] = useState('TEST THING');
@@ -85,8 +85,8 @@ export const AppNavbar = () => {
                             </Group>
                         </a>
                     </Anchor>
-                )
+                );
             })
         }
-    </Stack>
-}
+    </Stack>;
+};

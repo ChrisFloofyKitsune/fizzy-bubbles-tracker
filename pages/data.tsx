@@ -1,9 +1,9 @@
 import { NextPage } from 'next';
-import { Box, Button, Paper, Select, Text, Title } from '@mantine/core'
+import { Box, Button, Paper, Select, Text, Title } from '@mantine/core';
 import { useDataSource } from '~/services';
 import { useCallback, useEffect, useState } from 'react';
 import { EntityMetadata } from 'typeorm';
-import { SqlTable } from '~/components/sqlTable'
+import { SqlTable } from '~/components/sqlTable';
 import { TbDownload, TbUpload } from 'react-icons/tb';
 
 export const DataPage: NextPage = () => {
@@ -12,10 +12,6 @@ export const DataPage: NextPage = () => {
     const [changesPending, setChangesPending] = useState<boolean>(false);
 
     const ds = useDataSource();
-
-    const changesPendingCallback = useCallback((changesPending: boolean) => {
-        setChangesPending(changesPending);
-    }, [])
 
     useEffect(() => {
         if (!ds) return;
@@ -53,13 +49,13 @@ export const DataPage: NextPage = () => {
                         <SqlTable
                             entityMetadata={selectedMetadata}
                             dataSource={ds}
-                            changesPendingCallback={changesPendingCallback}
+                            changesPendingCallback={setChangesPending}
                         />   
                     </Box>
                 )
             }
         </Paper>
-    </>
-}
+    </>;
+};
 
 export default DataPage;

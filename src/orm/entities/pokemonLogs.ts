@@ -5,7 +5,7 @@ import { ChangeLogBase, ShopTrackedChangeLog } from "./changeLogBase";
 
 @Entity({
     orderBy: {
-        timestamp: 'ASC'
+        id: 'ASC'
     },
 })
 export class MoveLog extends ChangeLogBase {    
@@ -13,7 +13,7 @@ export class MoveLog extends ChangeLogBase {
     move: string;
 
     @Column('text')
-    category: PokemonMoveSourceCategory | string;
+    category: PokemonMoveSourceCategory;
 
     @ManyToOne(() => Pokemon, (pokemon) => pokemon.moveLogs, {
         nullable: false,
@@ -24,12 +24,29 @@ export class MoveLog extends ChangeLogBase {
 
 @Entity({
     orderBy: {
-        timestamp: 'ASC'
+        id: 'ASC'
     },
 })
 export class LevelLog extends ChangeLogBase {
     @Column('integer')
-    newValue: number;
+    value: number;
+
+    @ManyToOne(() => Pokemon, (pokemon) => pokemon.levelLogs, {
+        nullable: false,
+        onDelete: 'CASCADE'
+    })
+    pokemon: Pokemon;
+}
+
+@Entity({
+    orderBy: {
+        timestamp: 'ASC',
+        id: 'ASC'
+    },
+})
+export class BondLog extends ShopTrackedChangeLog {
+    @Column('integer')
+    value: number;
 
     @ManyToOne(() => Pokemon, (pokemon) => pokemon.levelLogs, {
         nullable: false,
@@ -43,7 +60,7 @@ export class LevelLog extends ChangeLogBase {
         timestamp: 'ASC'
     },
 })
-export class ContestStatLog extends ShopTrackedChangeLog {
+export class ContestStatLog extends ChangeLogBase {
     @Column('integer')
     statChange: number;
 

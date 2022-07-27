@@ -12,7 +12,7 @@ function wrap(Icon: IconType): IconType {
             props = Object.assign({ size: defaultSize }, props);
         }
         return Icon(props);
-    }
+    };
 }
 
 export const AddIcon = wrap(RiAddCircleFill);

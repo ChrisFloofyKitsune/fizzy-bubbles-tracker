@@ -1,5 +1,5 @@
-import { Center, Switch, SwitchProps, Text } from "@mantine/core"
-import { EditIcon } from "~/appIcons"
+import { Center, Switch, SwitchProps, Text } from "@mantine/core";
+import { EditIcon } from "~/appIcons";
 import { useState } from 'react';
 
 export type EditModeToggleProps = {
@@ -29,7 +29,7 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
                 props?.onChange?.(event);
             }
         } as SwitchProps
-    )
+    );
     return <Switch
         sx={{
             userSelect: 'none',
@@ -39,5 +39,5 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
             }
         }}
         {...switchProps}
-    />
+    />;
 }

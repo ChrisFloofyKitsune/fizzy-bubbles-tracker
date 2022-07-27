@@ -3,13 +3,11 @@
   "root": true,
   "rules": {
     "semi": [
-      "error",
-      [
-        "always",
-        {
-          "omitLastInOneLineBlock": true
-        }
-      ]
+      "warn",
+      "always",
+      {
+        "omitLastInOneLineBlock": true
+      }
     ]
   }
 }

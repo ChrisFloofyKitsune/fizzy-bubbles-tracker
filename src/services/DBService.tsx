@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import SqlJs from '/public/dist/sql-wasm';
 import type { SqljsConnectionOptions } from 'typeorm/driver/sqljs/SqljsConnectionOptions';
 import { createContext, ReactNode, useContext, useEffect, useRef, useState } from 'react';
-import useAsyncEffect from 'use-async-effect';
+import { useAsyncEffect } from 'use-async-effect';
 import { Subject, Subscription } from 'rxjs';
 
 export type DataSourceOptions = Partial<Omit<SqljsConnectionOptions, 'type' | 'driver' | 'useLocalForage' | 'sqlJsConfig' | 'location' | 'autoSave' | 'autoSaveCallback'>>
@@ -17,21 +17,21 @@ export function useAutoSaveCounter(): number {
         const sub = AutoSaveSubject.subscribe(() => setSaveCount(saveCountRef.current++));
         return () => {
             sub.unsubscribe();
-        }
-    }, [])
+        };
+    }, []);
     return saveCount;
 }
 
 export function useAutoSaveSubscription(callback: (event: AutoSaveEvent) => void) {
-    const [sub, setSub] = useState<Subscription>();
+    const sub = useRef<Subscription>();
     useEffect(() => {
-        if (sub) {
-            sub.unsubscribe();
+        if (sub.current) {
+            sub.current.unsubscribe();
         }
 
-        setSub(AutoSaveSubject.subscribe(callback));
+        sub.current = AutoSaveSubject.subscribe(callback);
 
-        return () => sub?.unsubscribe();
+        return () => sub.current?.unsubscribe();
     }, [callback]);
 }
 
@@ -73,19 +73,20 @@ export class DBService {
         window.localforage = (await import('localforage')).default;
         window.localforage.config({
             'name': 'FizzyTracker'
-        })
+        });
 
-        DBService.dataSource = new DataSource(Object.assign({}, DBService.BaseOptions, options))
+        DBService.dataSource = new DataSource(Object.assign<any, SqljsConnectionOptions, Partial<SqljsConnectionOptions>>({}, DBService.BaseOptions, options));
         await DBService.dataSource.initialize();
 
-        console.log('📝 Making sure Database is up-to-date... 📝')
+        console.log('📝 Making sure Database is up-to-date... 📝');
         // TODO: Use migrations instead at some point.
         await DBService.dataSource.synchronize();
-        // await DBService.dataSource.sqljsManager.saveDatabase();
+
+        await DBService.dataSource.runMigrations();
 
         console.log('✅ Local Database Initialized ✅');
 
-        // for purposes of exposing to web broswer console
+        // for purposes of exposing to web browser console
         window.AppDataSource = DBService.dataSource;
     }
 
@@ -123,23 +124,23 @@ export const DataSourceProvider = ({ options, children }: DataSourceProviderProp
         try {
             await DBService.initialize(options);
             if (!isActive) {
-                DBService.destroy();
-            };
+                await DBService.destroy();
+            }
             setDs(DBService.dataSource);
         } catch (err: any) {
-            console.error(err);
-            throw new Error("Could not initialize the database 😦");
+            console.error("Could not initialize the database 😦", err);
+            throw err;
         }
-    }, () => {
+    }, async () => {
         if (startedInit.current && !DBService.dataSource) return;
-        DBService.destroy();
+        await DBService.destroy();
         startedInit.current = false;
-    }, [])
+    }, []);
 
     return <DataSourceContext.Provider value={ds}>
         {children}
-    </DataSourceContext.Provider>
-}
+    </DataSourceContext.Provider>;
+};
 
 export function useDataSource() {
     return useContext(DataSourceContext);

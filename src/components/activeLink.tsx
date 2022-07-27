@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router';
 import Link, { LinkProps } from 'next/link';
-import React, { useState, useEffect, ReactElement, Children } from 'react';
+import { cloneElement, useState, useEffect, ReactElement, Children } from 'react';
 
 type ActiveLinkProps = LinkProps & {
     children: ReactElement
@@ -53,7 +53,7 @@ export const ActiveLink = ({
 
     return (
         <Link {...props}>
-            {React.cloneElement(child, {
+            {cloneElement(child, {
                 className: className || null,
             })}
         </Link>

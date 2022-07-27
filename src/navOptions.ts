@@ -24,7 +24,7 @@ export class NavOption {
     ) {
         this.useStyle = createStyles((theme) => ({
             className: cssFunc ? cssFunc(theme) : {}
-        }))
+        }));
     }
 }
 
@@ -38,7 +38,7 @@ export const NavOptionList = [
     })),
     new NavOption('Items', '/items', TbBackpack),
     new NavOption('Wallet', '/wallet', TbWallet),
-    new NavOption('Word Counter', '/wordCounter', MdTextFields),
+    new NavOption('Word Counter', '/word-counter', MdTextFields),
     new NavOption('Settings', '/settings', GiPokecog, () => ({
         marginTop: 'auto',
         '&:hover': {
@@ -48,4 +48,4 @@ export const NavOptionList = [
         }
     })),
     new NavOption('Data', '/data', TbDatabase)
-]
+];

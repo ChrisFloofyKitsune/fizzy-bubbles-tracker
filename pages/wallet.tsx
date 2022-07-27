@@ -8,7 +8,7 @@ const Wallet: NextPage = () => {
             <Title order={3}>Output Preview</Title>
             <Title order={3}>Wallet Log</Title>
         </Stack>
-    </>
-}
+    </>;
+};
 
 export default Wallet;

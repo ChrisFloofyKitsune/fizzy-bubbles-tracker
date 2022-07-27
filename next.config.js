@@ -1,56 +1,57 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
-/** @typedef { import('webpack').Configuration} WebpackConfig */
+/** @typedef { import('webpack/types').Configuration} WebpackConfig */
 
 const isProd = process.env.NODE_ENV === 'production';
 
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
+    reactStrictMode: false,
+    swcMinify: false,
 
-  /**
-   * @param {WebpackConfig} config 
-   * @returns WebpackConfig
-   */
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        fs: false
-      }
-    }
-
-    config.plugins.push(new CopyPlugin({
-      patterns: [
-        {
-          from: path.join(__dirname, `node_modules/sql.js/dist/sql-wasm${!isProd ? '-debug' : ''}.wasm`),
-          to: path.join(__dirname, '/public/dist/sql-wasm.wasm')
+    experimental: {
+        swcMinifyDebugOptions: {
+            mangle: {
+                keep_classnames: true,
+                keep_fnames: true,
+            },
+            compress: {
+                defaults: false,
+                side_effects: false
+            },
         },
-        {
-          from: path.join(__dirname, `node_modules/sql.js/dist/sql-wasm${!isProd ? '-debug' : ''}.js`),
-          to: path.join(__dirname, '/public/dist/sql-wasm.js')
+    },
+
+    /**
+     * @param {WebpackConfig} config
+     * @param isServer
+     * @returns WebpackConfig
+     */
+    webpack: (config, {isServer}) => {
+        if (!isServer) {
+            config.resolve.fallback = {
+                fs: false,
+                'graceful-fs': false,
+            };
         }
-      ]
-    }))
-    
-    config.ignoreWarnings = [
-      /mongodb/,
-      /mssql/,
-      /mysql/,
-      /mysql2/,
-      /oracledb/,
-      /pg/,
-      /pg-native/,
-      /pg-query-stream/,
-      /react-native-sqlite-storage/,
-      /redis/,
-      /sqlite3/,
-      /typeorm-aurora-data-api-driver/
-    ]
 
-    return config;
-  }
-}
+        config.ignoreWarnings = [
+            /mongodb/,
+            /mssql/,
+            /mysql/,
+            /mysql2/,
+            /oracledb/,
+            /pg/,
+            /pg-native/,
+            /pg-query-stream/,
+            /react-native-sqlite-storage/,
+            /redis/,
+            /sqlite3/,
+            /typeorm-aurora-data-api-driver/
+        ];
 
-module.exports = nextConfig
+        return config;
+    }
+};
+
+module.exports = nextConfig;

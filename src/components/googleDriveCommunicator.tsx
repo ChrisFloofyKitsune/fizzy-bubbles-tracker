@@ -18,8 +18,8 @@ export function GoogleDriveCommunicator({ autoSaveOn }: GoogleDriveCommunicatorP
     useEffect(() => {
         localforage.getItem('google-drive-sync-enabled').then(value => {
             shouldAttemptAutoLoad.current = !!value;
-        })
-    },[])
+        });
+    },[]);
 
     const onSave = useCallback(async ({ data }: AutoSaveEvent) => {
         if (!token || !gapi || !autoSaveOn) return;
@@ -27,7 +27,7 @@ export function GoogleDriveCommunicator({ autoSaveOn }: GoogleDriveCommunicatorP
         console.log("ATTEMPTING GOOGLE DRIVE AUTO SAVE HERE");
         gapi.client.setToken(token);
         
-        const fileId = await localforage.getItem(FILE_ID)
+        const fileId = await localforage.getItem(FILE_ID);
         if (!fileId) {
             console.log("WOULD BE CREATING FILE");
         } else {
@@ -44,5 +44,5 @@ export function GoogleDriveCommunicator({ autoSaveOn }: GoogleDriveCommunicatorP
 
     }, [token]);
 
-    return <></>
+    return <></>;
 }

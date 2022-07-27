@@ -53,5 +53,5 @@ export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
                 </div>
         }
         <div dangerouslySetInnerHTML={{ __html: BBCodeParser.parse(bbCode) }} />
-    </TypographyStylesProvider>
-}
+    </TypographyStylesProvider>;
+};

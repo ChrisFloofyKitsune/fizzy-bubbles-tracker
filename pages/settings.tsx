@@ -6,7 +6,7 @@ const Settings: NextPage = () => {
         <Stack>
             <Title order={3}>Stuff Go Here</Title>
         </Stack>
-    </>
-}
+    </>;
+};
 
 export default Settings;
