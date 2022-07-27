@@ -1,29 +1,28 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
-import dayjs, { Dayjs } from 'dayjs';
+import { Column, CreateDateColumn, PrimaryGeneratedColumn } from "typeorm";
+import { Dayjs } from "dayjs";
 import { UTCTransformer } from "../ormUtil";
 
 export abstract class ChangeLogBase {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column({ nullable: true })
-    sourceUrl?: string;
+  @Column({ nullable: true })
+  sourceUrl?: string;
 
-    @Column({ nullable: true })
-    sourceNote?: string;
+  @Column({ nullable: true })
+  sourceNote?: string;
 }
 
 export abstract class ShopTrackedChangeLog extends ChangeLogBase {
-    @CreateDateColumn({
-        type: 'text',
-        transformer: UTCTransformer,
+  @CreateDateColumn({
+    type: "text",
+    transformer: UTCTransformer,
+  })
+  timestamp: Dayjs;
 
-    })
-    timestamp: Dayjs;
-
-    @Column({
-        type: 'boolean',
-        default: false
-    })
-    verifiedInShopUpdate: boolean = false;
+  @Column({
+    type: "boolean",
+    default: false,
+  })
+  verifiedInShopUpdate: boolean = false;
 }

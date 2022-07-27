@@ -1,3 +1,5 @@
+// noinspection HtmlDeprecatedTag,HtmlDeprecatedAttribute,XmlDeprecatedElement,CssRedundantUnit
+
 import { BBCodeParser } from "./BBCodeUpn";
 
 type BBCodeTestCase = [input: string, expectedOutput: string];

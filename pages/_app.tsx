@@ -21,7 +21,6 @@ import { useEffect, useState } from "react";
 import localforage from "localforage";
 import { useResizeObserver } from "@mantine/hooks";
 import { ModalsProvider } from "@mantine/modals";
-import dynamic from "next/dynamic";
 
 import {
   AppNavbar,

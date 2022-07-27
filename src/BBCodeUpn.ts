@@ -1,3 +1,6 @@
+// noinspection HtmlDeprecatedAttribute,CssReplaceWithShorthandSafely,CssRedundantUnit
+// noinspection HtmlDeprecatedAttribute
+
 import yabbcode from "ya-bbcode";
 
 class BBCodeUpn extends yabbcode {
@@ -26,7 +29,7 @@ BBCodeParser.contentModules.optionalAttribute = (tag, module, content) => {
   const closeTag = "[TAG-" + tag.closing.index + "]";
   let hadAttr = true;
 
-  // If the tag does not have an attribute, replace it with it's inner content for the opening tag
+  // If the tag does not have an attribute, replace it with its inner content for the opening tag
   if (
     (tag.attr === null || typeof tag.attr === "undefined") &&
     !tag.isClosing
@@ -45,7 +48,7 @@ BBCodeParser.contentModules.optionalAttribute = (tag, module, content) => {
   if (typeof close === "function") {
     close = close(tag.attr);
   }
-  // do the replace
+  // do the replacement
   if (open && !tag.isClosing) {
     //content = content
     content = content.replace(openTag, open);
@@ -156,7 +159,7 @@ const upnTagOptions: tagOption[] = [
       open: (attr, hadAttr) =>
         `<a href="https://forums.upnetwork.net/showthread.php?t=${attr}" target="_blank"${
           !hadAttr ? "" : ` title="UPNetwork - Thread ${attr}"`
-        }>${hadAttr ? "" : `http://forums.upnetwork.net/showthread.php?t=`}`,
+        }>${hadAttr ? "" : `https://forums.upnetwork.net/showthread.php?t=`}`,
       close: `</a>`,
     },
   ],
@@ -170,7 +173,7 @@ const upnTagOptions: tagOption[] = [
         }>${
           hadAttr
             ? ""
-            : `http://forums.upnetwork.net/showthread.php?p=${attr}#post`
+            : `https://forums.upnetwork.net/showthread.php?p=${attr}#post`
         }`,
       close: `</a>`,
     },
@@ -271,14 +274,14 @@ const upnTagOptions: tagOption[] = [
       type: "content",
       replace(attr, content) {
         if (!content) return "";
-        return `<object type="application/x-shockwave-flash" data="https://www.youtube.com/v/${content}" width="644" height="390"><param name="movie" value="http://www.youtube.com/v/${content}" />BORKED</object>`;
+        return `<object type="application/x-shockwave-flash" data="https://www.youtube.com/v/${content}" width="644" height="390"><param name="movie" value="https://www.youtube.com/v/${content}" />BORKED</object>`;
       },
     },
   ],
 ];
 
-// @ts-ignore
 upnTagOptions.forEach(([tag, options]) =>
+  // @ts-ignore
   BBCodeParser.registerTag.call(BBCodeParser, tag, options)
 );
 
