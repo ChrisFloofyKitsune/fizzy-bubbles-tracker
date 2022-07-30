@@ -34,10 +34,10 @@ export const DataPage: NextPage = () => {
       </Box>
       <Select
         data={entityMetadata.map((e) => e.name)}
-        value={selectedMetadata?.name}
-        onChange={(value) =>
-          setSelectedMetadata(entityMetadata.find((e) => e.name === value))
-        }
+        value={selectedMetadata?.name ?? "Loading..."}
+        onChange={(value) => {
+          setSelectedMetadata(entityMetadata.find((e) => e.name === value));
+        }}
         sx={{
           maxWidth: "15em",
         }}

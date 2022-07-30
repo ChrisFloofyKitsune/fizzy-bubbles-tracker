@@ -31,6 +31,7 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback = {
         fs: false,
+        path: false,
         "graceful-fs": false,
       };
     }

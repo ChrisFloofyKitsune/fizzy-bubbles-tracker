@@ -63,7 +63,7 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
         <Group>
           <Select
             data={entityList.map((t) => ({ label: t.name, value: t.uuid }))}
-            value={selected?.uuid}
+            value={selected?.uuid ?? "Loading..."}
             onChange={(uuid) =>
               setSelected(entityList.find((t) => t.uuid === uuid))
             }

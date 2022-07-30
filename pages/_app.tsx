@@ -20,11 +20,10 @@ import {
 import { useEffect, useState } from "react";
 import localforage from "localforage";
 import { useResizeObserver } from "@mantine/hooks";
-import { ModalsProvider } from "@mantine/modals";
 
 import {
   AppNavbar,
-  GoogleLoginCredentials,
+  // GoogleLoginCredentials,
   GoogleDriveCommunicator,
 } from "~/components/";
 import {
@@ -46,6 +45,7 @@ import {
   BondLog,
 } from "~/orm/entities";
 import { SeedBBCodeConfig_1658802129887 } from "~/orm/migrations";
+import { ModalsProvider } from "@mantine/modals";
 
 let DataSourceOpts: DataSourceOptions = {
   entities: [
@@ -68,9 +68,9 @@ let DataSourceOpts: DataSourceOptions = {
 function MyApp({ Component, pageProps }: AppProps) {
   const theme = useMantineTheme();
   const [opened, setOpened] = useState(false);
-  const [loginCredentials, setLoginCredentials] = useState<
-    GoogleLoginCredentials | null | "ERROR"
-  >(null);
+  // const [loginCredentials, setLoginCredentials] = useState<
+  //   GoogleLoginCredentials | null | "ERROR"
+  // >(null);
   const [googleSyncEnabled, setGoogleSyncEnabled] = useState<boolean>(false);
 
   useEffect(() => {
@@ -90,11 +90,17 @@ function MyApp({ Component, pageProps }: AppProps) {
       <DataSourceContext.Consumer>
         {(ds) => (
           <MantineProvider
-            theme={{ colorScheme: "dark" }}
             withGlobalStyles
             withNormalizeCSS
-            styles={{
-              Button: { root: { transitionDuration: "0.25s" } },
+            theme={{
+              colorScheme: "dark",
+              components: {
+                Button: {
+                  styles: {
+                    root: { transitionDuration: "0.25s" },
+                  },
+                },
+              },
             }}
           >
             <ModalsProvider>

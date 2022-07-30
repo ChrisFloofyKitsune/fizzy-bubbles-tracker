@@ -18,7 +18,7 @@ export abstract class ShopTrackedChangeLog extends ChangeLogBase {
     type: "text",
     transformer: UTCTransformer,
   })
-  timestamp: Dayjs;
+  date: Dayjs;
 
   @Column({
     type: "boolean",

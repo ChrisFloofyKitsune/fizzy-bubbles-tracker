@@ -3,14 +3,16 @@ import { CurrencyType } from "../enums";
 import { ShopTrackedChangeLog } from "./changeLogBase";
 
 @Entity({
-    orderBy: {
-        timestamp: 'ASC'
-    },
+  orderBy: {
+    date: "ASC",
+  },
 })
 export class WalletLog extends ShopTrackedChangeLog {
-    @Column('text')
-    currencyType: CurrencyType | string;
+  @Column("text")
+  currencyType: CurrencyType;
 
-    @Column('integer')
-    quanityChange: number;
+  @Column("integer", {
+    default: 0,
+  })
+  quantityChange: number;
 }

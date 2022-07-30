@@ -4,12 +4,12 @@ import { ShopTrackedChangeLog } from "./changeLogBase";
 
 @Entity({
   orderBy: {
-    timestamp: "ASC",
+    date: "ASC",
   },
 })
 export class ItemLog extends ShopTrackedChangeLog {
   @Column("integer")
-  quanityChange: number;
+  quantityChange: number;
 
   @ManyToOne(() => ItemDefinition, {
     onDelete: "SET NULL",
