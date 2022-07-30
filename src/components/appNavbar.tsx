@@ -33,6 +33,7 @@ const useStyles = createStyles((theme) => ({
     ".mantine-Group-root": {
       borderRadius: borderRadius.normal,
       transition: transitionTime,
+      flexWrap: "nowrap",
     },
 
     "&:hover": {

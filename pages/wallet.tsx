@@ -3,6 +3,7 @@ import {
   Box,
   createStyles,
   Group,
+  ScrollArea,
   Stack,
   Text,
   Title,
@@ -14,9 +15,9 @@ import { Repository } from "typeorm";
 import { WalletLog } from "~/orm/entities";
 import { useAsyncEffect } from "use-async-effect";
 import { WAIT_FOREVER, waitUntil } from "async-wait-until";
-import { EditModeToggle } from "~/components";
+import { BBCodeArea, EditModeToggle } from "~/components";
 import { useListState } from "@mantine/hooks";
-import { CurrencyType } from "~/orm/enums";
+import { CurrencyType, CurrencyTypeDisplayName } from "~/orm/enums";
 import { PokeDollarIcon } from "~/appIcons";
 import { TbCandy } from "react-icons/tb";
 import {
@@ -102,25 +103,18 @@ const Wallet: NextPage = () => {
     [requestSave, walletLogs, walletLogsHandler, repo]
   );
 
-  const pdCallbacks = useMemo(
-    () => makeCallbacks(CurrencyType.POKE_DOLLAR),
-    [makeCallbacks]
-  );
-  const wtCallbacks = useMemo(
-    () => makeCallbacks(CurrencyType.WATTS),
-    [makeCallbacks]
-  );
-  const rcCallbacks = useMemo(
-    () => makeCallbacks(CurrencyType.RARE_CANDY),
-    [makeCallbacks]
-  );
-  const fcCallbacks = useMemo(
-    () => makeCallbacks(CurrencyType.FIZZY_CREDIT),
-    [makeCallbacks]
-  );
+  const callbacks: { [V in CurrencyType]: LogEditorCallbacks<WalletLog> } =
+    useMemo(() => {
+      return Object.assign(
+        {},
+        ...Object.values(CurrencyType).map((ct) => ({
+          [ct]: makeCallbacks(ct),
+        }))
+      );
+    }, [makeCallbacks]);
 
   const walletLogPropStyles = propStyles();
-  const changePropToStuff = useMemo(
+  const changePropAttributes = useMemo(
     () => ({
       propsToLabelsPairs: [{ prop: "quantityChange", label: "Change" }],
       propsToEditorComponentPairs: [
@@ -160,53 +154,29 @@ const Wallet: NextPage = () => {
         </Group>
         <Title order={3}>Summary</Title>
         <Box
-          sx={(theme) => ({
+          sx={{
             width: "100%",
             display: "grid",
-            rowGap: "0.25em",
+            gridAutoFlow: "column",
+            gap: "0.25em 1em",
             padding: "0 2rem",
-            ".mantine-Title-root": {
-              borderBottom: "1px solid white",
-              "&:nth-of-type(2n)": {
-                gridColumn: "span 2",
-                [theme.fn.largerThan("md")]: {
-                  marginRight: "0.5em",
-                },
-              },
+            maxWidth: "60em",
+            margin: "auto",
+            gridTemplate: "repeat(5, 1fr) / 1fr",
+            "& > *": {
+              borderBottom: "1px gray solid",
             },
-            ".mantine-Text-root": {
-              borderBottom: "1px solid white",
-              "&:nth-of-type(3n+2)": {
-                paddingRight: "0.5em",
+            "& .mantine-Group-root": {
+              justifyContent: "space-between",
+              gap: "0.5em",
+              ".mantine-Text-root:nth-of-type(2)": {
+                flexGrow: 3,
                 textAlign: "right",
               },
-              "&:nth-of-type(3n+3)": {
+              ".mantine-Text-root:nth-of-type(3)": {
+                width: "1.5em",
+                height: "1.5em",
                 textAlign: "center",
-                [theme.fn.largerThan("md")]: {
-                  marginRight: "0.5em",
-                },
-              },
-              [theme.fn.largerThan("md")]: {
-                "&:nth-of-type(4), &:nth-of-type(5), &:nth-of-type(6)": {
-                  order: 3,
-                },
-                "&:nth-of-type(7), &:nth-of-type(8), &:nth-of-type(9)": {
-                  order: 2,
-                },
-                "&:nth-of-type(10), &:nth-of-type(11), &:nth-of-type(12)": {
-                  order: 4,
-                },
-              },
-            },
-            [theme.fn.largerThan("md")]: {
-              gridTemplateColumns: "1fr auto min-content 1fr auto min-content",
-            },
-            [theme.fn.smallerThan("md")]: {
-              gridTemplateColumns: "1fr auto min-content",
-            },
-            ".responsive": {
-              [theme.fn.smallerThan("md")]: {
-                display: "none",
               },
             },
             "& svg": {
@@ -214,98 +184,92 @@ const Wallet: NextPage = () => {
               verticalAlign: "middle",
               marginTop: "-0.3em",
             },
-          })}
+          }}
         >
-          <Title order={4}>Currency</Title>
-          <Title order={4} align="right">
-            Balance
-          </Title>
-          <Title order={4} className="responsive">
-            Currency
-          </Title>
-          <Title order={4} className="responsive" align="right">
-            Balance
-          </Title>
-          <Text>PokéDollars</Text>
-          <Text>
-            {`${(currentBalances.pokedollar ?? 0).toLocaleString("en-US")}`}
-          </Text>
-          <Text>
-            <PokeDollarIcon size="1em" />
-          </Text>
-          <Text>Watts</Text>
-          <Text>{`${(currentBalances.watts ?? 0).toLocaleString(
-            "en-US"
-          )}`}</Text>
-          <Text>W</Text>
-          <Text>Rare Candies</Text>
-          <Text>
-            {`${(currentBalances.rarecandy ?? 0).toLocaleString("en-US")}`}
-          </Text>
-          <Text>
-            <TbCandy size="1.3em" />
-          </Text>
-          <Text>Fizzy Credits</Text>
-          <Text>
-            {`${(currentBalances.fizzycredit ?? 0).toLocaleString("en-US")}`}
-          </Text>
-          <Text>FC</Text>
+          <Group>
+            <Title order={4}>Currency</Title>
+            <Title order={4} align="right">
+              Balance
+            </Title>
+          </Group>
+
+          <Group>
+            <Text>{CurrencyTypeDisplayName["pokedollar"][1]}</Text>
+            <Text>
+              {`${(currentBalances.pokedollar ?? 0).toLocaleString("en-US")}`}
+            </Text>
+            <Text>
+              <PokeDollarIcon size="1em" />
+            </Text>
+          </Group>
+          <Group>
+            <Text>{CurrencyTypeDisplayName["watts"][1]}</Text>
+            <Text>{`${(currentBalances.watts ?? 0).toLocaleString(
+              "en-US"
+            )}`}</Text>
+            <Text weight={500}>W</Text>
+          </Group>
+          <Group>
+            <Text>{CurrencyTypeDisplayName["rarecandy"][1]}</Text>
+            <Text>
+              {`${(currentBalances.rarecandy ?? 0).toLocaleString("en-US")}`}
+            </Text>
+            <Text>
+              <TbCandy size="1.3em" />
+            </Text>
+          </Group>
         </Box>
 
         <Title order={3}>Detail</Title>
-        <Accordion variant="separated" multiple={true}>
-          <Accordion.Item value="pd">
-            <Accordion.Control>PokéDollars</Accordion.Control>
-            <Accordion.Panel>
-              <LogEditor
-                logs={walletLogs}
-                isShopLog={true}
-                isEditMode={editModeOn}
-                {...changePropToStuff}
-                {...pdCallbacks}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="wt">
-            <Accordion.Control>Watts</Accordion.Control>
-            <Accordion.Panel>
-              <LogEditor
-                logs={walletLogs}
-                isShopLog={true}
-                isEditMode={editModeOn}
-                {...changePropToStuff}
-                {...wtCallbacks}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="rc">
-            <Accordion.Control>Rare Candies</Accordion.Control>
-            <Accordion.Panel>
-              <LogEditor
-                logs={walletLogs}
-                isShopLog={true}
-                isEditMode={editModeOn}
-                {...changePropToStuff}
-                {...rcCallbacks}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
-          <Accordion.Item value="fc">
-            <Accordion.Control>Fizzy Credits</Accordion.Control>
-            <Accordion.Panel>
-              <LogEditor
-                logs={walletLogs}
-                isShopLog={true}
-                isEditMode={editModeOn}
-                {...changePropToStuff}
-                {...fcCallbacks}
-              />
-            </Accordion.Panel>
-          </Accordion.Item>
+        <Accordion
+          variant="separated"
+          multiple={true}
+          sx={(theme) => ({
+            ".mantine-Accordion-panel": {
+              margin: "0.5em",
+              borderRadius: "0.5em",
+              border: "1px solid " + theme.colors.gray[7],
+              backgroundColor: theme.fn.darken(theme.colors.gray[9], 0.2),
+            },
+            ".mantine-Accordion-content": {
+              borderRadius: "0.5em",
+              overflow: "clip",
+              padding: "2px",
+              ".mantine-ScrollArea-viewport": {
+                paddingBottom: editModeOn ? "1em" : "",
+              },
+            },
+          })}
+        >
+          {Object.values(CurrencyType).map((ct) => (
+            <Accordion.Item key={ct} value={ct}>
+              <Accordion.Control>
+                {CurrencyTypeDisplayName[ct][1]}
+              </Accordion.Control>
+              <Accordion.Panel>
+                <ScrollArea.Autosize maxHeight="40vh">
+                  <LogEditor
+                    logs={walletLogs}
+                    isShopLog={true}
+                    isEditMode={editModeOn}
+                    {...changePropAttributes}
+                    {...callbacks[ct]}
+                  />
+                </ScrollArea.Autosize>
+              </Accordion.Panel>
+            </Accordion.Item>
+          ))}
         </Accordion>
-
-        <Title order={3}>Output Preview</Title>
-        <Title order={3}>Wallet Log</Title>
+        <Title order={3}>Output</Title>
+        <Stack>
+          {Object.values(CurrencyType).map((ct) => (
+            <BBCodeArea
+              key={`output-${ct}`}
+              label={CurrencyTypeDisplayName[ct][1] + " Log"}
+              bbCode={WalletLog.createBBCode(walletLogs, ct)}
+            />
+          ))}
+        </Stack>
       </Stack>
     </>
   );

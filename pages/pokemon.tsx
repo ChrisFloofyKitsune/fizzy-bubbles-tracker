@@ -28,30 +28,30 @@ const useEditorStyle = createStyles((theme) => ({
     gap: "0.5em",
     [theme.fn.largerThan("md")]: {
       gridTemplateAreas: `nme spe dex typ abl
-           nat gen .   trn .
-           obt pkb hld .   .
-           obl pkl hll .   .
-           des des des des des
-           img img img img img
-           ev1 e2m ev2 e3m ev3
-           .   e2l .   e3l .
-           bqm bqm bqm bql bql`
+                          nat gen .   trn .
+                          obt pkb hld .   .
+                          obl pkl hll .   .
+                          des des des des des
+                          img img img img img
+                          ev1 e2m ev2 e3m ev3
+                          .   e2l .   e3l .
+                          bqm bqm bqm bql bql`
         .split("\n")
         .map((l) => `"${l}"`)
         .join(""),
     },
     [theme.fn.smallerThan("md")]: {
       gridTemplateAreas: `nme spe dex
-                 typ abl nat
-                 gen .   trn
-                 obt pkb hld
-                 obl pkl hll
-                 des des des
-                 img img img
-                 ev1 ev2 ev3
-                 .   e2m e3m
-                 .   e2l e3l
-                 bqm bqm bql`
+                          typ abl nat
+                          gen .   trn
+                          obt pkb hld
+                          obl pkl hll
+                          des des des
+                          img img img
+                          ev1 ev2 ev3
+                          .   e2m e3m
+                          .   e2l e3l
+                          bqm bqm bql`
         .split("\n")
         .map((l) => `"${l}"`)
         .join(""),
@@ -173,6 +173,9 @@ const Pokemon: NextPage = () => {
       <Stack>
         <Group>
           <Select
+            sx={{
+              width: "11em",
+            }}
             data={entityList.map((t) => ({
               label: `${t.name || "Unnamed"} (${t.species || "New Pokemon"})`,
               value: t.uuid,
@@ -182,6 +185,9 @@ const Pokemon: NextPage = () => {
               setSelected(entityList.find((t) => t.uuid === uuid))
             }
           />
+          <Title order={2} sx={{ flexGrow: 1, textAlign: "center" }}>
+            Pokemon
+          </Title>
           <EditModeToggle
             ml="auto"
             checked={editModeOn}

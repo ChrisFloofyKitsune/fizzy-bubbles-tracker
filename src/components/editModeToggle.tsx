@@ -28,6 +28,11 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
   );
   return (
     <Switch
+      styles={{
+        root: {
+          width: "11em",
+        },
+      }}
       sx={{
         userSelect: "none",
         cursor: "pointer",

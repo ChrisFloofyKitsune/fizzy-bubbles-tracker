@@ -62,12 +62,18 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
       <Stack>
         <Group>
           <Select
+            sx={{
+              width: "11em",
+            }}
             data={entityList.map((t) => ({ label: t.name, value: t.uuid }))}
             value={selected?.uuid ?? "Loading..."}
             onChange={(uuid) =>
               setSelected(entityList.find((t) => t.uuid === uuid))
             }
           />
+          <Title order={2} sx={{ flexGrow: 1, textAlign: "center" }}>
+            Trainers
+          </Title>
           <EditModeToggle
             ml="auto"
             checked={editModeOn}

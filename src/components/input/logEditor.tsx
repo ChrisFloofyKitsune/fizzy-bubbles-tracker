@@ -3,7 +3,6 @@ import {
   Badge,
   Text,
   Button,
-  ScrollArea,
   Table,
   ActionIcon,
   Center,
@@ -85,8 +84,8 @@ export function LogEditor<T extends ChangeLogBase | ShopTrackedChangeLog>({
       );
     }
     let result = concatNew(propsToLabelsPairs, [
-      { label: "Link", prop: "sourceUrl" },
       { label: "Note", prop: "sourceNote" },
+      { label: "Link", prop: "sourceUrl" },
     ]);
     if (isShopLog) {
       return concatNew(result as PropToLabelPair<ShopTrackedChangeLog>[], [
@@ -126,87 +125,85 @@ export function LogEditor<T extends ChangeLogBase | ShopTrackedChangeLog>({
   ) as Record<keyof T, string> & Record<"remove", string>;
 
   return (
-    <ScrollArea.Autosize maxHeight="60vh">
-      <Table striped highlightOnHover={isEditMode} captionSide="bottom">
-        <thead style={{ position: "sticky" }}>
-          <tr>
-            {myProps.map(({ label, prop }) => (
-              <th key={`header-${String(prop)}`}>{label}</th>
-            ))}
+    <Table striped highlightOnHover={isEditMode} captionSide="bottom">
+      <thead style={{ position: "sticky" }}>
+        <tr>
+          {myProps.map(({ label, prop }) => (
+            <th key={`header-${String(prop)}`}>{label}</th>
+          ))}
+          {isEditMode && (
+            <th key={`header-remove`} className={myClasses.remove}>
+              <Text align="center">Remove</Text>
+            </th>
+          )}
+        </tr>
+      </thead>
+      <tbody>
+        {myLogs.map((log) => (
+          <tr key={log.id}>
+            {myProps.map(({ prop }) => {
+              let comp = myPropToCompMap[prop as string]?.toComponent(
+                log,
+                isEditMode,
+                async (value) => await edit?.(log, prop, value)
+              ) ?? <Text>{String(log[prop])}</Text>;
+              return (
+                <td
+                  className={myClasses[prop] ?? ""}
+                  key={`${log.id}-${String(prop)}`}
+                >
+                  {comp}
+                </td>
+              );
+            })}
             {isEditMode && (
-              <th key={`header-remove`} className={myClasses.remove}>
-                <Text align="center">Remove</Text>
-              </th>
+              <td key={`${log.id}-delete`} className={myClasses.remove}>
+                <ActionIcon
+                  variant="filled"
+                  color="red"
+                  onClick={() =>
+                    openConfirmModal({
+                      title: (
+                        <Center sx={{ width: "100%" }}>
+                          <Badge color="red" size="xl" variant="outline">
+                            Confirm entry deletion
+                          </Badge>
+                        </Center>
+                      ),
+                      size: "xs",
+                      centered: true,
+                      withCloseButton: false,
+                      groupProps: { sx: { justifyContent: "center" } },
+                      cancelProps: { color: "yellow", variant: "outline" },
+                      confirmProps: { color: "red" },
+                      labels: { confirm: "Delete", cancel: "Cancel" },
+                      styles: {
+                        header: {
+                          width: "100%",
+                        },
+                        title: {
+                          width: "100%",
+                          marginRight: 0,
+                        },
+                      },
+                      onConfirm: async () => await remove?.(log),
+                    })
+                  }
+                >
+                  <DeleteIcon />
+                </ActionIcon>
+              </td>
             )}
           </tr>
-        </thead>
-        <tbody>
-          {myLogs.map((log) => (
-            <tr key={log.id}>
-              {myProps.map(({ prop }) => {
-                let comp = myPropToCompMap[prop as string]?.toComponent(
-                  log,
-                  isEditMode,
-                  async (value) => await edit?.(log, prop, value)
-                ) ?? <Text>{String(log[prop])}</Text>;
-                return (
-                  <td
-                    className={myClasses[prop] ?? ""}
-                    key={`${log.id}-${String(prop)}`}
-                  >
-                    {comp}
-                  </td>
-                );
-              })}
-              {isEditMode && (
-                <td key={`${log.id}-delete`} className={myClasses.remove}>
-                  <ActionIcon
-                    variant="filled"
-                    color="red"
-                    onClick={() =>
-                      openConfirmModal({
-                        title: (
-                          <Center sx={{ width: "100%" }}>
-                            <Badge color="red" size="xl" variant="outline">
-                              Confirm entry deletion
-                            </Badge>
-                          </Center>
-                        ),
-                        size: "xs",
-                        centered: true,
-                        withCloseButton: false,
-                        groupProps: { sx: { justifyContent: "center" } },
-                        cancelProps: { color: "yellow", variant: "outline" },
-                        confirmProps: { color: "red" },
-                        labels: { confirm: "Delete", cancel: "Cancel" },
-                        styles: {
-                          header: {
-                            width: "100%",
-                          },
-                          title: {
-                            width: "100%",
-                            marginRight: 0,
-                          },
-                        },
-                        onConfirm: async () => await remove?.(log),
-                      })
-                    }
-                  >
-                    <DeleteIcon />
-                  </ActionIcon>
-                </td>
-              )}
-            </tr>
-          ))}
-        </tbody>
-        <caption>
-          {isEditMode && (
-            <Button leftIcon={<AddIcon />} onClick={add}>
-              Add Entry
-            </Button>
-          )}
-        </caption>
-      </Table>
-    </ScrollArea.Autosize>
+        ))}
+      </tbody>
+      <caption>
+        {isEditMode && (
+          <Button leftIcon={<AddIcon />} onClick={add}>
+            Add Entry
+          </Button>
+        )}
+      </caption>
+    </Table>
   );
 }

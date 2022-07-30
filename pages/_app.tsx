@@ -46,6 +46,9 @@ import {
 } from "~/orm/entities";
 import { SeedBBCodeConfig_1658802129887 } from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
+import { Prism } from "prism-react-renderer";
+(typeof global !== "undefined" ? global : window).Prism = Prism;
+require("prismjs/components/prism-bbcode");
 
 let DataSourceOpts: DataSourceOptions = {
   entities: [
