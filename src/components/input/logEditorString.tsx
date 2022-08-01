@@ -41,7 +41,7 @@ function StringPropEditor({
           ? "inset 0px 0px 1px 1px" + theme.colors.gray[7]
           : "unset",
         borderRadius: "0.25em",
-        height: "2em",
+        minHeight: "2em",
         padding: "0 0.25em",
       })}
     >
@@ -52,7 +52,7 @@ function StringPropEditor({
           variant="unstyled"
           sx={{
             ".mantine-Input-input": {
-              height: "2em",
+              minHeight: "2em",
             },
           }}
           value={value ?? ""}

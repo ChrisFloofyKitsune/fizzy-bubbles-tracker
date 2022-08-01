@@ -12,11 +12,10 @@ import {
   Title,
 } from "@mantine/core";
 import { NextPage } from "next";
-import { useDataSource } from "~/services";
+import { useRepositories, waitForTransactions } from "~/services";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Repository } from "typeorm";
 import useAsyncEffect from "use-async-effect";
-import { WAIT_FOREVER, waitUntil } from "async-wait-until";
 import { Pokemon as dbPokemon, Trainer } from "~/orm/entities";
 import { BBCodeFromTemplate, EditModeToggle, EntityEditor } from "~/components";
 import { AddIcon } from "~/appIcons";
@@ -37,7 +36,7 @@ const useEditorStyle = createStyles((theme) => ({
                           .   e2l .   e3l .
                           bqm bqm bqm bql bql`
         .split("\n")
-        .map((l) => `"${l}"`)
+        .map((l) => `"${l.trim()}"`)
         .join(""),
     },
     [theme.fn.smallerThan("md")]: {
@@ -53,7 +52,7 @@ const useEditorStyle = createStyles((theme) => ({
                           .   e2l e3l
                           bqm bqm bql`
         .split("\n")
-        .map((l) => `"${l}"`)
+        .map((l) => `"${l.trim()}"`)
         .join(""),
     },
 
@@ -86,29 +85,38 @@ const useEditorStyle = createStyles((theme) => ({
 }));
 
 const Pokemon: NextPage = () => {
-  const ds = useDataSource();
-
-  const [repo, setRepo] = useState<Repository<dbPokemon>>();
+  const [repo, trainerRepo] = useRepositories(dbPokemon, Trainer) as [
+    Repository<dbPokemon> | undefined,
+    Repository<Trainer> | undefined
+  ];
   const [entityList, setEntityList] = useState<dbPokemon[]>([]);
   const [selected, setSelected] = useState<dbPokemon>();
 
-  const [editModeOn, setEditModeOn] = useState<boolean>(false);
+  const [trainerList, setTrainerList] = useState<Trainer[]>();
 
-  useEffect(() => {
-    setRepo(ds?.getRepository(dbPokemon));
-  }, [ds]);
+  const [editModeOn, setEditModeOn] = useState<boolean>(false);
 
   useAsyncEffect(async () => {
     if (!repo) return;
-    await waitUntil(() => !repo.queryRunner?.isTransactionActive, {
-      timeout: WAIT_FOREVER,
-    });
+    await waitForTransactions(repo);
     const list = await repo.find({
       loadEagerRelations: true,
     });
     setEntityList(list);
     setSelected(selected ?? list[0] ?? undefined);
   }, [repo]);
+
+  useAsyncEffect(async () => {
+    if (!trainerRepo) return;
+    await waitForTransactions(trainerRepo);
+    const trainers = await trainerRepo.find({
+      select: {
+        uuid: true,
+        name: true,
+      },
+    });
+    setTrainerList(trainers);
+  }, [trainerRepo]);
 
   const createNewPokemon = useCallback(() => {
     return repo?.create({
@@ -142,20 +150,6 @@ const Pokemon: NextPage = () => {
     }
   }, [genderOptions, selected]);
 
-  const [trainerList, setTrainerList] = useState<Trainer[]>();
-  useAsyncEffect(async () => {
-    if (!ds) return;
-    const tRepo = ds.getRepository(Trainer);
-    await waitUntil(() => !tRepo.queryRunner?.isTransactionActive);
-    const trainers = await ds.getRepository(Trainer).find({
-      select: {
-        uuid: true,
-        name: true,
-      },
-    });
-    setTrainerList(trainers);
-  }, [ds]);
-
   const trainerOpts: SelectItem[] = useMemo(
     () => [
       { label: "\xa0", value: "" },
@@ -164,7 +158,7 @@ const Pokemon: NextPage = () => {
     [trainerList]
   );
 
-  if (!ds) {
+  if (!repo) {
     return <>Loading...?</>;
   }
 
@@ -205,9 +199,7 @@ const Pokemon: NextPage = () => {
             color="green"
             leftIcon={<AddIcon />}
             onClick={async () => {
-              await waitUntil(
-                () => repo && !repo.queryRunner?.isTransactionActive
-              );
+              await waitForTransactions(repo);
               const pokemon = await repo!.save(createNewPokemon());
               setEntityList([pokemon]);
               setSelected(pokemon);

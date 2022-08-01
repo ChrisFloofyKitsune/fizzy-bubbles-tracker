@@ -11,11 +11,16 @@ import {
 import { ReactNode, useMemo } from "react";
 import { AddIcon, DeleteIcon } from "~/appIcons";
 import { openConfirmModal } from "@mantine/modals";
-import { DatePropEditor } from "~/components/input/logEditorDate";
+import { DatePropToEditor } from "~/components/input/logEditorDate";
 import { stringPropToEditor } from "~/components/input/logEditorString";
 import { booleanPropToEditor } from "~/components/input/logEditorBoolean";
+import { SourceUrlEditor } from "~/components/input/logEditorSourceUrl";
 
-export type PropToLabelPair<T> = { prop: keyof T; label: ReactNode };
+export type PropToLabelPair<T> = {
+  prop: keyof T;
+  label: ReactNode;
+  order?: number;
+};
 export type PropToEditorComponentPair<T, P extends keyof T> = {
   prop: P;
   toComponent: (
@@ -24,7 +29,6 @@ export type PropToEditorComponentPair<T, P extends keyof T> = {
     onChange: (value: T[P]) => Promise<void>
   ) => JSX.Element;
 };
-export type PropToMantineClassPair<T> = { prop: keyof T; mantineClass: string };
 
 type MapPropComp<T> = {
   [P in keyof T as string]: PropToEditorComponentPair<T, P>;
@@ -84,19 +88,25 @@ export function LogEditor<T extends ChangeLogBase | ShopTrackedChangeLog>({
       );
     }
     let result = concatNew(propsToLabelsPairs, [
-      { label: "Note", prop: "sourceNote" },
-      { label: "Link", prop: "sourceUrl" },
+      { label: "Note", prop: "sourceNote", order: 101 },
+      { label: "Link", prop: "sourceUrl", order: 102 },
     ]);
     if (isShopLog) {
-      return concatNew(result as PropToLabelPair<ShopTrackedChangeLog>[], [
-        { label: <Text sx={{ width: "6.5em" }}>Date</Text>, prop: "date" },
+      result = concatNew(result as PropToLabelPair<ShopTrackedChangeLog>[], [
+        {
+          label: "Date",
+          prop: "date",
+          order: 201,
+        },
         {
           label: <Text align="right">Shop Verified?</Text>,
           prop: "verifiedInShopUpdate",
+          order: 202,
         },
       ]) as PropToLabelPair<T>[];
     }
-    return result;
+
+    return result.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [propsToLabelsPairs, isShopLog]);
 
   const myPropToCompMap: MapPropComp<T> = useMemo(() => {
@@ -108,10 +118,13 @@ export function LogEditor<T extends ChangeLogBase | ShopTrackedChangeLog>({
         any
       >;
     });
-    result["sourceNote"] = stringPropToEditor("sourceNote");
-    result["sourceUrl"] = stringPropToEditor("sourceUrl");
+    result["sourceNote"] = stringPropToEditor<ChangeLogBase, "sourceNote">(
+      "sourceNote"
+    );
+    result["sourceUrl"] = SourceUrlEditor;
     if (isShopLog) {
-      (result as MapPropComp<ShopTrackedChangeLog>)["date"] = DatePropEditor;
+      (result as MapPropComp<ShopTrackedChangeLog>)["date"] =
+        DatePropToEditor();
       (result as MapPropComp<ShopTrackedChangeLog>)["verifiedInShopUpdate"] =
         booleanPropToEditor("verifiedInShopUpdate");
     }
@@ -126,7 +139,15 @@ export function LogEditor<T extends ChangeLogBase | ShopTrackedChangeLog>({
 
   return (
     <Table striped highlightOnHover={isEditMode} captionSide="bottom">
-      <thead style={{ position: "sticky" }}>
+      <thead
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1,
+          backgroundColor: "#1a1a1a",
+          boxShadow: "inset 0px -1px #555",
+        }}
+      >
         <tr>
           {myProps.map(({ label, prop }) => (
             <th key={`header-${String(prop)}`}>{label}</th>

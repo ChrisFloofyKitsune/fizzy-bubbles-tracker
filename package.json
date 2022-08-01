@@ -39,6 +39,7 @@
     "sql.js": "^1.7.0",
     "typeorm": "^0.3.7",
     "use-async-effect": "^2.2.6",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.18.10/xlsx-0.18.10.tgz",
     "ya-bbcode": "^3.0.0"
   },
   "devDependencies": {

@@ -9,36 +9,24 @@ import {
   Title,
 } from "@mantine/core";
 import { NextPage } from "next";
-import { useCallback, useEffect, useState } from "react";
-import useAsyncEffect from "use-async-effect";
+import { useCallback, useState } from "react";
 import { Trainer } from "~/orm/entities";
-import { useDataSource } from "~/services";
-import { Repository } from "typeorm";
+import { useRepository, waitForTransactions } from "~/services";
 import { BBCodeArea, EditModeToggle } from "~/components";
 import { EntityEditor } from "~/components/entityEditor";
-import { WAIT_FOREVER, waitUntil } from "async-wait-until";
+import { waitUntil } from "async-wait-until";
 import { AddIcon } from "~/appIcons";
 
-type dbClass = Trainer;
 const Trainers: NextPage = () => {
-  const dbClass = Trainer;
-  const ds = useDataSource();
-
-  const [repo, setRepo] = useState<Repository<dbClass>>();
-  const [entityList, setEntityList] = useState<dbClass[]>([]);
-  const [selected, setSelected] = useState<dbClass>();
+  const repo = useRepository(Trainer);
+  const [entityList, setEntityList] = useState<Trainer[]>([]);
+  const [selected, setSelected] = useState<Trainer>();
 
   const [editModeOn, setEditModeOn] = useState<boolean>(false);
 
-  useEffect(() => {
-    setRepo(ds?.getRepository(dbClass));
-  }, [dbClass, ds]);
-
   useAsyncEffect(async () => {
     if (!repo) return;
-    await waitUntil(() => !repo.queryRunner?.isTransactionActive, {
-      timeout: WAIT_FOREVER,
-    });
+    await waitForTransactions(repo);
     const list = await repo.find();
     setEntityList(list);
     setSelected(selected ?? list[0] ?? undefined);
@@ -53,7 +41,7 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
     }) as Trainer;
   }, [repo]);
 
-  if (!ds) {
+  if (!repo) {
     return <>Loading...?</>;
   }
 

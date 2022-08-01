@@ -28,75 +28,75 @@ export class Pokemon {
   uuid: string;
 
   @Column("text", { nullable: true })
-  trainerId?: string | null;
+  trainerId: string | null;
 
   @ManyToOne(() => Trainer, (trainer) => trainer.pokemon, {
     nullable: true,
     onDelete: "SET NULL",
   })
-  trainer?: Trainer | null;
+  trainer: Trainer | null;
 
-  @Column({ nullable: true })
-  name?: string = "";
+  @Column("text", { nullable: true })
+  name: string | null = "";
 
-  @Column({ nullable: true })
-  species?: string = "";
-  @Column({ nullable: true })
-  dexNum?: string = "";
-  @Column({ nullable: true })
-  ability?: string = "";
+  @Column("text", { nullable: true })
+  species: string | null = "";
+  @Column("text", { nullable: true })
+  dexNum: string | null = "";
+  @Column("text", { nullable: true })
+  ability: string | null = "";
 
-  @Column({ nullable: true })
-  type?: string = "";
+  @Column("text", { nullable: true })
+  type: string | null = "";
 
-  @Column({ nullable: true })
-  nature?: string = "";
+  @Column("text", { nullable: true })
+  nature: string | null = "";
   @Column("text", { default: PokemonGenderOptions.UNDECIDED })
   gender: PokemonGenderOptions;
 
-  @Column({ nullable: true })
-  evolutionStageOne?: string;
-  @Column({ nullable: true })
-  evolutionStageTwoMethod?: string;
-  @Column({ nullable: true })
-  evolutionStageTwoMethodLink?: string;
-  @Column({ nullable: true })
-  evolutionStageTwo?: string;
-  @Column({ nullable: true })
-  evolutionStageThreeMethod?: string;
-  @Column({ nullable: true })
-  evolutionStageThreeMethodLink?: string;
-  @Column({ nullable: true })
-  evolutionStageThree?: string;
+  @Column("text", { nullable: true })
+  evolutionStageOne: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageTwoMethod: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageTwoMethodLink: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageTwo: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageThreeMethod: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageThreeMethodLink: string | null;
+  @Column("text", { nullable: true })
+  evolutionStageThree: string | null;
 
-  @Column({ nullable: true })
-  obtained?: string;
-  @Column({ nullable: true })
-  obtainedLink?: string;
+  @Column("text", { nullable: true })
+  obtained: string | null;
+  @Column("text", { nullable: true })
+  obtainedLink: string | null;
 
-  @Column({
+  @Column("text", {
     default: "Pokeball",
     nullable: true,
   })
-  pokeball?: string = "Pokeball";
-  @Column({ nullable: true })
-  pokeballLink?: string;
+  pokeball: string | null = "Pokeball";
+  @Column("text", { nullable: true })
+  pokeballLink: string | null;
 
-  @Column({ nullable: true })
-  heldItem?: string;
-  @Column({ nullable: true })
-  heldItemLink?: string;
+  @Column("text", { nullable: true })
+  heldItem: string | null;
+  @Column("text", { nullable: true })
+  heldItemLink: string | null;
 
-  @Column({ nullable: true })
-  boutiqueMods?: string;
-  @Column({ nullable: true })
-  boutiqueModsLink: string;
+  @Column("text", { nullable: true })
+  boutiqueMods: string | null;
+  @Column("text", { nullable: true })
+  boutiqueModsLink: string | null;
 
-  @Column({ nullable: true })
-  imageLink?: string = "";
+  @Column("text", { nullable: true })
+  imageLink: string | null = "";
 
   @Column("simple-json", { nullable: true })
-  levelUpMoves?: LevelUpMove[];
+  levelUpMoves: LevelUpMove[] | null;
 
   @OneToMany(() => LevelLog, (log) => log.pokemon, {
     cascade: true,
@@ -160,7 +160,7 @@ export class Pokemon {
       return this.evolutionStageOne;
     }
 
-    function arrow(method?: string, link?: string) {
+    function arrow(method: string | null, link: string | null) {
       return `-(${wrapUrlIfLink(method ?? " ", link)})->`;
     }
 
@@ -290,10 +290,10 @@ export class Pokemon {
         },
         {
           total: 0,
-          link: undefined,
+          link: null,
           id: 0,
-        } as { total: number; link: string | undefined; id: number }
-      ) ?? { total: 0, link: undefined, id: -1 }
+        } as { total: number; link: string | null; id: number }
+      ) ?? { total: 0, link: null, id: -1 }
     );
   }
 

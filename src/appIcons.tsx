@@ -3,7 +3,7 @@ import { VscSaveAll } from "react-icons/vsc";
 import { GiCancel } from "react-icons/gi";
 import { TiDocumentDelete, TiWarningOutline } from "react-icons/ti";
 import { GenIcon, IconBaseProps, IconType } from "react-icons/lib";
-import { TbEdit } from "react-icons/tb";
+import { TbEdit, TbEye } from "react-icons/tb";
 import { createIconTreeFromSVG } from "react-icons-converter";
 
 export const defaultSize = 20;
@@ -29,3 +29,4 @@ export const WarningIcon = wrap(TiWarningOutline);
 export const PokeDollarIcon = wrap(
   GenIcon(createIconTreeFromSVG(PokeDollarSVG, false))
 );
+export const ViewIcon = wrap(TbEye);

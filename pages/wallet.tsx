@@ -9,12 +9,10 @@ import {
   Title,
 } from "@mantine/core";
 import { NextPage } from "next";
-import { useDataSource } from "~/services";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Repository } from "typeorm";
+import { useRepository, waitForTransactions } from "~/services";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { WalletLog } from "~/orm/entities";
 import { useAsyncEffect } from "use-async-effect";
-import { WAIT_FOREVER, waitUntil } from "async-wait-until";
 import { BBCodeArea, EditModeToggle } from "~/components";
 import { useListState } from "@mantine/hooks";
 import { CurrencyType, CurrencyTypeDisplayName } from "~/orm/enums";
@@ -38,20 +36,13 @@ const propStyles = createStyles({
 });
 
 const Wallet: NextPage = () => {
-  const ds = useDataSource();
-  useEffect(() => {
-    setRepo(ds?.getRepository(WalletLog));
-  }, [ds]);
-
-  const [repo, setRepo] = useState<Repository<WalletLog>>();
+  const repo = useRepository(WalletLog);
   const [walletLogs, walletLogsHandler] = useListState<WalletLog>([]);
   const [editModeOn, setEditModeOn] = useState<boolean>(false);
 
   useAsyncEffect(async () => {
     if (!repo) return;
-    await waitUntil(() => !repo.queryRunner?.isTransactionActive, {
-      timeout: WAIT_FOREVER,
-    });
+    await waitForTransactions(repo);
     walletLogsHandler.setState(await repo.find());
   }, [repo]);
 
@@ -67,7 +58,7 @@ const Wallet: NextPage = () => {
   const debouncedSaveChanges = useCallback(
     debounce((changes: WalletLog[]) => {
       if (!repo) return;
-      waitUntil(() => !repo.queryRunner?.isTransactionActive).then(async () => {
+      waitForTransactions(repo).then(async () => {
         await repo.save(changes);
       });
     }, 300),
