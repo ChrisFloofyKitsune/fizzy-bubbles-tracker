@@ -10,14 +10,15 @@ import { Dayjs } from "dayjs";
   },
 })
 export class ItemLog extends ChangeLogBase {
-  @Column("integer")
+  @Column("integer", { default: 0 })
   quantityChange: number;
 
-  @Column("text", { nullable: true })
-  itemDefinitionId: string | null;
+  @Column("integer", { nullable: true })
+  itemDefinitionId: number | null;
 
   @ManyToOne(() => ItemDefinition, {
     onDelete: "SET NULL",
+    cascade: ["insert", "update"],
     nullable: true,
   })
   itemDefinition: ItemDefinition | null;

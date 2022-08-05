@@ -2,7 +2,6 @@ import { CellObject, read, utils, WorkBook } from "xlsx";
 import { ItemLog, ItemDefinition } from "~/orm/entities";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { uniqueOnProp } from "~/util";
 dayjs.extend(utc);
 
 export async function fileToWorkBook(
@@ -30,62 +29,66 @@ export function getItemLogsFromWorkBook(
   let [sheetName, range] = namedRangeRef.split("!");
   sheetName = sheetName.slice(1, -1);
   const sheet = workBook.Sheets[sheetName];
-  const { s: start, e: end } = utils.decode_range(range);
+  const { s, e } = utils.decode_range(range);
   const idx = {
-    quantity: start.c,
-    itemName: start.c + 1,
-    category: start.c + 2,
-    description: start.c + 3,
-    source: start.c + 4,
-    date: start.c + 5,
-    link: start.c + 6,
+    quantity: s.c,
+    itemName: s.c + 1,
+    category: s.c + 2,
+    description: s.c + 3,
+    source: s.c + 4,
+    date: s.c + 5,
+    link: s.c + 6,
   };
 
   let logResults: ItemLog[] = [];
   let definitionResults: ItemDefinition[] = [];
 
-  for (let row = start.r; row <= end.r; row++) {
+  for (let row = s.r; row <= e.r; row++) {
     function cell<R extends T, T = undefined>(
       c: number,
       defaultValue?: T
     ): T extends undefined ? CellObject["v"] : R {
       return sheet[utils.encode_cell({ r: row, c })]?.v ?? defaultValue;
     }
-    const log = new ItemLog();
-    const definition = new ItemDefinition();
 
-    log.quantityChange = cell(idx.quantity, 0);
-    definition.name = log.itemDefinitionId = cell(idx.itemName, "");
-    definition.category = cell(idx.category, "");
-    definition.description = cell(idx.description, "");
+    const itemName = cell(idx.itemName, "");
+    if (!itemName) continue;
 
-    let match = definition.description.match(
-      /\[IMG](?<link>.+?)\[\/IMG](?<desc>.+)$/i
-    );
-    if (!!match?.groups) {
-      const imageLink = match.groups["link"];
-      const description = match.groups["desc"];
-      definition.imageLink = imageLink;
-      definition.description = description.trim();
+    let definition = definitionResults.find((d) => d.name === itemName);
+    if (!definition) {
+      definition = new ItemDefinition();
+      definition.name = itemName;
+      definition.category = cell(idx.category, "");
+      definition.description = cell(idx.description, "");
+
+      let match = definition.description.match(
+        /\[IMG](?<link>.+?)\[\/IMG](?<desc>.+)$/i
+      );
+      if (!!match?.groups) {
+        const imageLink = match.groups["link"];
+        const description = match.groups["desc"];
+        definition.imageLink = imageLink;
+        definition.description = description.trim();
+      }
+
+      definitionResults.push(definition);
     }
 
+    const log = new ItemLog();
+    log.itemDefinition = definition;
+    log.quantityChange = cell(idx.quantity, 0);
     log.sourceNote = cell(idx.source, "");
     log.date = cellToUTC(cell(idx.date) as number);
     log.sourceUrl = cell(idx.link, "");
 
     logResults.push(log);
-    definitionResults.push(definition);
   }
 
-  logResults = logResults.filter((l) => !!l.itemDefinitionId);
-  definitionResults = definitionResults
-    .filter(uniqueOnProp("name"))
-    .filter((r) => !!r.category);
-  logResults.forEach(
-    (l) =>
-      (l.itemDefinition =
-        definitionResults.find((d) => d.name === l.itemDefinitionId) ?? null)
-  );
+  // logResults = logResults.filter((l) => !!l.itemDefinition);
+  // definitionResults = definitionResults
+  //   .filter((r) => !!r.category)
+  //   .filter(uniqueOnProp("name"));
+
   return {
     logs: logResults,
     definitions: definitionResults,

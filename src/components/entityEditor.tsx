@@ -23,9 +23,9 @@ import {
   Title,
 } from "@mantine/core";
 
-import { debounce } from "~/util";
 import { AddIcon, CancelIcon, DeleteIcon, WarningIcon } from "~/appIcons";
 import { waitUntil } from "async-wait-until";
+import { useDebouncedEntitySave } from "~/services";
 
 type EntityCallback<T extends ObjectLiteral> = (entity: T) => void;
 export type InputRef = RefObject<{ value: any } | any>;
@@ -74,39 +74,11 @@ export function EntityEditor<T extends ObjectLiteral>({
   children,
 }: EditorWrapperProps<T>) {
   const targetKeys = useMemo(() => Object.keys(targetEntity), [targetEntity]);
-  const [blankEntity, setBlankEntity] = useState<T>();
-  const pendingChanges = useRef<Partial<T>>({});
 
-  useEffect(() => {
-    pendingChanges.current = {};
-  }, [entityId, targetEntity]);
-
-  useEffect(() => {
-    setBlankEntity(entityRepo.create());
-  }, [entityRepo]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedUpdate = useCallback(
-    debounce((c: Partial<T>) => {
-      pendingChanges.current = {};
-      const updatedEntity = Object.assign(
-        Object.create(blankEntity ?? {}),
-        targetEntity,
-        c
-      );
-      onUpdate?.(updatedEntity);
-      entityRepo.save(updatedEntity).then();
-    }, 500),
-    [blankEntity, targetEntity, entityId]
-  );
-
-  const update = useCallback(
-    (updatePayload: Partial<T>) => {
-      const changes = Object.assign(pendingChanges.current, updatePayload);
-      debouncedUpdate(changes);
-    },
-    [debouncedUpdate]
-  );
+  const saveChange = useDebouncedEntitySave(targetEntity, entityRepo, {
+    beforeSavedToRepo: onUpdate,
+    debounceTime: 500,
+  });
 
   const refMap = useRef<Record<string, InputRef>>({});
 
@@ -144,13 +116,13 @@ export function EntityEditor<T extends ObjectLiteral>({
                     ).checked;
                   }
                 }
-                update({ [k]: eventOrValue } as Partial<T>);
+                saveChange({ [k]: eventOrValue } as Partial<T>);
               },
             },
           };
         })
       ) as InputPropMap<T>,
-    [targetKeys, update]
+    [targetKeys, saveChange]
   );
 
   useEffect(() => {

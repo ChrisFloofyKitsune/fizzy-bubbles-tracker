@@ -2,6 +2,7 @@ import {
   Accordion,
   Box,
   createStyles,
+  CSSObject,
   Group,
   ScrollArea,
   Stack,
@@ -9,8 +10,12 @@ import {
   Title,
 } from "@mantine/core";
 import { NextPage } from "next";
-import { useRepository, waitForTransactions } from "~/services";
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  useDebouncedListSave,
+  useRepository,
+  waitForTransactions,
+} from "~/services";
+import { useCallback, useMemo, useState } from "react";
 import { WalletLog } from "~/orm/entities";
 import { useAsyncEffect } from "use-async-effect";
 import { BBCodeArea, EditModeToggle } from "~/components";
@@ -18,22 +23,20 @@ import { useListState } from "@mantine/hooks";
 import { CurrencyType, CurrencyTypeDisplayName } from "~/orm/enums";
 import { PokeDollarIcon } from "~/appIcons";
 import { TbCandy } from "react-icons/tb";
+import { DataTableCallbacks } from "~/components/dataTable/dataTable";
+import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
 import {
-  LogEditor,
-  LogEditorCallbacks,
-  PropToEditorComponentPair,
-  PropToLabelPair,
-} from "~/components/input/logEditor";
-import { debounce } from "~/util";
-import { numberPropToEditor } from "~/components/input/logEditorNumber";
+  LogDataTable,
+  LogDataTableProps,
+} from "~/components/dataTable/logDataTable";
 
 type Balances = { [p in CurrencyType]: number };
 
 const propStyles = createStyles({
   quantityChange: {
-    width: "10em",
+    width: "12em",
   },
-});
+} as Record<keyof WalletLog, CSSObject>);
 
 const Wallet: NextPage = () => {
   const repo = useRepository(WalletLog);
@@ -50,32 +53,16 @@ const Wallet: NextPage = () => {
     return walletLogs.reduce((balance, { currencyType, quantityChange }) => {
       balance[currencyType] += quantityChange;
       return balance;
-    }, Object.assign({}, ...Object.values(CurrencyType).map((c) => ({ [c]: 0 }))) as Balances);
+    }, Object.assign({} as Balances, ...Object.values(CurrencyType).map((c) => ({ [c]: 0 }))) as Balances);
   }, [walletLogs]);
 
-  const pendingChanges = useRef<Record<WalletLog["id"], WalletLog>>({});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSaveChanges = useCallback(
-    debounce((changes: WalletLog[]) => {
-      if (!repo) return;
-      waitForTransactions(repo).then(async () => {
-        await repo.save(changes);
-      });
-    }, 300),
-    [repo]
-  );
+  const requestSave = useDebouncedListSave(repo);
 
-  const requestSave = useCallback(
-    (log: WalletLog) => {
-      pendingChanges.current[log.id] = log;
-      debouncedSaveChanges(Object.values(pendingChanges.current));
-    },
-    [debouncedSaveChanges]
-  );
-
-  const makeCallbacks = useCallback(
-    (type: CurrencyType): LogEditorCallbacks<WalletLog> => ({
-      filter: (log) => log.currencyType === type,
+  const makeCurrencyTypeOptions = useCallback(
+    (
+      type: CurrencyType
+    ): DataTableCallbacks<WalletLog> & { rowObjs: WalletLog[] } => ({
+      rowObjs: walletLogs.filter((log) => log.currencyType === type),
       add: async () => {
         const log = await repo!.save(repo!.create({ currencyType: type }));
         walletLogsHandler.append(log);
@@ -84,44 +71,43 @@ const Wallet: NextPage = () => {
         if (typeof prop === "undefined") return;
         const index = walletLogs.findIndex((l) => l.id === log.id);
         walletLogsHandler.setItemProp(index, prop, value);
-        requestSave(Object.assign({}, log, { [prop]: value }));
+        requestSave(log, { [prop]: value });
       },
       remove: async (log) => {
-        walletLogsHandler.remove(walletLogs.findIndex((l) => l.id === log.id));
+        walletLogsHandler.filter((wl) => wl.id !== log.id);
         await repo!.remove(log);
       },
     }),
     [requestSave, walletLogs, walletLogsHandler, repo]
   );
 
-  const callbacks: { [V in CurrencyType]: LogEditorCallbacks<WalletLog> } =
-    useMemo(() => {
-      return Object.assign(
-        {},
-        ...Object.values(CurrencyType).map((ct) => ({
-          [ct]: makeCallbacks(ct),
-        }))
-      );
-    }, [makeCallbacks]);
+  const currencyTypeOptions: {
+    [V in CurrencyType]: DataTableCallbacks<WalletLog> & {
+      rowObjs: WalletLog[];
+    };
+  } = useMemo(() => {
+    return Object.assign(
+      {},
+      ...Object.values(CurrencyType).map((ct) => ({
+        [ct]: makeCurrencyTypeOptions(ct),
+      }))
+    );
+  }, [makeCurrencyTypeOptions]);
 
   const walletLogPropStyles = propStyles();
-  const changePropAttributes = useMemo(
-    () => ({
-      propsToLabelsPairs: [{ prop: "quantityChange", label: "Change" }],
-      propsToEditorComponentPairs: [
-        numberPropToEditor<WalletLog, "quantityChange">("quantityChange"),
-      ],
-      propsToMantineClasses: walletLogPropStyles.classes,
-    }),
-    [walletLogPropStyles]
-  ) as {
-    propsToLabelsPairs?: PropToLabelPair<WalletLog>[];
-    propsToEditorComponentPairs?: PropToEditorComponentPair<
-      WalletLog,
-      "quantityChange"
-    >[];
-    propsToMantineClasses?: Record<keyof WalletLog, string>;
-  };
+
+  const staticDataTableProps: Pick<
+    LogDataTableProps<WalletLog>,
+    "isShopLog" | "rowObjToId" | "propConfig"
+  > = useMemo(() => {
+    return {
+      isShopLog: true,
+      rowObjToId: (log: WalletLog) => log.id,
+      propConfig: {
+        quantityChange: createNumberPropConfig("quantityChange", "Change", 0),
+      },
+    };
+  }, []);
 
   return (
     <>
@@ -226,30 +212,71 @@ const Wallet: NextPage = () => {
               borderRadius: "0.5em",
               overflow: "clip",
               padding: "2px",
-              ".mantine-ScrollArea-viewport": {
-                paddingBottom: editModeOn ? "1em" : "",
-              },
             },
           })}
         >
-          {Object.values(CurrencyType).map((ct) => (
-            <Accordion.Item key={ct} value={ct}>
-              <Accordion.Control>
-                {CurrencyTypeDisplayName[ct][1]}
-              </Accordion.Control>
-              <Accordion.Panel>
-                <ScrollArea.Autosize maxHeight="40vh">
-                  <LogEditor
-                    logs={walletLogs}
-                    isShopLog={true}
-                    isEditMode={editModeOn}
-                    {...changePropAttributes}
-                    {...callbacks[ct]}
-                  />
-                </ScrollArea.Autosize>
-              </Accordion.Panel>
-            </Accordion.Item>
-          ))}
+          <Accordion.Item
+            key={CurrencyType.POKE_DOLLAR}
+            value={CurrencyType.POKE_DOLLAR}
+          >
+            <Accordion.Control>
+              <Title order={4}>
+                {CurrencyTypeDisplayName[CurrencyType.POKE_DOLLAR][1]}
+              </Title>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <ScrollArea.Autosize maxHeight="40vh">
+                <LogDataTable
+                  key={`log-data-table-${CurrencyType.POKE_DOLLAR}`}
+                  {...staticDataTableProps}
+                  {...currencyTypeOptions[CurrencyType.POKE_DOLLAR]}
+                  isEditMode={editModeOn}
+                  propsToMantineClasses={walletLogPropStyles.classes}
+                />
+              </ScrollArea.Autosize>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item key={CurrencyType.WATTS} value={CurrencyType.WATTS}>
+            <Accordion.Control>
+              <Title order={4}>
+                {CurrencyTypeDisplayName[CurrencyType.WATTS][1]}
+              </Title>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <ScrollArea.Autosize maxHeight="40vh">
+                <LogDataTable
+                  key={`log-data-table-${CurrencyType.WATTS}`}
+                  {...staticDataTableProps}
+                  {...currencyTypeOptions[CurrencyType.WATTS]}
+                  isEditMode={editModeOn}
+                  propsToMantineClasses={walletLogPropStyles.classes}
+                />
+              </ScrollArea.Autosize>
+            </Accordion.Panel>
+          </Accordion.Item>
+
+          <Accordion.Item
+            key={CurrencyType.RARE_CANDY}
+            value={CurrencyType.RARE_CANDY}
+          >
+            <Accordion.Control>
+              <Title order={4}>
+                {CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1]}
+              </Title>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <ScrollArea.Autosize maxHeight="40vh">
+                <LogDataTable
+                  key={`log-data-table-${CurrencyType.RARE_CANDY}`}
+                  {...staticDataTableProps}
+                  {...currencyTypeOptions[CurrencyType.RARE_CANDY]}
+                  isEditMode={editModeOn}
+                  propsToMantineClasses={walletLogPropStyles.classes}
+                />
+              </ScrollArea.Autosize>
+            </Accordion.Panel>
+          </Accordion.Item>
         </Accordion>
         <Title order={3}>Output</Title>
         <Stack>

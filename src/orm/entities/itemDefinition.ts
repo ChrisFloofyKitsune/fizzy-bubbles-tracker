@@ -1,18 +1,19 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class ItemDefinition {
-  @PrimaryColumn()
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column("text", { default: "" })
   name: string;
 
-  @Column()
-  category: string;
+  @Column("text", { nullable: true })
+  category: string | null;
 
-  @Column("text", {
-    nullable: true,
-  })
+  @Column("text", { nullable: true })
   imageLink: string | null;
 
-  @Column()
-  description: string;
+  @Column("text", { nullable: true })
+  description: string | null;
 }

@@ -1,9 +1,10 @@
-import { DataSource, EntityTarget, Repository } from "typeorm";
+import { DataSource, EntityTarget, Repository, ObjectLiteral } from "typeorm";
 import SqlJs from "/public/dist/sql-wasm";
 import type { SqljsConnectionOptions } from "typeorm/driver/sqljs/SqljsConnectionOptions";
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useDebugValue,
   useEffect,
@@ -14,6 +15,7 @@ import {
 import { useAsyncEffect } from "use-async-effect";
 import { Subject, Subscription } from "rxjs";
 import { WAIT_FOREVER, waitUntil } from "async-wait-until";
+import { debounce } from "~/util";
 
 export type DataSourceOptions = Partial<
   Omit<
@@ -233,4 +235,124 @@ export async function waitForTransactions(
   await waitUntil(() => !repo.queryRunner?.isTransactionActive, {
     timeout,
   });
+}
+
+export function useDebouncedEntitySave<T extends ObjectLiteral>(
+  targetEntity: T | null,
+  entityRepo: Repository<T> | null,
+  options?: {
+    beforeSavedToRepo?: (updatedEntity: T) => void;
+    afterSavedToRepo?: (entityAfterSave: T) => void;
+    debounceTime?: number;
+  }
+) {
+  const opts: typeof options = useMemo(
+    () => Object.assign({ debounceTime: 300 }, options),
+    [options]
+  );
+
+  const pendingChanges = useRef<Partial<T>>({});
+  const blankEntity = useMemo(() => entityRepo?.create() ?? null, [entityRepo]);
+  useEffect(() => {
+    pendingChanges.current = {};
+  }, [targetEntity, entityRepo]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSaveChanges = useCallback(
+    debounce((changes: Partial<T>) => {
+      if (!entityRepo) return;
+
+      pendingChanges.current = {};
+      const updatedEntity = Object.assign(
+        Object.create(blankEntity),
+        targetEntity,
+        changes
+      );
+
+      opts.beforeSavedToRepo?.(updatedEntity);
+
+      waitForTransactions(entityRepo)
+        .then(() => entityRepo.save(updatedEntity))
+        .then((entityAfterSave) => opts.afterSavedToRepo?.(entityAfterSave));
+    }, opts.debounceTime),
+    [
+      targetEntity,
+      entityRepo,
+      options?.beforeSavedToRepo,
+      options?.afterSavedToRepo,
+    ]
+  );
+
+  useDebugValue("useDebounced_Entity_Save");
+
+  return useCallback(
+    function submitChanges(updatePayload: Partial<T>) {
+      const changes = Object.assign(pendingChanges.current, updatePayload);
+      debouncedSaveChanges(changes);
+    },
+    [debouncedSaveChanges]
+  );
+}
+
+export function useDebouncedListSave<T extends ObjectLiteral>(
+  entityRepo: Repository<T> | null,
+  options?: {
+    beforeSavedToRepo?: (updatedEntities: T[]) => void;
+    afterSavedToRepo?: (entitiesAfterSave: T[]) => void;
+    debounceTime?: number;
+  }
+) {
+  const opts: typeof options = useMemo(
+    () => Object.assign({ debounceTime: 300 }, options),
+    [options]
+  );
+
+  const getIdAsString = useCallback(
+    (entity: T): string => {
+      if (!entityRepo) return "";
+      let id = entityRepo.getId(entity);
+      if (typeof id === "object") {
+        return Array.from(Object.values(id)).join("_");
+      }
+      return String(id);
+    },
+    [entityRepo]
+  );
+
+  const pendingChanges = useRef<Record<string, T>>({});
+  const blankEntity = useMemo(() => entityRepo?.create() ?? null, [entityRepo]);
+  useEffect(() => {
+    pendingChanges.current = {};
+  }, [entityRepo]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSaveChanges = useCallback(
+    debounce((changes: T[]) => {
+      if (!entityRepo) return;
+      pendingChanges.current = {};
+      opts.beforeSavedToRepo?.(changes);
+      waitForTransactions(entityRepo)
+        .then(() => entityRepo.save(changes))
+        .then((entitiesAfterSave) =>
+          opts.afterSavedToRepo?.(entitiesAfterSave)
+        );
+    }, opts.debounceTime),
+    [entityRepo, options?.beforeSavedToRepo, options?.afterSavedToRepo]
+  );
+
+  useDebugValue("useDebounced_List_Save");
+
+  return useCallback(
+    function submitChanges(entity: T, updatePayload: Partial<T>) {
+      const id = getIdAsString(entity);
+      const current = pendingChanges.current[id] ?? Object.create(blankEntity);
+      pendingChanges.current[id] = Object.assign(
+        current,
+        entity,
+        updatePayload
+      );
+      debouncedSaveChanges(Object.values(pendingChanges.current));
+    },
+    [blankEntity, debouncedSaveChanges, getIdAsString]
+  );
 }
