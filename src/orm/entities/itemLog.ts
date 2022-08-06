@@ -16,9 +16,7 @@ export class ItemLog extends ChangeLogBase {
   @Column("integer", { nullable: true })
   itemDefinitionId: number | null;
 
-  @ManyToOne(() => ItemDefinition, {
-    onDelete: "SET NULL",
-    cascade: ["insert", "update"],
+  @ManyToOne(() => ItemDefinition, (def) => def.itemLogs, {
     nullable: true,
   })
   itemDefinition: ItemDefinition | null;

@@ -58,7 +58,7 @@ export function InventoryCurrent({
       })}
     >
       <Tabs.List>
-        {categories.map((c) => (
+        {Object.keys(data).map((c) => (
           <Tabs.Tab key={`tab-${c}`} value={c}>
             <InventoryCategoryLabel
               key={`tab-label-${c}`}

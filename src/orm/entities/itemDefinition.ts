@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { ItemLog } from "./itemLog";
 
 @Entity()
 export class ItemDefinition {
@@ -16,4 +17,9 @@ export class ItemDefinition {
 
   @Column("text", { nullable: true })
   description: string | null;
+
+  @OneToMany(() => ItemLog, (log) => log.itemDefinition, {
+    cascade: true,
+  })
+  itemLogs: ItemLog[];
 }

@@ -7,6 +7,7 @@ import {
   Group,
   ScrollArea,
   Select,
+  SimpleGrid,
   Stack,
   Textarea,
   TextInput,
@@ -29,14 +30,14 @@ import { createNumberPropConfig } from "~/components/dataTable/configCreators/cr
 import { createDayjsPropConfig } from "~/components/dataTable/configCreators/createDayjsPropConfig";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { OpenContextModal } from "@mantine/modals/lib/context";
 dayjs.extend(utc);
 
 export type EditInventoryModalContext = {
   startingItemDef?: ItemDefinition;
-  allItemDefNames: string[];
-  allItemLogs: ItemLog[];
-  allCategories: string[];
+  itemDefNames: string[];
+  itemLogs: ItemLog[];
+  categories: string[];
+  startingPage?: number;
   categoryIcons: Record<string, IconType>;
   categoryIconsPatterns: Record<string, IconType>;
   dataTableClasses: Record<string, string>;
@@ -44,45 +45,40 @@ export type EditInventoryModalContext = {
     itemDefinition: ItemDefinition,
     itemLogs: ItemLog[]
   ) => Promise<void>;
-  startingPage?: number;
 };
 export function EditInventoryModal({
   context,
   id: modalId,
-  innerProps: {
-    startingItemDef,
-    allItemDefNames,
-    allItemLogs,
-    allCategories,
-    categoryIcons,
+  innerProps: props,
+}: ContextModalProps<EditInventoryModalContext>) {
+  const {
+    itemDefNames,
     categoryIconsPatterns,
     dataTableClasses,
     onSaveCallback,
-    startingPage,
-  },
-}: ContextModalProps<EditInventoryModalContext>) {
-  const validItemNames = useMemo(
-    () =>
-      allItemDefNames.filter(
-        (n) => !!startingItemDef && n !== startingItemDef.name
-      ),
-    [allItemDefNames, startingItemDef]
-  );
+  } = props;
+
+  const validItemNames = useState(
+    itemDefNames.filter(
+      (n) => !props.startingItemDef || n !== props.startingItemDef.name
+    )
+  )[0];
 
   const [validCategories, validCategoriesHandler] = useListState(
-    allCategories.filter((c) => !!c).filter(filterUnique)
+    props.categories.filter((c) => !!c).filter(filterUnique)
   );
 
-  const [validCategoryIcons, setValidCategoryIcons] =
-    useState<typeof categoryIcons>(categoryIcons);
+  const [validCategoryIcons, setValidCategoryIcons] = useState<
+    typeof props.categoryIcons
+  >(props.categoryIcons);
 
   const form = useForm({
     initialValues: {
-      id: startingItemDef?.id ?? null,
-      name: startingItemDef?.name ?? "",
-      category: startingItemDef?.category ?? "",
-      imageLink: startingItemDef?.imageLink ?? "",
-      description: startingItemDef?.description ?? "",
+      id: props.startingItemDef?.id ?? null,
+      name: props.startingItemDef?.name ?? "",
+      category: props.startingItemDef?.category ?? "",
+      imageLink: props.startingItemDef?.imageLink ?? "",
+      description: props.startingItemDef?.description ?? "",
     } as Omit<ItemDefinition, "id"> & { id: number | null },
     validate: {
       name: (value: string) =>
@@ -95,10 +91,24 @@ export function EditInventoryModal({
     validateInputOnChange: ["name", "category"],
   });
 
+  const makeNewItemLog = useCallback(
+    (logsLength: number) => {
+      const newLog = new ItemLog();
+      newLog.id = -(logsLength + 1);
+      newLog.quantityChange = 0;
+      newLog.itemDefinitionId = form.values["id"];
+      newLog.date = dayjs().utc();
+      return newLog;
+    },
+    [form.values]
+  );
+
   const [logs, logsHandler] = useListState<ItemLog>(
-    startingItemDef
-      ? allItemLogs.filter((l) => l.itemDefinitionId === startingItemDef.id)
-      : []
+    props?.startingItemDef?.id
+      ? props.itemLogs.filter(
+          (l) => l.itemDefinitionId === props?.startingItemDef?.id
+        )
+      : [makeNewItemLog(0)]
   );
 
   const categorySelectItems: ItemCategorySelectItemProps[] = useMemo(
@@ -131,14 +141,11 @@ export function EditInventoryModal({
   );
 
   const [imageLink, setImageLink] = useState<string | null>(
-    startingItemDef?.imageLink ?? null
+    props.startingItemDef?.imageLink ?? null
   );
 
-  const [currentPage, setCurrentPage] = useState<number>(startingPage ?? 1);
-
-  const myProps = useMemo(
-    () => context.modals.find((m) => m.id === modalId)?.props,
-    [context.modals, modalId]
+  const [currentPage, setCurrentPage] = useState<number>(
+    props.startingPage ?? 1
   );
 
   const dataTableProps: Pick<
@@ -161,51 +168,36 @@ export function EditInventoryModal({
         date: createDayjsPropConfig("date", "Date", 200),
       },
       add: async () => {
-        const newLog = new ItemLog();
-        newLog.itemDefinitionId = form.values["id"];
-        newLog.id = -logs.length;
-        newLog.date = dayjs().utc();
-        logsHandler.append(newLog);
+        logsHandler.append(makeNewItemLog(logs.length));
       },
       edit: async (log, prop, value) => {
         const index = logs.findIndex((l) => l.id === log.id);
         logsHandler.setItemProp(index, prop, value);
       },
       remove: async (log) => {
-        console.log("TRYING TO DELETE");
-        if (!myProps) return;
-        const innerProps = (
-          myProps as OpenContextModal<EditInventoryModalContext>
-        ).innerProps;
-        innerProps.allItemLogs = innerProps.allItemLogs.filter(
-          (l) => l.id !== log.id
-        );
+        if (!props) return;
+        // this modal only exists as a "save file" when the
+        // delete confirmation is open so... edit that save file
+        props.itemLogs = props.itemLogs.filter((l) => l.id !== log.id);
       },
       rowsPerPage: 6,
     }),
-    [form.values, logs, logsHandler, myProps]
+    [logs, logsHandler, makeNewItemLog, props]
   );
 
   useEffect(() => {
     return () => {
-      // this modal has been closed and is off the stack
-      if (!myProps) return;
-
-      const innerProps = (
-        myProps as OpenContextModal<EditInventoryModalContext>
-      ).innerProps;
-      innerProps.allCategories = validCategories;
-      innerProps.allItemLogs = logs;
-      innerProps.categoryIcons = validCategoryIcons;
-      innerProps.startingItemDef = form.values as ItemDefinition;
-      innerProps.startingPage = currentPage;
-      console.log("saved", innerProps);
+      props.categories = validCategories;
+      props.itemLogs = logs;
+      props.categoryIcons = validCategoryIcons;
+      props.startingItemDef = form.values as ItemDefinition;
+      props.startingPage = currentPage;
     };
   }, [
     currentPage,
     form.values,
     logs,
-    myProps,
+    props,
     validCategories,
     validCategoryIcons,
   ]);
@@ -213,14 +205,7 @@ export function EditInventoryModal({
   return (
     <Stack>
       <Stack spacing="0.5em">
-        <Group
-          position="apart"
-          sx={{
-            "&>*": {
-              flexGrow: 1,
-            },
-          }}
-        >
+        <SimpleGrid cols={2}>
           <Select
             required
             label="Item Category"
@@ -246,7 +231,7 @@ export function EditInventoryModal({
             placeholder="Name of the item"
             {...form.getInputProps("name")}
           />
-        </Group>
+        </SimpleGrid>
 
         <TextInput
           label="Item Icon"
@@ -303,9 +288,10 @@ export function EditInventoryModal({
           Cancel
         </Button>
         <Button
+          disabled={logs.length === 0}
           color="green"
           onClick={async () => {
-            await onSaveCallback(form.values as ItemDefinition, []);
+            await onSaveCallback(form.values as ItemDefinition, logs);
             context.closeModal(modalId);
           }}
           leftIcon={<SaveIcon />}

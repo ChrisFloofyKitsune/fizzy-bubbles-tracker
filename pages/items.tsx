@@ -1,6 +1,7 @@
 import {
   Accordion,
   ActionIcon,
+  Button,
   createStyles,
   CSSObject,
   Group,
@@ -46,7 +47,7 @@ import {
 import { createDayjsPropConfig } from "~/components/dataTable/configCreators/createDayjsPropConfig";
 import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
 import { openContextModal, openModal } from "@mantine/modals";
-import { EditIcon, ViewIcon } from "~/appIcons";
+import { AddIcon, EditIcon, ViewIcon } from "~/appIcons";
 import { InventoryLine } from "~/pageComponents/items/InventoryLine";
 import {
   InventoryCurrent,
@@ -138,9 +139,10 @@ const Items: NextPage = () => {
   const categories: string[] | null = useMemo(() => {
     if (itemDefs.length === 0) return null;
     return itemDefs
-      .map((d) => d.category || "Uncategorized")
+      .filter((d) => !!d.category)
+      .map((d) => d.category)
       .filter(filterUnique)
-      .concat("Depleted") as string[];
+      .concat("Depleted", "Uncategorized") as string[];
   }, [itemDefs]);
 
   const categoryIcons: Record<string, IconType> = useMemo(() => {
@@ -316,22 +318,46 @@ const Items: NextPage = () => {
   const saveItemLog = useDebouncedListSave(logRepo ?? null);
   const saveItemDef = useDebouncedListSave(defRepo ?? null);
 
+  const editInventoryModalSaveCallback = useCallback(
+    async (itemDef: ItemDefinition, itemLogs: ItemLog[]) => {
+      if (!logRepo || !defRepo) return;
+
+      itemDef.itemLogs = itemLogs.map((l) => ({
+        id: l.id > 0 ? l.id : undefined,
+        itemDefinition: itemDef,
+        itemDefinitionId: itemDef.id,
+        quantityChange: l.quantityChange,
+        sourceNote: l.sourceNote,
+        sourceUrl: l.sourceUrl,
+        date: l.date,
+      })) as ItemLog[];
+
+      await defRepo.save(itemDef);
+
+      itemDefsHandler.setState(await defRepo.find());
+      itemLogsHandler.setState(await logRepo.find());
+    },
+    [logRepo, defRepo, itemDefsHandler, itemLogsHandler]
+  );
+
   const openEditInventoryModal = useCallback(
     (itemDefId: number | null) => {
       const itemDef = (itemDefId && itemDefsIndex?.[itemDefId]) || null;
       openContextModal({
         modal: ModalName.EditInventory,
-        title: `${itemDef ? "Edit Item" : "Create Item"}`,
+        title: <Title>{itemDef ? "Edit Item" : "Create Item"}</Title>,
         size: "xl",
         innerProps: {
           startingItemDef: itemDef,
-          allItemDefNames: itemDefs.map((d) => d.name),
-          allItemLogs: itemLogs,
-          allCategories: categories!.filter((c) => c !== "Depleted"),
+          itemDefNames: itemDefs.map((d) => d.name),
+          itemLogs: itemLogs,
+          categories: categories!.filter(
+            (c) => c !== "Depleted" && c !== "Uncategorized"
+          ),
           categoryIconsPatterns: CategoryIconPatterns,
           categoryIcons,
           dataTableClasses: dataTableStyles.classes,
-          onSaveCallback: async (def, logs) => {},
+          onSaveCallback: editInventoryModalSaveCallback,
         } as EditInventoryModalContext,
       });
     },
@@ -339,6 +365,7 @@ const Items: NextPage = () => {
       categories,
       categoryIcons,
       dataTableStyles.classes,
+      editInventoryModalSaveCallback,
       itemDefs,
       itemDefsIndex,
       itemLogs,
@@ -423,13 +450,29 @@ const Items: NextPage = () => {
         saveItemDef(def, { [prop]: value });
       },
       remove: async (def) => {
-        if (!defRepo) return;
+        if (!defRepo || !logRepo) return;
         itemDefsHandler.filter((d) => d.id !== def.id);
+        const orphanedLogs = itemLogs.filter(
+          (l) => l.itemDefinitionId === def.id
+        );
+        itemLogsHandler.filter((l) => !orphanedLogs.some((o) => o.id === l.id));
+
         await waitForTransactions(defRepo);
-        await defRepo?.remove(def);
+        await defRepo.remove(def);
+
+        await waitForTransactions(logRepo);
+        await logRepo.remove(orphanedLogs);
       },
     }),
-    [defRepo, itemDefs, itemDefsHandler, saveItemDef]
+    [
+      defRepo,
+      itemDefs,
+      itemDefsHandler,
+      itemLogs,
+      itemLogsHandler,
+      logRepo,
+      saveItemDef,
+    ]
   );
 
   if (!logRepo || !defRepo) {
@@ -456,7 +499,18 @@ const Items: NextPage = () => {
           </Title>
           <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
         </Group>
-        <Title order={3}>Inventory Summary</Title>
+        <Group position="apart">
+          <Title order={3}>Inventory Summary</Title>
+          {editModeOn && (
+            <Button
+              color="green"
+              leftIcon={<AddIcon />}
+              onClick={() => openEditInventoryModal(null)}
+            >
+              Add New Item
+            </Button>
+          )}
+        </Group>
         {currentInventoryComp}
         <Title order={3}>Inventory Log Details</Title>
         <Accordion
