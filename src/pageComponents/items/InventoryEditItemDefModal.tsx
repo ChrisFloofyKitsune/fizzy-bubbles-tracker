@@ -1,60 +1,17 @@
 import { ContextModalProps } from "@mantine/modals";
 import { ItemDefinition } from "~/orm/entities";
-import { Group, Button, Stack, Select } from "@mantine/core";
-import { ComponentPropsWithoutRef, forwardRef, useMemo, useState } from "react";
+import { Button, Group, Select, Stack } from "@mantine/core";
+import { useMemo, useState } from "react";
 import { IconType } from "react-icons";
-import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
-import { InventoryLine } from "~/pageComponents/items/InventoryLine";
 import { CancelIcon, SaveIcon } from "~/appIcons";
 import { uniqueOnProp } from "~/util";
 import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
-
-interface ItemCategorySelectItemProps extends ComponentPropsWithoutRef<"div"> {
-  value: string;
-  categoryIcons: Record<string, IconType>;
-}
-
-const ItemCategorySelectItem = forwardRef<
-  HTMLDivElement,
-  ItemCategorySelectItemProps
->(({ value, categoryIcons, ...others }, ref) => (
-  <div ref={ref} {...others}>
-    <InventoryCategoryLabel category={value} categoryIcons={categoryIcons} />
-  </div>
-));
-ItemCategorySelectItem.displayName = "ItemCategorySelectItem";
-
-interface ItemDefSelectItemProps extends ComponentPropsWithoutRef<"div"> {
-  value: string;
-  itemDefinition: ItemDefinition;
-}
-
-const ItemDefSelectItem = forwardRef<HTMLDivElement, ItemDefSelectItemProps>(
-  ({ itemDefinition, ...others }, ref) => (
-    <div ref={ref} {...others}>
-      <InventoryLine
-        data={{
-          id: 0,
-          name: itemDefinition?.name ?? "Unnamed Item",
-          description: itemDefinition?.description ?? "",
-          imageLink: itemDefinition?.imageLink ?? null,
-        }}
-      />
-    </div>
-  )
-);
-ItemDefSelectItem.displayName = "ItemDefSelectItem";
-
-type SelectedDefImageProps = {
-  def?: ItemDefinition;
-};
-function SelectedDefImage({ def }: SelectedDefImageProps) {
-  return def && def.imageLink ? (
-    <ItemDefinitionImage imageSource={def.imageLink} />
-  ) : (
-    <></>
-  );
-}
+import {
+  ItemCategorySelectItem,
+  ItemCategorySelectItemProps,
+  ItemDefSelectItem,
+  ItemDefSelectItemProps,
+} from "~/pageComponents/items/InventorySelectItems";
 
 export type InventoryEditItemDefModalContext = {
   existingItemDef?: ItemDefinition;
@@ -121,7 +78,7 @@ export function InventoryEditItemDefModal({
         itemComponent={ItemCategorySelectItem}
         data={categoryData}
         searchable
-        nothingFound="No matches"
+        nothingFound="No matching categories"
         value={selectedCategory}
         onChange={(category) => {
           setSelectedCategory(category);
@@ -136,19 +93,31 @@ export function InventoryEditItemDefModal({
           selectedCategory &&
           innerProps.categoryIcons[selectedCategory]({ size: 24 })
         }
-        filter={(value, item) => true}
+        filter={(value, item: ItemCategorySelectItemProps) =>
+          item.value.toLowerCase().includes(value.toLowerCase().trim())
+        }
       />
       <Select
         itemComponent={ItemDefSelectItem}
         data={filteredDefs}
         searchable
-        nothingFound="No matches"
+        nothingFound="No matching items"
         value={selectedDef}
         onChange={setSelectedDef}
-        filter={(value, item) => true}
+        filter={(value, item: ItemDefSelectItemProps) =>
+          item.itemDefinition.name
+            .toLowerCase()
+            .includes(value.toLowerCase().trim()) ||
+          (item.itemDefinition.description
+            ?.toLowerCase()
+            .includes(value.toLowerCase().trim()) ??
+            false)
+        }
         icon={
-          <SelectedDefImage
-            def={selectedDef ? defsMap.get(selectedDef) : undefined}
+          <ItemDefinitionImage
+            imageLink={
+              selectedDef ? defsMap.get(selectedDef)?.imageLink : undefined
+            }
           />
         }
         styles={{

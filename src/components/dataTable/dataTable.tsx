@@ -41,6 +41,8 @@ export type DataTableProps<T extends {}> = {
   propsToMantineClasses?: Record<keyof T, string> | {};
   rowsPerPage?: number;
   minHeightPerRow?: CSSLengthPercentage;
+  startingPage?: number;
+  onPageChange?: (pageNumber: number) => void;
 } & DataTableCallbacks<T>;
 
 type tableStyleProps = {
@@ -77,6 +79,8 @@ export function DataTable<T extends {}>({
   propsToMantineClasses = {},
   rowsPerPage = 10,
   minHeightPerRow = "43px",
+  startingPage = 1,
+  onPageChange,
   add,
   edit,
   remove,
@@ -137,16 +141,20 @@ export function DataTable<T extends {}>({
     minHeightPerRow,
   });
 
-  const [page, setPage] = useState<number>(1);
+  const [page, setPage] = useState<number>(startingPage);
   const totalPages = useMemo(
     () => Math.ceil(myRowObjs.length / rowsPerPage),
     [myRowObjs.length, rowsPerPage]
   );
   useEffect(() => {
     if (page > totalPages && page > 1) {
-      setPage(Math.max(1, totalPages));
+      const fixedPage = Math.max(1, totalPages);
+      setPage(fixedPage);
+      onPageChange?.(fixedPage);
+    } else {
+      onPageChange?.(page);
     }
-  }, [page, totalPages]);
+  }, [onPageChange, page, totalPages]);
 
   const pageRowObjs = useMemo(
     () => myRowObjs.slice((page - 1) * rowsPerPage, page * rowsPerPage),

@@ -1,4 +1,4 @@
-import { Stack, Tabs, Box } from "@mantine/core";
+import { Stack, Tabs, Box, Group, ActionIcon } from "@mantine/core";
 import {
   InventoryLine,
   InventoryLineProps,
@@ -7,6 +7,7 @@ import { IconType } from "react-icons";
 import { ItemDefinition } from "~/orm/entities";
 import { useMemo, useState } from "react";
 import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
+import { EditIcon } from "~/appIcons";
 
 export type InventoryCurrentProps = {
   categories: string[];
@@ -15,12 +16,16 @@ export type InventoryCurrentProps = {
     string,
     Record<ItemDefinition["name"], InventoryLineProps["data"]>
   >;
+  isEditMode: boolean;
+  onEditClick?: (itemDefId: number) => void;
 };
 
 export function InventoryCurrent({
   categories,
   categoryIcons,
   data,
+  isEditMode,
+  onEditClick,
 }: InventoryCurrentProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categories[0]
@@ -85,10 +90,24 @@ export function InventoryCurrent({
         >
           {categoryData &&
             Object.values(categoryData).map((lineData) => (
-              <InventoryLine
-                key={`inv-line-${selectedCategory}-${lineData.id}`}
-                data={lineData}
-              />
+              <Group
+                key={`inv-group-${selectedCategory}-${lineData.itemDefId}`}
+                position="apart"
+                noWrap
+              >
+                <InventoryLine
+                  key={`inv-line-${selectedCategory}-${lineData.itemDefId}`}
+                  data={lineData}
+                />
+                {isEditMode && (
+                  <ActionIcon
+                    variant="default"
+                    onClick={() => onEditClick?.(lineData.itemDefId)}
+                  >
+                    <EditIcon />
+                  </ActionIcon>
+                )}
+              </Group>
             ))}
         </Stack>
       </Box>

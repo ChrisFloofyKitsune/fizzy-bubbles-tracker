@@ -7,7 +7,7 @@ import { WrapIf } from "~/util";
 
 export type InventoryLineProps = {
   data: {
-    id: number;
+    itemDefId: number;
     name: string;
     quantity?: number;
     quantityChanges?: {
@@ -58,7 +58,7 @@ export function InventoryLine({
   const nameComp = useMemo(
     () => (
       <span
-        key={`line-${data.id}-name`}
+        key={`line-${data.itemDefId}-name`}
         style={{
           fontWeight: 500,
           textDecoration: "underline",
@@ -67,36 +67,42 @@ export function InventoryLine({
         {data.name}
       </span>
     ),
-    [data.id, data.name]
+    [data.itemDefId, data.name]
   );
 
   const styles = useInvLineStyle(error);
 
   return (
-    <div key={`line-${data.id}-group-main`} className={styles.classes.line}>
-      <div key={`line-${data.id}-icon-div`} className={styles.classes.icon}>
+    <div
+      key={`line-${data.itemDefId}-group-main`}
+      className={styles.classes.line}
+    >
+      <div
+        key={`line-${data.itemDefId}-icon-div`}
+        className={styles.classes.icon}
+      >
         {error && (
           <ThemeIcon
-            key={`line-${data.id}-icon-wrap`}
+            key={`line-${data.itemDefId}-icon-wrap`}
             size="sm"
             radius="xl"
             color="red"
             variant="filled"
           >
-            <TbAlertTriangle key={`line-${data.id}-icon-alert`} />
+            <TbAlertTriangle key={`line-${data.itemDefId}-icon-alert`} />
           </ThemeIcon>
         )}
-        {!error && <TbCaretRight key={`line-${data.id}-icon-normal`} />}
+        {!error && <TbCaretRight key={`line-${data.itemDefId}-icon-normal`} />}
       </div>
       <div
-        key={`line-${data.id}-stack`}
+        key={`line-${data.itemDefId}-stack`}
         style={{
           display: "flex",
           flexDirection: "column",
         }}
       >
         <div
-          key={`line-${data.id}-group-inner-top`}
+          key={`line-${data.itemDefId}-group-inner-top`}
           style={{
             display: "flex",
             alignItems: "center",
@@ -104,18 +110,18 @@ export function InventoryLine({
           }}
         >
           {!shortForm && (
-            <span key={`line-${data.id}-quantity`}>{`x${data.quantity}`}</span>
+            <span
+              key={`line-${data.itemDefId}-quantity`}
+            >{`x${data.quantity}`}</span>
           )}
-          {data.imageLink && (
-            <ItemDefinitionImage imageSource={data.imageLink} />
-          )}
+          {data.imageLink && <ItemDefinitionImage imageLink={data.imageLink} />}
           {shortForm ? (
             <WrapIf
-              key={`line-${data.id}-link-if`}
+              key={`line-${data.itemDefId}-link-if`}
               wrapIf={!!data.quantityChanges?.[0]?.link}
               wrap={(wrapped) => (
                 <a
-                  key={`line-${data.id}-link`}
+                  key={`line-${data.itemDefId}-link`}
                   href={data.quantityChanges![0]!.link!}
                 >
                   {wrapped}
@@ -123,11 +129,11 @@ export function InventoryLine({
               )}
             >
               <WrapIf
-                key={`line-${data.id}-tooltip-if`}
+                key={`line-${data.itemDefId}-tooltip-if`}
                 wrapIf={!!data.quantityChanges?.[0]?.tooltipLabel}
                 wrap={(wrapped) => (
                   <Tooltip
-                    key={`line-${data.id}-tooltip`}
+                    key={`line-${data.itemDefId}-tooltip`}
                     label={data.quantityChanges![0]!.tooltipLabel}
                   >
                     {wrapped}
@@ -140,19 +146,21 @@ export function InventoryLine({
           ) : (
             <>
               {nameComp}
-              <span key={`line-${data.id}-qc-text`}>
+              <span key={`line-${data.itemDefId}-qc-text`}>
                 (
                 {(data.quantityChanges ?? []).map((qc, i) => (
                   <>
                     {i > 0 && (
-                      <span key={`line-${data.id}-qc-${i}-comma`}>{", "}</span>
+                      <span key={`line-${data.itemDefId}-qc-${i}-comma`}>
+                        {", "}
+                      </span>
                     )}
                     <WrapIf
-                      key={`line-${data.id}-qc-"${i}-link-if"`}
+                      key={`line-${data.itemDefId}-qc-"${i}-link-if"`}
                       wrapIf={!!qc.link}
                       wrap={(child) => (
                         <a
-                          key={`line-${data.id}-qc-"${i}-link"`}
+                          key={`line-${data.itemDefId}-qc-"${i}-link"`}
                           href={qc.link!}
                         >
                           {child}
@@ -160,18 +168,18 @@ export function InventoryLine({
                       )}
                     >
                       <WrapIf
-                        key={`line-${data.id}-qc-"${i}-tooltip-if"`}
+                        key={`line-${data.itemDefId}-qc-"${i}-tooltip-if"`}
                         wrapIf={!!qc.tooltipLabel}
                         wrap={(child) => (
                           <Tooltip
-                            key={`line-${data.id}-qc-"${i}-tooltip"`}
+                            key={`line-${data.itemDefId}-qc-"${i}-tooltip"`}
                             label={qc.tooltipLabel!}
                           >
                             {child}
                           </Tooltip>
                         )}
                       >
-                        <span key={`line-${data.id}-qc-"${i}-change"`}>
+                        <span key={`line-${data.itemDefId}-qc-"${i}-change"`}>
                           {qc.change >= 0 && "+"}
                           {qc.change}
                         </span>
@@ -185,7 +193,7 @@ export function InventoryLine({
           )}
         </div>
         {data.description && (
-          <span key={`line-${data.id}-desc`}>{data.description}</span>
+          <span key={`line-${data.itemDefId}-desc`}>{data.description}</span>
         )}
       </div>
     </div>

@@ -47,7 +47,7 @@ import {
 import { SeedBBCodeConfig_1658802129887 } from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
 import { Prism } from "prism-react-renderer";
-import { InventoryEditItemDefModal } from "~/pageComponents/items/InventoryEditItemDefModal";
+import { Modals } from "~/modalsList";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
@@ -108,9 +108,7 @@ function MyApp({ Component, pageProps }: AppProps) {
               },
             }}
           >
-            <ModalsProvider
-              modals={{ itemDefEditor: InventoryEditItemDefModal }}
-            >
+            <ModalsProvider modals={Modals}>
               <LoadingOverlay
                 visible={!ds}
                 sx={(theme) => ({

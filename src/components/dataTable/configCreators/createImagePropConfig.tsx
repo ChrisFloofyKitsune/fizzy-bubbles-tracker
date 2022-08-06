@@ -19,7 +19,7 @@ export function createImagePropConfig<T extends {}, P extends keyof T>(
           padding: "0 0.25em",
         })}
       >
-        {value && <ItemDefinitionImage imageSource={value} />}
+        {value && <ItemDefinitionImage imageLink={value} />}
       </Box>
     ),
     editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (

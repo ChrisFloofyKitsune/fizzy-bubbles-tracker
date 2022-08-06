@@ -63,6 +63,8 @@ import { createImagePropConfig } from "~/components/dataTable/configCreators/cre
 import { createTextAreaPropConfig } from "~/components/dataTable/configCreators/createTextAreaPropConfig";
 import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
 import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
+import { ModalName } from "~/modalsList";
+import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
 
 const CategoryIconPatterns = {
   "^depleted$": TbCircleDotted,
@@ -141,8 +143,6 @@ const Items: NextPage = () => {
       .concat("Depleted") as string[];
   }, [itemDefs]);
 
-  console.log(categories);
-
   const categoryIcons: Record<string, IconType> = useMemo(() => {
     if (!categories) return {};
 
@@ -183,7 +183,7 @@ const Items: NextPage = () => {
         let lineData = lines[def.name];
         if (!lineData) {
           lines[def.name] = {
-            id: def.id,
+            itemDefId: def.id,
             quantity: log.quantityChange,
             name: def.name,
             quantityChanges: [
@@ -241,7 +241,7 @@ const Items: NextPage = () => {
         children: (
           <InventoryLine
             data={{
-              id: 0,
+              itemDefId: 0,
               name: def?.name ?? "Undefined Item",
               description: def?.description ?? "",
               imageLink: def?.imageLink ?? null,
@@ -258,7 +258,7 @@ const Items: NextPage = () => {
       onSaveCallback: (itemDef?: ItemDefinition) => Promise<void>
     ) =>
       openContextModal({
-        modal: "itemDefEditor",
+        modal: ModalName.ItemDefEditor,
         title: "Select Item Definition",
         centered: true,
         innerProps: {
@@ -280,7 +280,7 @@ const Items: NextPage = () => {
         return (
           <Group noWrap position="left" spacing="0.25em">
             {def && def.imageLink && (
-              <ItemDefinitionImage imageSource={def.imageLink} />
+              <ItemDefinitionImage imageLink={def.imageLink} />
             )}
             <Text>{def?.name}</Text>
             <ActionIcon ml="auto" onClick={() => openViewItemDefModal(def)}>
@@ -312,6 +312,39 @@ const Items: NextPage = () => {
     [openViewItemDefModal, openEditItemDefModal, itemDefsIndex]
   );
 
+  const dataTableStyles = useDataTableStyles();
+  const saveItemLog = useDebouncedListSave(logRepo ?? null);
+  const saveItemDef = useDebouncedListSave(defRepo ?? null);
+
+  const openEditInventoryModal = useCallback(
+    (itemDefId: number | null) => {
+      const itemDef = (itemDefId && itemDefsIndex?.[itemDefId]) || null;
+      openContextModal({
+        modal: ModalName.EditInventory,
+        title: `${itemDef ? "Edit Item" : "Create Item"}`,
+        size: "xl",
+        innerProps: {
+          startingItemDef: itemDef,
+          allItemDefNames: itemDefs.map((d) => d.name),
+          allItemLogs: itemLogs,
+          allCategories: categories!.filter((c) => c !== "Depleted"),
+          categoryIconsPatterns: CategoryIconPatterns,
+          categoryIcons,
+          dataTableClasses: dataTableStyles.classes,
+          onSaveCallback: async (def, logs) => {},
+        } as EditInventoryModalContext,
+      });
+    },
+    [
+      categories,
+      categoryIcons,
+      dataTableStyles.classes,
+      itemDefs,
+      itemDefsIndex,
+      itemLogs,
+    ]
+  );
+
   const currentInventoryComp = useMemo(
     () =>
       categories === null || currentInventoryData == null ? (
@@ -322,15 +355,18 @@ const Items: NextPage = () => {
           categories={categories}
           categoryIcons={categoryIcons}
           data={currentInventoryData}
+          isEditMode={editModeOn}
+          onEditClick={openEditInventoryModal}
         />
       ),
-    [categories, categoryIcons, currentInventoryData]
+    [
+      categories,
+      categoryIcons,
+      currentInventoryData,
+      editModeOn,
+      openEditInventoryModal,
+    ]
   );
-
-  const dataTableStyles = useDataTableStyles();
-
-  const saveItemLog = useDebouncedListSave(logRepo ?? null);
-  const saveItemDef = useDebouncedListSave(defRepo ?? null);
 
   const itemLogDataTableProps: Pick<
     LogDataTableProps<ItemLog>,
