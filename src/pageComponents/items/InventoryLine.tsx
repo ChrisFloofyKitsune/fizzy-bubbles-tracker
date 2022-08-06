@@ -50,7 +50,7 @@ export function InventoryLine({
     forceShortForm ||
     typeof data.quantity === "undefined" ||
     !data.quantityChanges ||
-    (data.quantity === 1 && data.quantityChanges.length === 1);
+    data.quantityChanges.length === 1;
 
   const error =
     typeof data.quantity !== "undefined" ? data.quantity < 0 : false;
@@ -109,7 +109,7 @@ export function InventoryLine({
             gap: "0.25em",
           }}
         >
-          {!shortForm && (
+          {(!shortForm || (data.quantity && data.quantity > 1)) && (
             <span
               key={`line-${data.itemDefId}-quantity`}
             >{`x${data.quantity}`}</span>

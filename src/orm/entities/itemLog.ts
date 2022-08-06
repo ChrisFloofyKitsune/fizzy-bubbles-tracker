@@ -18,6 +18,7 @@ export class ItemLog extends ChangeLogBase {
 
   @ManyToOne(() => ItemDefinition, (def) => def.itemLogs, {
     nullable: true,
+    orphanedRowAction: "delete",
   })
   itemDefinition: ItemDefinition | null;
 

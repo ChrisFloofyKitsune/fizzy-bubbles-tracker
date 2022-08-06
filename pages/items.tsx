@@ -66,6 +66,7 @@ import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategory
 import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
 import { ModalName } from "~/modalsList";
 import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
+import { InventoryBBCodeOutput } from "~/pageComponents/items/InventoryBBCodeOutput";
 
 const CategoryIconPatterns = {
   "^depleted$": TbCircleDotted,
@@ -84,36 +85,33 @@ const CategoryIconPatterns = {
   ".": TbTriangleSquareCircle,
 };
 
-const useDataTableStyles = createStyles(
-  (theme) =>
-    ({
-      quantityChange: {
-        width: "5em",
-      },
-      itemDefinitionId: {
-        minWidth: "10em",
-        maxWidth: "15em",
-      },
-      sourceUrl: {
-        maxWidth: "12em",
-      },
-      name: {
-        minWidth: "8em",
-        maxWidth: "12em",
-      },
-      category: {
-        minWidth: "8em",
-        maxWidth: "10em",
-      },
-      imageLink: {
-        minWidth: "5em",
-        maxWidth: "8em",
-      },
-      description: {
-        minWidth: "min(50vw, 20em)",
-      },
-    } as Record<keyof (ItemDefinition & ItemLog), CSSObject>)
-);
+const useDataTableStyles = createStyles({
+  quantityChange: {
+    width: "5em",
+  },
+  itemDefinitionId: {
+    minWidth: "10em",
+    maxWidth: "15em",
+  },
+  sourceUrl: {
+    maxWidth: "12em",
+  },
+  name: {
+    minWidth: "8em",
+    maxWidth: "12em",
+  },
+  category: {
+    minWidth: "8em",
+    maxWidth: "10em",
+  },
+  imageLink: {
+    minWidth: "5em",
+    maxWidth: "8em",
+  },
+  description: {
+    minWidth: "min(50vw, 20em)",
+  },
+} as Record<keyof (ItemDefinition & ItemLog), CSSObject>);
 
 const Items: NextPage = () => {
   const [logRepo, defRepo] = useRepositories(ItemLog, ItemDefinition) as [
@@ -565,6 +563,12 @@ const Items: NextPage = () => {
         </Accordion>
 
         <Title order={3}>Output Preview</Title>
+        {currentInventoryData && (
+          <InventoryBBCodeOutput
+            key="inv-bbcode-output"
+            data={currentInventoryData}
+          />
+        )}
       </Stack>
     </>
   );
