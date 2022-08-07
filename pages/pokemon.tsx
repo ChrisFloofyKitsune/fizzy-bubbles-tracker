@@ -23,11 +23,15 @@ import useAsyncEffect from "use-async-effect";
 import {
   BondLog,
   ContestStatLog,
+  EggMoveLog,
   LevelLog,
   LevelUpMove,
+  MachineMoveLog,
   MoveLog,
+  OtherMoveLog,
   Pokemon as dbPokemon,
   Trainer,
+  TutorMoveLog,
 } from "~/orm/entities";
 import { BBCodeFromTemplate, EditModeToggle, EntityEditor } from "~/components";
 import { AddIcon } from "~/appIcons";
@@ -54,8 +58,8 @@ const useEditorStyle = createStyles((theme) => ({
       gridTemplateAreas: `nme spe dex lvl bnd
                           typ abl obt pkb hld
                           nat gen obl pkl hll
-                          des des des des des
                           trn img img img img
+                          des des des des des
                           ev1 e2m ev2 e3m ev3
                           .   e2l .   e3l .
                           bqm bqm bqm bql bql
@@ -67,20 +71,24 @@ const useEditorStyle = createStyles((theme) => ({
       gridTemplateColumns: "repeat(5, 1fr)",
     },
     [theme.fn.smallerThan("md")]: {
-      gridTemplateAreas: `nme spe dex
-                          typ abl nat
-                          gen .   trn
+      gridTemplateAreas: `nme lvl bnd
+                          spe dex typ
+                          abl nat gen
                           obt pkb hld
                           obl pkl hll
+                          trn img img
                           des des des
-                          img img img
                           ev1 ev2 ev3
                           .   e2m e3m
                           .   e2l e3l
-                          bqm bqm bql`
+                          bqm bqm bql
+                          con con con
+                          lmv emv mmv
+                          lmv tmv omv`
         .split("\n")
         .map((l) => `"${l.trim()}"`)
         .join(""),
+      gridTemplateColumns: "repeat(3, 1fr)",
     },
 
     ".input-name": { gridArea: "nme" },
@@ -350,57 +358,42 @@ const Pokemon: NextPage = () => {
     );
 
   const makeMoveModalProps = useCallback(
-    (
-      moveCategory: PokemonMoveSourceCategory
-    ): InputDataTableModalProps<MoveLog>["modalProps"] => ({
-      dataTableType: "changeLog",
-      rowObjToId: (log: MoveLog) => log.id,
-      createRowObj: (rowsObjsCount) => {
-        const newMove = new MoveLog();
-        newMove.id = -(rowsObjsCount + 1);
-        newMove.category = moveCategory;
-        return newMove;
-      },
-      rowObjFilter: (log) => {
-        console.log(log);
-        return true;
-      },
-      prepareForSaveCallback: async (logs: MoveLog[]) => {
-        console.log(logs);
-        if (!selected) return;
+    function <T extends MoveLog>(moveClass: {
+      new (): T;
+    }): InputDataTableModalProps<T>["modalProps"] {
+      return {
+        dataTableType: "changeLog",
+        rowObjToId: (log: T) => log.id,
+        createRowObj: (rowsObjsCount) => {
+          const newMove = new moveClass();
+          newMove.id = -(rowsObjsCount + 1);
+          return newMove;
+        },
+        prepareForSaveCallback: async (logs: T[]) => {
+          if (!selected) return;
 
-        logs.forEach((l) => {
-          (l.id as any) = l.id > 0 ? l.id : undefined;
-          l.pokemon = selected;
-        });
+          logs.forEach((l) => {
+            (l.id as any) = l.id > 0 ? l.id : undefined;
+            l.pokemon = selected;
+          });
 
-        // Add back in moves of other categories to prevent them from being deleted.
-        return logs.concat(
-          selected.moveLogs.filter((m) => m.category !== moveCategory)
-        );
-      },
-      propConfig: {
-        move: createStringPropConfig("move", "Move", 0),
-      } as PropConfig<MoveLog>,
-      propsToMantineClasses: modalTableStyles.classes,
-    }),
+          return logs;
+        },
+        propConfig: {
+          move: createStringPropConfig("move", "Move", 0),
+        } as PropConfig<T>,
+        propsToMantineClasses: modalTableStyles.classes,
+      };
+    },
     [modalTableStyles.classes, selected]
   );
 
   const moveModalProps = useMemo(
     () => ({
-      [PokemonMoveSourceCategory.EGG]: makeMoveModalProps(
-        PokemonMoveSourceCategory.EGG
-      ),
-      [PokemonMoveSourceCategory.MACHINE]: makeMoveModalProps(
-        PokemonMoveSourceCategory.MACHINE
-      ),
-      [PokemonMoveSourceCategory.TUTOR]: makeMoveModalProps(
-        PokemonMoveSourceCategory.TUTOR
-      ),
-      [PokemonMoveSourceCategory.OTHER]: makeMoveModalProps(
-        PokemonMoveSourceCategory.OTHER
-      ),
+      [PokemonMoveSourceCategory.EGG]: makeMoveModalProps(EggMoveLog),
+      [PokemonMoveSourceCategory.MACHINE]: makeMoveModalProps(MachineMoveLog),
+      [PokemonMoveSourceCategory.TUTOR]: makeMoveModalProps(TutorMoveLog),
+      [PokemonMoveSourceCategory.OTHER]: makeMoveModalProps(OtherMoveLog),
     }),
     [makeMoveModalProps]
   );
@@ -704,9 +697,7 @@ const Pokemon: NextPage = () => {
                   className="input-level-moves"
                   modalTitle={<Title>Edit Level Up Moves</Title>}
                   valueToDisplayElement={() => (
-                    <BBCodeMovesToTextStack
-                      bbCode={selected?.levelUpMovesBBCode}
-                    />
+                    <DisplayLevelUpMoves pokemon={selected!} />
                   )}
                   {...inputPropMap.levelUpMoves}
                   modalProps={levelMoveModalProps}
@@ -719,7 +710,7 @@ const Pokemon: NextPage = () => {
                   valueToDisplayElement={() => (
                     <BBCodeMovesToTextStack bbCode={selected?.eggMovesBBCode} />
                   )}
-                  {...inputPropMap.moveLogs}
+                  {...inputPropMap.eggMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.EGG]}
                 />
                 <InputDataTableModal
@@ -732,7 +723,7 @@ const Pokemon: NextPage = () => {
                       bbCode={selected?.machineMovesBBCode}
                     />
                   )}
-                  {...inputPropMap.moveLogs}
+                  {...inputPropMap.machineMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.MACHINE]}
                 />
                 <InputDataTableModal
@@ -745,7 +736,7 @@ const Pokemon: NextPage = () => {
                       bbCode={selected?.tutorMovesBBCode}
                     />
                   )}
-                  {...inputPropMap.moveLogs}
+                  {...inputPropMap.tutorMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.TUTOR]}
                 />
                 <InputDataTableModal
@@ -758,7 +749,7 @@ const Pokemon: NextPage = () => {
                       bbCode={selected?.otherMovesBBCode}
                     />
                   )}
-                  {...inputPropMap.moveLogs}
+                  {...inputPropMap.otherMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.OTHER]}
                 />
               </Box>
@@ -818,6 +809,36 @@ function ContestStatsDisplay({ pokemon }: ContestStatesDisplayProps) {
         </span>
       </Text>
     </SimpleGrid>
+  );
+}
+
+function DisplayLevelUpMoves({ pokemon }: { pokemon: dbPokemon }) {
+  const level = useMemo(
+    () =>
+      pokemon.levelLogs.reduce((prev, curr) => Math.max(prev, curr.value), 1),
+    [pokemon]
+  );
+
+  if (!pokemon.levelUpMoves) {
+    return <></>;
+  }
+
+  return (
+    <Stack spacing={0}>
+      {pokemon.levelUpMoves.map((m, i) => {
+        const levelNum = parseInt(m.level);
+        const learned = isNaN(levelNum) || levelNum <= level;
+
+        return (
+          <Group key={`${i}-${m.move}`} position="apart">
+            <Text underline={learned} key={`${i}-${m.move}-name`}>
+              {m.move}
+            </Text>
+            <Text key={`${i}-${m.move}-level`}>{`${m.level}`}</Text>
+          </Group>
+        );
+      })}
+    </Stack>
   );
 }
 

@@ -1,26 +1,46 @@
 import { Column, Entity, ManyToOne } from "typeorm";
-import { PokemonContestStat, PokemonMoveSourceCategory } from "~/orm/enums";
+import { PokemonContestStat } from "~/orm/enums";
 import { Pokemon } from "~/orm/entities";
 import { ChangeLogBase, ShopTrackedChangeLog } from "./changeLogBase";
+
+export abstract class MoveLog extends ChangeLogBase {
+  @Column()
+  move: string;
+
+  @ManyToOne(() => Pokemon, {
+    nullable: false,
+    orphanedRowAction: "delete",
+  })
+  pokemon: Pokemon;
+}
 
 @Entity({
   orderBy: {
     id: "ASC",
   },
 })
-export class MoveLog extends ChangeLogBase {
-  @Column()
-  move: string;
+export class EggMoveLog extends MoveLog {}
 
-  @Column("text")
-  category: PokemonMoveSourceCategory;
+@Entity({
+  orderBy: {
+    id: "ASC",
+  },
+})
+export class MachineMoveLog extends MoveLog {}
 
-  @ManyToOne(() => Pokemon, (pokemon) => pokemon.moveLogs, {
-    nullable: false,
-    orphanedRowAction: "delete",
-  })
-  pokemon: Pokemon;
-}
+@Entity({
+  orderBy: {
+    id: "ASC",
+  },
+})
+export class TutorMoveLog extends MoveLog {}
+
+@Entity({
+  orderBy: {
+    id: "ASC",
+  },
+})
+export class OtherMoveLog extends MoveLog {}
 
 @Entity({
   orderBy: {

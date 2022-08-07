@@ -11,7 +11,16 @@ import {
   PokemonGenderOptions,
   PokemonMoveSourceCategory,
 } from "~/orm/enums";
-import { BondLog, ContestStatLog, LevelLog, MoveLog } from "~/orm/entities";
+import {
+  BondLog,
+  ContestStatLog,
+  EggMoveLog,
+  LevelLog,
+  MachineMoveLog,
+  MoveLog,
+  OtherMoveLog,
+  TutorMoveLog,
+} from "~/orm/entities";
 import { wrapUrlIfLink } from "~/orm/ormUtil";
 
 import { Trainer } from "./trainer";
@@ -109,11 +118,29 @@ export class Pokemon {
   })
   bondLogs: BondLog[];
 
-  @OneToMany(() => MoveLog, (log) => log.pokemon, {
+  @OneToMany(() => EggMoveLog, (log) => log.pokemon, {
     cascade: true,
     eager: true,
   })
-  moveLogs: MoveLog[];
+  eggMoveLogs: EggMoveLog[];
+
+  @OneToMany(() => MachineMoveLog, (log) => log.pokemon, {
+    cascade: true,
+    eager: true,
+  })
+  machineMoveLogs: MachineMoveLog[];
+
+  @OneToMany(() => TutorMoveLog, (log) => log.pokemon, {
+    cascade: true,
+    eager: true,
+  })
+  tutorMoveLogs: TutorMoveLog[];
+
+  @OneToMany(() => OtherMoveLog, (log) => log.pokemon, {
+    cascade: true,
+    eager: true,
+  })
+  otherMoveLogs: OtherMoveLog[];
 
   @OneToMany(() => ContestStatLog, (log) => log.pokemon, {
     cascade: true,
@@ -296,10 +323,17 @@ export class Pokemon {
     );
   }
 
-  getMovesOfCategory(category: PokemonMoveSourceCategory) {
-    return !this.moveLogs
-      ? []
-      : this.moveLogs.filter((m) => m.category === category);
+  getMovesOfCategory(category: PokemonMoveSourceCategory): MoveLog[] {
+    switch (category) {
+      case PokemonMoveSourceCategory.EGG:
+        return this.eggMoveLogs;
+      case PokemonMoveSourceCategory.MACHINE:
+        return this.machineMoveLogs;
+      case PokemonMoveSourceCategory.TUTOR:
+        return this.tutorMoveLogs;
+      case PokemonMoveSourceCategory.OTHER:
+        return this.otherMoveLogs;
+    }
   }
 
   getMovesBBCodeOfCategory(category: PokemonMoveSourceCategory) {

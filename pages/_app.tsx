@@ -37,12 +37,15 @@ import {
   ItemDefinition,
   ItemLog,
   LevelLog,
-  MoveLog,
   Pokemon,
   Trainer,
   WalletLog,
   MiscValue,
   BondLog,
+  EggMoveLog,
+  MachineMoveLog,
+  TutorMoveLog,
+  OtherMoveLog,
 } from "~/orm/entities";
 import { SeedBBCodeConfig_1658802129887 } from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
@@ -56,7 +59,10 @@ let DataSourceOpts: DataSourceOptions = {
   entities: [
     Trainer,
     Pokemon,
-    MoveLog,
+    EggMoveLog,
+    MachineMoveLog,
+    TutorMoveLog,
+    OtherMoveLog,
     LevelLog,
     BondLog,
     ContestStatLog,
