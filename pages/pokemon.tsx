@@ -1,3 +1,5 @@
+// noinspection JSUnusedGlobalSymbols
+
 import {
   Box,
   Button,
@@ -6,7 +8,9 @@ import {
   Group,
   Select,
   SelectItem,
+  SimpleGrid,
   Stack,
+  Text,
   Textarea,
   TextInput,
   Title,
@@ -16,28 +20,51 @@ import { useRepositories, waitForTransactions } from "~/services";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Repository } from "typeorm";
 import useAsyncEffect from "use-async-effect";
-import { Pokemon as dbPokemon, Trainer } from "~/orm/entities";
+import {
+  BondLog,
+  ContestStatLog,
+  LevelLog,
+  LevelUpMove,
+  MoveLog,
+  Pokemon as dbPokemon,
+  Trainer,
+} from "~/orm/entities";
 import { BBCodeFromTemplate, EditModeToggle, EntityEditor } from "~/components";
 import { AddIcon } from "~/appIcons";
-import { PokemonGenderOptions } from "~/orm/enums";
+import {
+  PokemonContestStat,
+  PokemonGenderOptions,
+  PokemonMoveSourceCategory,
+} from "~/orm/enums";
+import {
+  InputDataTableModal,
+  InputDataTableModalProps,
+} from "~/components/input/InputDataTableModal";
+import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
+import { PropConfig } from "~/components/dataTable/dataTable";
+import { currentTime } from "~/util";
+import { createSelectPropConfig } from "~/components/dataTable/configCreators/createEnumPropConfig";
+import { createStringPropConfig } from "~/components/dataTable/configCreators/createStringPropConfig";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
     display: "grid",
     gap: "0.5em",
     [theme.fn.largerThan("md")]: {
-      gridTemplateAreas: `nme spe dex typ abl
-                          nat gen .   trn .
-                          obt pkb hld .   .
-                          obl pkl hll .   .
+      gridTemplateAreas: `nme spe dex lvl bnd
+                          typ abl obt pkb hld
+                          nat gen obl pkl hll
                           des des des des des
-                          img img img img img
+                          trn img img img img
                           ev1 e2m ev2 e3m ev3
                           .   e2l .   e3l .
-                          bqm bqm bqm bql bql`
+                          bqm bqm bqm bql bql
+                          con con con con con
+                          lmv emv mmv tmv omv  `
         .split("\n")
         .map((l) => `"${l.trim()}"`)
         .join(""),
+      gridTemplateColumns: "repeat(5, 1fr)",
     },
     [theme.fn.smallerThan("md")]: {
       gridTemplateAreas: `nme spe dex
@@ -60,6 +87,8 @@ const useEditorStyle = createStyles((theme) => ({
     ".input-species": { gridArea: "spe" },
     ".input-dexNum": { gridArea: "dex" },
     ".input-type": { gridArea: "typ" },
+    ".input-level": { gridArea: "lvl" },
+    ".input-bond": { gridArea: "bnd" },
     ".input-ability": { gridArea: "abl" },
     ".input-nature": { gridArea: "nat" },
     ".input-gender": { gridArea: "gen" },
@@ -81,8 +110,36 @@ const useEditorStyle = createStyles((theme) => ({
     ".input-boutique-mods": { gridArea: "bqm" },
     ".input-boutique-mods-link": { gridArea: "bql" },
     ".input-trainer": { gridArea: "trn" },
+    ".input-contest-stats": { gridArea: "con" },
+    ".input-level-moves": { gridArea: "lmv" },
+    ".input-egg-moves": { gridArea: "emv" },
+    ".input-machine-moves": { gridArea: "mmv" },
+    ".input-tutor-moves": { gridArea: "tmv" },
+    ".input-other-moves": { gridArea: "omv" },
+    "button.mantine-InputBase-input": {
+      height: "min-content",
+    },
   },
 }));
+
+const useModalDataTableStyles = createStyles({
+  value: {
+    minWidth: "5em",
+    maxWidth: "8em",
+  },
+  stat: {
+    minWidth: "5em",
+    maxWidth: "8em",
+  },
+  statChange: {
+    minWidth: "5em",
+    maxWidth: "8em",
+  },
+  move: {
+    minWidth: "6em",
+    maxWidth: "10em",
+  },
+});
 
 const Pokemon: NextPage = () => {
   const [repo, trainerRepo] = useRepositories(dbPokemon, Trainer) as [
@@ -156,6 +213,196 @@ const Pokemon: NextPage = () => {
       ...(trainerList?.map((t) => ({ label: t.name, value: t.uuid })) ?? []),
     ],
     [trainerList]
+  );
+
+  const modalTableStyles = useModalDataTableStyles();
+
+  const levelModalProps: InputDataTableModalProps<LevelLog>["modalProps"] =
+    useMemo(
+      () => ({
+        dataTableType: "changeLog",
+        rowObjToId: (log: LevelLog) => log.id,
+        createRowObj: (rowsObjsCount) => {
+          const newLog = new LevelLog();
+          newLog.id = -(rowsObjsCount + 1);
+          return newLog;
+        },
+        prepareForSaveCallback: async (logs: LevelLog[]) => {
+          if (!selected) return;
+          logs.forEach((l) => {
+            (l.id as any) = l.id > 0 ? l.id : undefined;
+            l.pokemon = selected;
+          });
+          return logs;
+        },
+        propConfig: {
+          value: createNumberPropConfig("value", "Level", 0),
+        } as PropConfig<LevelLog>,
+        propsToMantineClasses: modalTableStyles.classes,
+      }),
+      [modalTableStyles.classes, selected]
+    );
+
+  const bondModalProps: InputDataTableModalProps<BondLog>["modalProps"] =
+    useMemo(
+      () => ({
+        dataTableType: "shopTrackedLog",
+        rowObjToId: (log: BondLog) => log.id,
+        createRowObj: (rowsObjsCount) => {
+          const newLog = new BondLog();
+          newLog.id = -(rowsObjsCount + 1);
+          newLog.date = currentTime();
+          return newLog;
+        },
+        prepareForSaveCallback: async (logs: BondLog[]) => {
+          if (!selected) return;
+          logs.forEach((l) => {
+            (l.id as any) = l.id > 0 ? l.id : undefined;
+            l.pokemon = selected;
+          });
+          return logs;
+        },
+        propConfig: {
+          value: createNumberPropConfig("value", "Bond Change", 0),
+        } as PropConfig<BondLog>,
+        propsToMantineClasses: modalTableStyles.classes,
+      }),
+      [modalTableStyles.classes, selected]
+    );
+
+  const contestStatsModalProps: InputDataTableModalProps<ContestStatLog>["modalProps"] =
+    useMemo(
+      () => ({
+        dataTableType: "changeLog",
+        rowObjToId: (log: ContestStatLog) => log.id,
+        createRowObj: (rowsObjsCount) => {
+          const newLog = new ContestStatLog();
+          newLog.id = -(rowsObjsCount + 1);
+          newLog.stat = PokemonContestStat.ALL;
+          return newLog;
+        },
+        prepareForSaveCallback: async (logs: ContestStatLog[]) => {
+          if (!selected) return;
+          logs.forEach((l) => {
+            (l.id as any) = l.id > 0 ? l.id : undefined;
+            l.pokemon = selected;
+          });
+          console.log(logs);
+          return logs;
+        },
+        propConfig: {
+          stat: createSelectPropConfig(
+            [
+              { label: "All", value: PokemonContestStat.ALL },
+              { label: "Cute", value: PokemonContestStat.CUTE },
+              { label: "Beautiful", value: PokemonContestStat.BEAUTIFUL },
+              { label: "Tough", value: PokemonContestStat.TOUGH },
+              { label: "Smart", value: PokemonContestStat.CLEVER },
+              { label: "Cool", value: PokemonContestStat.COOL },
+            ],
+            "stat",
+            "Stat",
+            0
+          ),
+          statChange: createNumberPropConfig("statChange", "Change", 1),
+        } as PropConfig<ContestStatLog>,
+        propsToMantineClasses: modalTableStyles.classes,
+      }),
+      [modalTableStyles.classes, selected]
+    );
+
+  const levelMoveModalProps: InputDataTableModalProps<LevelUpMove>["modalProps"] =
+    useMemo(
+      () => ({
+        dataTableType: "normal",
+        rowObjToId: (move: LevelUpMove) =>
+          (move as any).tempId ?? `${move.move}_${move.level}`,
+        createRowObj: (rowsObjsCount) => {
+          const newMove = new LevelUpMove();
+          newMove.move = "";
+          newMove.level = "-";
+          (newMove as any).tempId = rowsObjsCount;
+          return newMove;
+        },
+        prepareForSaveCallback: async (logs: LevelUpMove[]) => {
+          if (!selected) return;
+          return logs;
+        },
+        propConfig: {
+          move: createStringPropConfig("move", "Move", 0),
+          level: createSelectPropConfig(
+            [
+              { label: "Evolve (Learned on Evolution)", value: "evolve" },
+              { label: "- (Always Learned)", value: "-" },
+              ...Array.from(Array(100).keys()).map((n) => ({
+                label: `Lv. ${n + 1}`,
+                value: `${n + 1}`,
+              })),
+            ],
+            "level",
+            "Level",
+            1
+          ),
+        } as PropConfig<LevelUpMove>,
+        propsToMantineClasses: modalTableStyles.classes,
+      }),
+      [modalTableStyles.classes, selected]
+    );
+
+  const makeMoveModalProps = useCallback(
+    (
+      moveCategory: PokemonMoveSourceCategory
+    ): InputDataTableModalProps<MoveLog>["modalProps"] => ({
+      dataTableType: "changeLog",
+      rowObjToId: (log: MoveLog) => log.id,
+      createRowObj: (rowsObjsCount) => {
+        const newMove = new MoveLog();
+        newMove.id = -(rowsObjsCount + 1);
+        newMove.category = moveCategory;
+        return newMove;
+      },
+      rowObjFilter: (log) => {
+        console.log(log);
+        return true;
+      },
+      prepareForSaveCallback: async (logs: MoveLog[]) => {
+        console.log(logs);
+        if (!selected) return;
+
+        logs.forEach((l) => {
+          (l.id as any) = l.id > 0 ? l.id : undefined;
+          l.pokemon = selected;
+        });
+
+        // Add back in moves of other categories to prevent them from being deleted.
+        return logs.concat(
+          selected.moveLogs.filter((m) => m.category !== moveCategory)
+        );
+      },
+      propConfig: {
+        move: createStringPropConfig("move", "Move", 0),
+      } as PropConfig<MoveLog>,
+      propsToMantineClasses: modalTableStyles.classes,
+    }),
+    [modalTableStyles.classes, selected]
+  );
+
+  const moveModalProps = useMemo(
+    () => ({
+      [PokemonMoveSourceCategory.EGG]: makeMoveModalProps(
+        PokemonMoveSourceCategory.EGG
+      ),
+      [PokemonMoveSourceCategory.MACHINE]: makeMoveModalProps(
+        PokemonMoveSourceCategory.MACHINE
+      ),
+      [PokemonMoveSourceCategory.TUTOR]: makeMoveModalProps(
+        PokemonMoveSourceCategory.TUTOR
+      ),
+      [PokemonMoveSourceCategory.OTHER]: makeMoveModalProps(
+        PokemonMoveSourceCategory.OTHER
+      ),
+    }),
+    [makeMoveModalProps]
   );
 
   if (!repo) {
@@ -263,6 +510,28 @@ const Pokemon: NextPage = () => {
                   className="input-dexNum"
                   {...inputPropMap.dexNum}
                 />
+                <InputDataTableModal
+                  label="Level"
+                  id="input-level"
+                  className="input-level"
+                  modalTitle={<Title>Edit Level Logs</Title>}
+                  valueToDisplayElement={(logs: LevelLog[]) =>
+                    logs.reduce((prev, curr) => Math.max(prev, curr.value), 1)
+                  }
+                  {...inputPropMap.levelLogs}
+                  modalProps={levelModalProps}
+                />
+                <InputDataTableModal
+                  label="Bond"
+                  id="input-bond"
+                  className="input-bond"
+                  modalTitle={<Title>Edit Bond Logs</Title>}
+                  valueToDisplayElement={(logs: BondLog[]) =>
+                    logs.reduce((prev, curr) => prev + curr.value, 0)
+                  }
+                  {...inputPropMap.bondLogs}
+                  modalProps={bondModalProps}
+                />
                 <TextInput
                   label="Type"
                   id="input-type"
@@ -332,13 +601,13 @@ const Pokemon: NextPage = () => {
                   {...inputPropMap.evolutionStageOne}
                 />
                 <TextInput
-                  label="Evolution Stage 2 Method"
+                  label="Evo. Stage 2 Method"
                   id="input-evo-stage-2-method"
                   className="input-evo-stage-2-method"
                   {...inputPropMap.evolutionStageTwoMethod}
                 />
                 <TextInput
-                  label="Evolution Stage 2 Method Link"
+                  label="Evo. Stage 2 Method Link"
                   id="input-evo-stage-2-method-link"
                   className="input-evo-stage-2-method-link"
                   {...inputPropMap.evolutionStageTwoMethodLink}
@@ -350,13 +619,13 @@ const Pokemon: NextPage = () => {
                   {...inputPropMap.evolutionStageTwo}
                 />
                 <TextInput
-                  label="Evolution Stage 3 Method"
+                  label="Evo. Stage 3 Method"
                   id="input-evo-stage-3-method"
                   className="input-evo-stage-3-method"
                   {...inputPropMap.evolutionStageThreeMethod}
                 />
                 <TextInput
-                  label="Evolution Stage 3 Method Link"
+                  label="Evo. Stage 3 Method Link"
                   id="input-evo-stage-3-method-link"
                   className="input-evo-stage-3-method-link"
                   {...inputPropMap.evolutionStageThreeMethod}
@@ -418,6 +687,80 @@ const Pokemon: NextPage = () => {
                   className="input-boutique-mods-link"
                   {...inputPropMap.boutiqueModsLink}
                 />
+                <InputDataTableModal
+                  label="Contest Stats"
+                  id="input-contest-stats"
+                  className="input-contest-stats"
+                  modalTitle={<Title>Edit Contest Stat Logs</Title>}
+                  valueToDisplayElement={() => (
+                    <ContestStatsDisplay pokemon={selected!} />
+                  )}
+                  {...inputPropMap.contestStatsLogs}
+                  modalProps={contestStatsModalProps}
+                />
+                <InputDataTableModal
+                  label="Level Up Moves"
+                  id="input-level-moves"
+                  className="input-level-moves"
+                  modalTitle={<Title>Edit Level Up Moves</Title>}
+                  valueToDisplayElement={() => (
+                    <BBCodeMovesToTextStack
+                      bbCode={selected?.levelUpMovesBBCode}
+                    />
+                  )}
+                  {...inputPropMap.levelUpMoves}
+                  modalProps={levelMoveModalProps}
+                />
+                <InputDataTableModal
+                  label="Egg Moves"
+                  id="input-egg-moves"
+                  className="input-egg-moves"
+                  modalTitle={<Title>Edit Egg Moves</Title>}
+                  valueToDisplayElement={() => (
+                    <BBCodeMovesToTextStack bbCode={selected?.eggMovesBBCode} />
+                  )}
+                  {...inputPropMap.moveLogs}
+                  modalProps={moveModalProps[PokemonMoveSourceCategory.EGG]}
+                />
+                <InputDataTableModal
+                  label="Machine Moves"
+                  id="input-machine-moves"
+                  className="input-machine-moves"
+                  modalTitle={<Title>Edit Machine Moves</Title>}
+                  valueToDisplayElement={() => (
+                    <BBCodeMovesToTextStack
+                      bbCode={selected?.machineMovesBBCode}
+                    />
+                  )}
+                  {...inputPropMap.moveLogs}
+                  modalProps={moveModalProps[PokemonMoveSourceCategory.MACHINE]}
+                />
+                <InputDataTableModal
+                  label="Tutor Moves"
+                  id="input-tutor-moves"
+                  className="input-tutor-moves"
+                  modalTitle={<Title>Edit Tutor Moves</Title>}
+                  valueToDisplayElement={() => (
+                    <BBCodeMovesToTextStack
+                      bbCode={selected?.tutorMovesBBCode}
+                    />
+                  )}
+                  {...inputPropMap.moveLogs}
+                  modalProps={moveModalProps[PokemonMoveSourceCategory.TUTOR]}
+                />
+                <InputDataTableModal
+                  label="Other Moves"
+                  id="input-other-moves"
+                  className="input-other-moves"
+                  modalTitle={<Title>Edit Other Moves</Title>}
+                  valueToDisplayElement={() => (
+                    <BBCodeMovesToTextStack
+                      bbCode={selected?.otherMovesBBCode}
+                    />
+                  )}
+                  {...inputPropMap.moveLogs}
+                  modalProps={moveModalProps[PokemonMoveSourceCategory.OTHER]}
+                />
               </Box>
             )}
           </EntityEditor>
@@ -437,3 +780,51 @@ const Pokemon: NextPage = () => {
 };
 
 export default Pokemon;
+
+type ContestStatesDisplayProps = {
+  pokemon: dbPokemon | undefined;
+};
+function ContestStatsDisplay({ pokemon }: ContestStatesDisplayProps) {
+  return (
+    <SimpleGrid cols={5}>
+      <Text>
+        <span>
+          {`Cute: `}
+          {pokemon?.compileContestStat(PokemonContestStat.CUTE).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Beautiful: `}
+          {pokemon?.compileContestStat(PokemonContestStat.BEAUTIFUL).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Tough: `}
+          {pokemon?.compileContestStat(PokemonContestStat.TOUGH).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Smart: `}
+          {pokemon?.compileContestStat(PokemonContestStat.CLEVER).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Cool: `}
+          {pokemon?.compileContestStat(PokemonContestStat.COOL).total}
+        </span>
+      </Text>
+    </SimpleGrid>
+  );
+}
+
+function BBCodeMovesToTextStack({ bbCode }: { bbCode: string | undefined }) {
+  return (
+    <Stack spacing={0}>
+      {bbCode?.split(", ").map((l) => <Text key={l}>{l}</Text>) ?? ""}
+    </Stack>
+  );
+}

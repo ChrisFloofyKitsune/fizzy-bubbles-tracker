@@ -76,7 +76,10 @@ export function EntityEditor<T extends ObjectLiteral>({
   const targetKeys = useMemo(() => Object.keys(targetEntity), [targetEntity]);
 
   const saveChange = useDebouncedEntitySave(targetEntity, entityRepo, {
-    beforeSavedToRepo: onUpdate,
+    beforeSavedToRepo: (updatedEntity) => {
+      console.debug("Saving Entity to repo...", updatedEntity);
+      onUpdate?.(updatedEntity);
+    },
     debounceTime: 500,
   });
 

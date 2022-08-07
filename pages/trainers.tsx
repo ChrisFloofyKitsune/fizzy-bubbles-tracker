@@ -13,7 +13,7 @@ import { useCallback, useState } from "react";
 import { Trainer } from "~/orm/entities";
 import { useRepository, waitForTransactions } from "~/services";
 import { BBCodeArea, EditModeToggle } from "~/components";
-import { EntityEditor } from "~/components/entityEditor";
+import { EntityEditor } from "~/components/input/entityEditor";
 import { waitUntil } from "async-wait-until";
 import { AddIcon } from "~/appIcons";
 import { useAsyncEffect } from "use-async-effect";

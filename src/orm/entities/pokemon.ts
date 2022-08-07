@@ -32,7 +32,6 @@ export class Pokemon {
 
   @ManyToOne(() => Trainer, (trainer) => trainer.pokemon, {
     nullable: true,
-    onDelete: "SET NULL",
   })
   trainer: Trainer | null;
 
@@ -110,7 +109,7 @@ export class Pokemon {
   })
   bondLogs: BondLog[];
 
-  @OneToMany(() => LevelLog, (log) => log.pokemon, {
+  @OneToMany(() => MoveLog, (log) => log.pokemon, {
     cascade: true,
     eager: true,
   })
@@ -307,6 +306,6 @@ export class Pokemon {
     const list = this.getMovesOfCategory(category);
     return !list || list.length === 0
       ? ""
-      : list.map((m) => wrapUrlIfLink(m.move, m.sourceUrl));
+      : list.map((m) => wrapUrlIfLink(m.move, m.sourceUrl)).join(", ");
   }
 }

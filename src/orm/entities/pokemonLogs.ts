@@ -17,7 +17,7 @@ export class MoveLog extends ChangeLogBase {
 
   @ManyToOne(() => Pokemon, (pokemon) => pokemon.moveLogs, {
     nullable: false,
-    onDelete: "CASCADE",
+    orphanedRowAction: "delete",
   })
   pokemon: Pokemon;
 }
@@ -33,7 +33,7 @@ export class LevelLog extends ChangeLogBase {
 
   @ManyToOne(() => Pokemon, (pokemon) => pokemon.levelLogs, {
     nullable: false,
-    onDelete: "CASCADE",
+    orphanedRowAction: "delete",
   })
   pokemon: Pokemon;
 }
@@ -50,7 +50,7 @@ export class BondLog extends ShopTrackedChangeLog {
 
   @ManyToOne(() => Pokemon, (pokemon) => pokemon.levelLogs, {
     nullable: false,
-    onDelete: "CASCADE",
+    orphanedRowAction: "delete",
   })
   pokemon: Pokemon;
 }
@@ -69,7 +69,7 @@ export class ContestStatLog extends ChangeLogBase {
 
   @ManyToOne(() => Pokemon, (pokemon) => pokemon.contestStatsLogs, {
     nullable: false,
-    onDelete: "CASCADE",
+    orphanedRowAction: "delete",
   })
   pokemon: Pokemon;
 }

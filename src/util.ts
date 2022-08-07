@@ -1,3 +1,7 @@
+import dayjs, { Dayjs } from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
 export function debounce(fn: Function, ms = 300) {
   let timeoutId: ReturnType<typeof setTimeout>;
   return function (this: any, ...args: any[]) {
@@ -23,4 +27,8 @@ type WrapIfProps = {
 };
 export function WrapIf({ wrapIf, wrap, children }: WrapIfProps): JSX.Element {
   return wrapIf ? wrap(children) : children;
+}
+
+export function currentTime(): Dayjs {
+  return dayjs().utc();
 }
