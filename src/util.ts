@@ -32,3 +32,28 @@ export function WrapIf({ wrapIf, wrap, children }: WrapIfProps): JSX.Element {
 export function currentTime(): Dayjs {
   return dayjs().utc();
 }
+
+export function findLastIndex<T>(
+  array: T[],
+  predicate: (item: T, index: number, array: T[]) => boolean
+): number {
+  for (let i = array.length - 1; i > 0; i--) {
+    if (predicate(array[i], i, array)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+export function getCircularReplacer() {
+  const seen = new WeakSet();
+  return (key: any, value: any) => {
+    if (typeof value === "object" && value !== null) {
+      if (seen.has(value)) {
+        return;
+      }
+      seen.add(value);
+    }
+    return value;
+  };
+}

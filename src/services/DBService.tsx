@@ -16,6 +16,8 @@ import { useAsyncEffect } from "use-async-effect";
 import { Subject, Subscription } from "rxjs";
 import { WAIT_FOREVER, waitUntil } from "async-wait-until";
 import { debounce } from "~/util";
+import { SettingEnum } from "~/settingEnum";
+import { Setting } from "~/orm/entities";
 
 export type DataSourceOptions = Partial<
   Omit<
@@ -355,4 +357,14 @@ export function useDebouncedListSave<T extends ObjectLiteral>(
     },
     [blankEntity, debouncedSaveChanges, getIdAsString]
   );
+}
+
+export function useSettingValue(setting: SettingEnum) {
+  const settingRepo = useRepository(Setting);
+  const [value, setValue] = useState<any>(undefined);
+  useAsyncEffect(async () => {
+    if (!settingRepo) return null;
+    setValue((await settingRepo.findOneBy({ id: setting }))?.value);
+  }, [settingRepo]);
+  return value;
 }
