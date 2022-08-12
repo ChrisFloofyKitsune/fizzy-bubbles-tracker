@@ -48,11 +48,10 @@ import {
   OtherMoveLog,
   Setting,
 } from "~/orm/entities";
-import { SeedBBCodeConfig_1658802129887 } from "~/orm/migrations";
+import * as migrations from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
 import { Prism } from "prism-react-renderer";
 import { Modals } from "~/modalsList";
-import { seedSettings1660010769436 } from "~/orm/migrations/1660010769436-seed_Settings";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
@@ -75,8 +74,8 @@ let DataSourceOpts: DataSourceOptions = {
     MiscValue,
     Setting,
   ],
-  migrations: [SeedBBCodeConfig_1658802129887, seedSettings1660010769436],
-  dropSchema: true,
+  migrations: Array.from(Object.values(migrations)),
+  // dropSchema: true,
 };
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -166,7 +165,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                           mr="xl"
                         />
                       </MediaQuery>
-                      <Title>Fizzy Tracker 2.0</Title>
+                      <Title>Fizzy Tracker App</Title>
                       {/* <Box ml='auto'>
                             {
                               (!loginCredentials) ?

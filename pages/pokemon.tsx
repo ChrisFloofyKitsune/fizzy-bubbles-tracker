@@ -33,7 +33,7 @@ import {
   Trainer,
   TutorMoveLog,
 } from "~/orm/entities";
-import { BBCodeFromTemplate, EditModeToggle, EntityEditor } from "~/components";
+import { BBCodeArea, EditModeToggle, EntityEditor } from "~/components";
 import { AddIcon } from "~/appIcons";
 import {
   PokemonContestStat,
@@ -49,6 +49,7 @@ import { PropConfig } from "~/components/dataTable/dataTable";
 import { currentTime } from "~/util";
 import { createSelectPropConfig } from "~/components/dataTable/configCreators/createEnumPropConfig";
 import { createStringPropConfig } from "~/components/dataTable/configCreators/createStringPropConfig";
+import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
@@ -58,7 +59,7 @@ const useEditorStyle = createStyles((theme) => ({
       gridTemplateAreas: `nme spe dex lvl bnd
                           typ abl obt pkb hld
                           nat gen obl pkl hll
-                          trn img img img img
+                          trn sub sub img img
                           des des des des des
                           ev1 e2m ev2 e3m ev3
                           .   e2l .   e3l .
@@ -76,7 +77,7 @@ const useEditorStyle = createStyles((theme) => ({
                           abl nat gen
                           obt pkb hld
                           obl pkl hll
-                          trn img img
+                          trn sub img
                           des des des
                           ev1 ev2 ev3
                           .   e2m e3m
@@ -124,6 +125,7 @@ const useEditorStyle = createStyles((theme) => ({
     ".input-machine-moves": { gridArea: "mmv" },
     ".input-tutor-moves": { gridArea: "tmv" },
     ".input-other-moves": { gridArea: "omv" },
+    ".input-sub": { gridArea: "sub" },
     "button.mantine-InputBase-input": {
       height: "min-content",
     },
@@ -188,6 +190,14 @@ const Pokemon: NextPage = () => {
       name: "",
       species: "",
       dexNum: "???",
+      levelLogs: [],
+      bondLogs: [],
+      levelUpMoves: [],
+      eggMoveLogs: [],
+      machineMoveLogs: [],
+      tutorMoveLogs: [],
+      otherMoveLogs: [],
+      contestStatsLogs: [],
     }) as dbPokemon;
   }, [repo]);
 
@@ -398,6 +408,12 @@ const Pokemon: NextPage = () => {
     [makeMoveModalProps]
   );
 
+  const applyBBCodeTemplate = usePokemonBBCodeTemplate();
+  const bbCode: string = useMemo(
+    () => applyBBCodeTemplate(selected),
+    [applyBBCodeTemplate, selected]
+  );
+
   if (!repo) {
     return <>Loading...?</>;
   }
@@ -460,11 +476,11 @@ const Pokemon: NextPage = () => {
               selected.name || selected.species || "(New Pokemon)"
             } has fainted!`}
             createNewEntity={createNewPokemon}
-            onAdd={(pokemon) => {
+            onAdd={(pokemon: dbPokemon) => {
               setEntityList(entityList.concat(pokemon));
               setSelected(pokemon);
             }}
-            onUpdate={(pokemon) => {
+            onUpdate={(pokemon: dbPokemon) => {
               setSelected(pokemon);
               const index = entityList.findIndex(
                 (t) => t.uuid === pokemon.uuid
@@ -472,7 +488,7 @@ const Pokemon: NextPage = () => {
               entityList[index] = pokemon;
               setEntityList(entityList.slice());
             }}
-            onConfirmedDelete={(pokemon) => {
+            onConfirmedDelete={(pokemon: dbPokemon) => {
               const index = entityList.findIndex(
                 (t) => t.uuid === pokemon.uuid
               );
@@ -585,7 +601,7 @@ const Pokemon: NextPage = () => {
                   autosize={true}
                   minRows={3}
                   maxRows={6}
-                  {...inputPropMap.bbcodeDescription}
+                  {...inputPropMap.description}
                 />
                 <TextInput
                   label="Evolution Stage 1"
@@ -707,8 +723,8 @@ const Pokemon: NextPage = () => {
                   id="input-egg-moves"
                   className="input-egg-moves"
                   modalTitle={<Title>Edit Egg Moves</Title>}
-                  valueToDisplayElement={() => (
-                    <BBCodeMovesToTextStack bbCode={selected?.eggMovesBBCode} />
+                  valueToDisplayElement={(moves) => (
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.eggMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.EGG]}
@@ -718,10 +734,8 @@ const Pokemon: NextPage = () => {
                   id="input-machine-moves"
                   className="input-machine-moves"
                   modalTitle={<Title>Edit Machine Moves</Title>}
-                  valueToDisplayElement={() => (
-                    <BBCodeMovesToTextStack
-                      bbCode={selected?.machineMovesBBCode}
-                    />
+                  valueToDisplayElement={(moves) => (
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.machineMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.MACHINE]}
@@ -731,10 +745,8 @@ const Pokemon: NextPage = () => {
                   id="input-tutor-moves"
                   className="input-tutor-moves"
                   modalTitle={<Title>Edit Tutor Moves</Title>}
-                  valueToDisplayElement={() => (
-                    <BBCodeMovesToTextStack
-                      bbCode={selected?.tutorMovesBBCode}
-                    />
+                  valueToDisplayElement={(moves) => (
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.tutorMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.TUTOR]}
@@ -744,25 +756,26 @@ const Pokemon: NextPage = () => {
                   id="input-other-moves"
                   className="input-other-moves"
                   modalTitle={<Title>Edit Other Moves</Title>}
-                  valueToDisplayElement={() => (
-                    <BBCodeMovesToTextStack
-                      bbCode={selected?.otherMovesBBCode}
-                    />
+                  valueToDisplayElement={(moves) => (
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.otherMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.OTHER]}
+                />
+                <TextInput
+                  label="Sub Heading"
+                  id="input-sub"
+                  className="input-sub"
+                  {...inputPropMap.subHeading}
                 />
               </Box>
             )}
           </EntityEditor>
         )}
         {selected && (
-          <BBCodeFromTemplate
-            entityObjectClassName="Pokemon"
-            entityObject={selected}
-            bbCodeAreaProps={{
-              label: `Pokemon ${selected?.name || ""}`,
-            }}
+          <BBCodeArea
+            label={`Pokemon ${selected?.name || ""}`}
+            bbCode={bbCode}
           />
         )}
       </Stack>
@@ -830,7 +843,7 @@ function DisplayLevelUpMoves({ pokemon }: { pokemon: dbPokemon }) {
         const learned = isNaN(levelNum) || levelNum <= level;
 
         return (
-          <Group key={`${i}-${m.move}`} position="apart">
+          <Group key={`${i}-${m.move}`} position="apart" noWrap>
             <Text underline={learned} key={`${i}-${m.move}-name`}>
               {m.move}
             </Text>
@@ -842,10 +855,10 @@ function DisplayLevelUpMoves({ pokemon }: { pokemon: dbPokemon }) {
   );
 }
 
-function BBCodeMovesToTextStack({ bbCode }: { bbCode: string | undefined }) {
+function MovesToTextStack({ moves }: { moves: MoveLog[] | undefined }) {
   return (
     <Stack spacing={0}>
-      {bbCode?.split(", ").map((l) => <Text key={l}>{l}</Text>) ?? ""}
+      {moves?.map((l) => <Text key={l.move}>{l.move}</Text>) ?? ""}
     </Stack>
   );
 }

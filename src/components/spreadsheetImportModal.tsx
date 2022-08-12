@@ -1,4 +1,4 @@
-import { ContextModalProps } from "@mantine/modals";
+import { ContextModalProps, openContextModal } from "@mantine/modals";
 import { useDataSource } from "~/services";
 import {
   ForwardedRef,
@@ -33,6 +33,8 @@ import { CurrencyType } from "~/orm/enums";
 import { useListState, UseListStateHandlers } from "@mantine/hooks";
 import { CancelIcon, SaveIcon } from "~/appIcons";
 import { In } from "typeorm";
+import { TbTableImport } from "react-icons/tb";
+import { ModalName } from "~/modalsList";
 
 interface SpreadSheetData {
   itemLogs: ItemLog[] | null;
@@ -323,7 +325,21 @@ function Inner_ButtonOpenSpreadsheetImportModal(
   props: any,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
-  return <Button ref={ref}>Import Data from Spreadsheet</Button>;
+  return (
+    <Button
+      ref={ref}
+      leftIcon={<TbTableImport />}
+      onClick={() =>
+        openContextModal({
+          modal: ModalName.ImportSpreadsheet,
+          size: "lg",
+          innerProps: {},
+        })
+      }
+    >
+      Import Data from Spreadsheet
+    </Button>
+  );
 }
 
 export const ButtonOpenSpreadsheetImportModal = forwardRef<HTMLButtonElement>(

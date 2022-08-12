@@ -1,9 +1,11 @@
 import { NextPage } from "next";
-import { Box, Paper, Select, Text, Title } from "@mantine/core";
+import { Box, Button, Paper, Select, Text, Title } from "@mantine/core";
 import { useDataSource } from "~/services";
 import { useEffect, useState } from "react";
 import { EntityMetadata } from "typeorm";
 import { SqlTable } from "~/components/sqlTable";
+import { WarningIcon } from "~/appIcons";
+import { openConfirmModal } from "@mantine/modals";
 
 export const DataPage: NextPage = () => {
   const [entityMetadata, setEntityMetadata] = useState<EntityMetadata[]>([]);
@@ -53,6 +55,38 @@ export const DataPage: NextPage = () => {
           </Box>
         )}
       </Paper>
+      <Button
+        mt="xl"
+        leftIcon={<WarningIcon />}
+        color="red"
+        rightIcon={<WarningIcon />}
+        onClick={() =>
+          openConfirmModal({
+            title: <Title order={1}>RESET DATABASE!?</Title>,
+            centered: true,
+            size: "lg",
+            children: (
+              <Text>
+                {`This will wipe ALL data and reset the database to "factory default".`}
+                <br />
+                {`If you're not actively developing this web app, you probably will never need to press this.`}
+              </Text>
+            ),
+            labels: {
+              cancel: "On second thought, NO.",
+              confirm: "I'm sure",
+            },
+            onConfirm: async () => {
+              if (!ds) return;
+              await ds.dropDatabase();
+              await ds.synchronize();
+              await ds.runMigrations();
+            },
+          })
+        }
+      >
+        RESET DATABASE
+      </Button>
     </>
   );
 };

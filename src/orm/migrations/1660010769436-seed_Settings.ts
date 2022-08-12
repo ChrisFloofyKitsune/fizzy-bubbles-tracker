@@ -6,10 +6,10 @@ const settings: Setting[] = [
   {
     id: SettingEnum.ShowDataManagementPage,
     name: "Show Data Management Page",
-    group: "Advanced",
+    group: "Debug",
     description:
-      "Show the Data page, where you can browse the data in the data base and do limited edits or delete data.",
-    value: false,
+      "Show the Data page, where you can browse the data in the database and do limited edits or bulk deleting of data.",
+    defaultValue: false,
     type: "boolean",
   },
   {
@@ -18,7 +18,7 @@ const settings: Setting[] = [
     group: "Google Drive Syncing",
     description:
       "Automatically back up the data here to your Google Drive (if connected).",
-    value: true,
+    defaultValue: true,
     type: "boolean",
   },
   {
@@ -30,7 +30,7 @@ const settings: Setting[] = [
       "A new save file will be made each new UTC day up the set limit where any older than that will be deleted.\n" +
       "It will try NOT to overwrite files made by other devices than the current one, in which case a new auto save will be made.\n" +
       "(The save files are pretty small.)",
-    value: 7,
+    defaultValue: 7,
     type: "number",
   },
   {
@@ -41,7 +41,7 @@ const settings: Setting[] = [
       "If newer data than what is on your local machine is found in your Google Drive,\n" +
       "the web app will show a popup asking you if you want to load the new data on startup or refresh.\n" +
       '(Ignored if "Auto Load from Google Drive" is turned on.)',
-    value: true,
+    defaultValue: true,
     type: "boolean",
   },
   {
@@ -51,7 +51,7 @@ const settings: Setting[] = [
     description:
       "Automatically load the latest Google Drive auto save upon starting or refreshing the web app.\n" +
       "This auto loading Will replace any stored local data in your browser with the loaded auto save.",
-    value: false,
+    defaultValue: false,
     type: "boolean",
   },
 ];

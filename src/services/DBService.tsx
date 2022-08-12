@@ -1,4 +1,10 @@
-import { DataSource, EntityTarget, Repository, ObjectLiteral } from "typeorm";
+import {
+  DataSource,
+  EntityTarget,
+  Repository,
+  ObjectLiteral,
+  In,
+} from "typeorm";
 import SqlJs from "/public/dist/sql-wasm";
 import type { SqljsConnectionOptions } from "typeorm/driver/sqljs/SqljsConnectionOptions";
 import {
@@ -18,6 +24,9 @@ import { WAIT_FOREVER, waitUntil } from "async-wait-until";
 import { debounce } from "~/util";
 import { SettingEnum } from "~/settingEnum";
 import { Setting } from "~/orm/entities";
+import FileSaver from "file-saver";
+import dayjs from "dayjs";
+import { useListState } from "@mantine/hooks";
 
 export type DataSourceOptions = Partial<
   Omit<
@@ -116,11 +125,8 @@ export class DBService {
     await DBService.dataSource.initialize();
 
     console.log("📝 Making sure Database is up-to-date... 📝");
-    // TODO: Use migrations instead at some point.
     await DBService.dataSource.synchronize();
-
     await DBService.dataSource.runMigrations();
-
     console.log("✅ Local Database Initialized ✅");
 
     // for purposes of exposing to web browser console
@@ -131,6 +137,29 @@ export class DBService {
     if (!DBService.dataSource?.isInitialized) return;
     await DBService.dataSource.destroy();
     DBService.dataSource = undefined;
+  }
+
+  public static saveToFile() {
+    if (!DBService.dataSource) return;
+
+    const data = DBService.dataSource.sqljsManager.exportDatabase();
+    FileSaver.saveAs(
+      new Blob([data]),
+      `${dayjs().format("mm-hha-DD-MMM-YYYY")}.fbtrack.db`
+    );
+  }
+
+  public static async loadFromFile(file: File | null) {
+    if (!file || !DBService.dataSource) return;
+
+    await DBService.dataSource.sqljsManager.loadDatabase(
+      new Uint8Array(await file.arrayBuffer())
+    );
+    console.log(`📝 Making sure ${file.name} is up-to-date... 📝`);
+    await DBService.dataSource.synchronize();
+    await DBService.dataSource.runMigrations();
+    await DBService.dataSource.sqljsManager.saveDatabase();
+    console.log(`✅ Local Database Loaded from ${file.name}! ✅`);
   }
 }
 
@@ -194,10 +223,10 @@ export function useDataSource() {
   return useContext(DataSourceContext);
 }
 
-export function useRepository<T>(entityTarget: EntityTarget<T>) {
+export function useRepository<T>(entityTarget: EntityTarget<T> | null) {
   const ds = useDataSource();
   const repo = useMemo(() => {
-    if (!ds) return null;
+    if (!ds || !entityTarget) return null;
     return ds.getRepository(entityTarget);
   }, [entityTarget, ds]);
 
@@ -359,12 +388,40 @@ export function useDebouncedListSave<T extends ObjectLiteral>(
   );
 }
 
-export function useSettingValue(setting: SettingEnum) {
+export function useSettingValue(
+  setting: SettingEnum
+): string | number | boolean | undefined {
   const settingRepo = useRepository(Setting);
   const [value, setValue] = useState<any>(undefined);
+  const autoSaveCounter = useAutoSaveCounter();
   useAsyncEffect(async () => {
-    if (!settingRepo) return null;
-    setValue((await settingRepo.findOneBy({ id: setting }))?.value);
-  }, [settingRepo]);
+    if (!settingRepo) return;
+    await waitForTransactions(settingRepo);
+    const result = await settingRepo.findOneBy({ id: setting });
+    setValue(result ? result.value ?? result.defaultValue : undefined);
+  }, [settingRepo, autoSaveCounter]);
   return value;
+}
+
+export function useMultipleSettingValues(
+  ...settings: SettingEnum[]
+): Record<SettingEnum, string | number | boolean> {
+  const settingRepo = useRepository(Setting);
+  const [results, resultsHandler] = useListState<Setting>([]);
+  const autoSaveCounter = useAutoSaveCounter();
+
+  useAsyncEffect(async () => {
+    if (!settingRepo) return;
+    await waitForTransactions(settingRepo);
+    resultsHandler.setState(await settingRepo.findBy({ id: In(settings) }));
+  }, [settingRepo, autoSaveCounter]);
+
+  return useMemo(
+    () =>
+      Object.assign(
+        {},
+        ...results.map((r) => ({ [r.id]: r.value ?? r.defaultValue }))
+      ),
+    [results]
+  );
 }

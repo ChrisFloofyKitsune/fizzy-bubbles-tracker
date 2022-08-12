@@ -16,8 +16,14 @@ export class Setting {
   description: string;
 
   @Column()
-  type: "number" | "boolean" | "string";
+  type: "number" | "boolean" | "string" | "enum";
+
+  @Column("simple-json", { nullable: true })
+  value?: number | boolean | string;
 
   @Column("simple-json")
-  value: any;
+  defaultValue: number | boolean | string;
+
+  @Column("simple-array", { nullable: true })
+  enumValues?: string[];
 }

@@ -8,8 +8,8 @@ const configs: BBCodeReplacementConfig[] = [
   },
   {
     specifier: "Pokemon",
-    customTemplate: `
-[center][SIZE=4][B]{{name}}[/B][/SIZE]
+    customTemplateDefault: `[B]{{nameBBCode}}[/B]
+{{subHeading}}
 [img]{{imageLink}}[/img]
 [B]Species[/B]: {{species}} | [B]Gender[/B]: {{gender}} | [B]Obtained[/B]: {{obtainedBBCode}}
 [B]Type[/B]: {{type}} | [B]Ability[/B]: {{ability}} | [B]Nature[/B]: {{nature}}
@@ -21,18 +21,21 @@ const configs: BBCodeReplacementConfig[] = [
 
 [B]Moves[/B]
 [spoiler][B]Level-Up:[/B] {{levelUpMovesBBCode}}
+
 [B]Egg Moves[/B]: {{eggMovesBBCode}}
+
 [B]TM/TR Moves[/B]: {{machineMovesBBCode}}
+
 [B]Move Tutor[/B]: {{tutorMovesBBCode}}
+
 [B]Other Moves[/B]: {{otherMovesBBCode}}[/spoiler]
 [B]Description[/B]
-[spoiler]{{bbcodeDescription}}[/spoiler][/center]
-`,
+[spoiler]{{description}}[/spoiler]`,
     replaceWithProperty: null,
   },
   {
     specifier: "Pokemon.contestStatsBBCode",
-    customTemplate: [
+    customTemplateDefault: [
       `[color=#FA92B2]Cute: {{cuteBBCode}}[/color]`,
       `[color=#9DB7F5]Beautiful: {{beautifulBBCode}}[/color]`,
       `[color=#FAE078]Tough: {{toughBBCode}}[/color]`,

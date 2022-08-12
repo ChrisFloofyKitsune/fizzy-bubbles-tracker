@@ -1,6 +1,19 @@
-import { Blockquote, List, Stack, Text, Title, Anchor } from "@mantine/core";
+import {
+  Blockquote,
+  List,
+  Stack,
+  Text,
+  Title,
+  Anchor,
+  Box,
+  Group,
+  Button,
+  FileButton,
+} from "@mantine/core";
 import { NextPage } from "next";
 import { GiFox } from "react-icons/gi";
+import { ButtonOpenSpreadsheetImportModal } from "~/components/spreadsheetImportModal";
+import { DBService } from "~/services";
 
 const Home: NextPage = () => {
   return (
@@ -57,6 +70,22 @@ const Home: NextPage = () => {
         <Title order={2}>Quick Log Post</Title>
         {'Coming soon "TM"'}
         <Title order={2}>Import and Export</Title>
+        <Stack pl="lg">
+          <Title order={5}>To / From {`'.fbtrack.db'`} file</Title>
+          <Group>
+            <Button onClick={DBService.saveToFile}>Save to File</Button>
+            <FileButton
+              onChange={DBService.loadFromFile}
+              accept={".fbtrack.db"}
+            >
+              {(props) => <Button {...props}>Load from File</Button>}
+            </FileButton>
+          </Group>
+          <Title order={5}>From workbook spreadsheet file (.xlsx, .ods)</Title>
+          <Box>
+            <ButtonOpenSpreadsheetImportModal />
+          </Box>
+        </Stack>
 
         <Title order={2}>Update Log</Title>
         <Text>

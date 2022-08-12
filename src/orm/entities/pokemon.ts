@@ -46,6 +46,8 @@ export class Pokemon {
 
   @Column("text", { nullable: true })
   name: string | null = "";
+  @Column("text", { nullable: true })
+  subHeading: string | null = "";
 
   @Column("text", { nullable: true })
   species: string | null = "";
@@ -149,7 +151,7 @@ export class Pokemon {
   contestStatsLogs: ContestStatLog[];
 
   @Column({ nullable: true })
-  bbcodeDescription?: string = "";
+  description?: string = "";
 
   // GETTER FUNCTIONS
   // noinspection JSUnusedGlobalSymbols
@@ -170,10 +172,24 @@ export class Pokemon {
       return "0";
     }
 
-    const activeLog = this.bondLogs.reduce((prev, current) =>
-      current.date >= prev.date ? current : prev
+    type LogResult = { latestLog: BondLog | null; total: number };
+    const result = this.bondLogs.reduce(
+      (result: LogResult, current) => {
+        let log: BondLog;
+        if (result.latestLog === null || current.date > result.latestLog.date) {
+          log = current;
+        } else {
+          log = result.latestLog;
+        }
+
+        return {
+          latestLog: log,
+          total: Math.min(30, Math.max(0, result.total + current.value)),
+        };
+      },
+      { latestLog: null, total: 0 }
     );
-    return wrapUrlIfLink(activeLog.value, activeLog.sourceUrl);
+    return wrapUrlIfLink(result.total, result.latestLog?.sourceUrl);
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -205,6 +221,11 @@ export class Pokemon {
         this.evolutionStageThreeMethodLink
       )} ${this.evolutionStageThree}`
     );
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  nameBBCode({ textSize }: { textSize?: number }) {
+    return `[size=${textSize ? +textSize + 1 : "+1"}]${this.name}[/size]`;
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -260,7 +281,11 @@ export class Pokemon {
   }
 
   // noinspection JSUnusedGlobalSymbols
-  get levelUpMovesBBCode() {
+  levelUpMovesBBCode({
+    includeUnlearnedMoves = false,
+  }: {
+    includeUnlearnedMoves: boolean;
+  }): string {
     if (!this.levelLogs) return "";
 
     const currentLevel = this.levelLogs.reduce(
@@ -270,9 +295,20 @@ export class Pokemon {
     return !this.levelUpMoves
       ? ""
       : this.levelUpMoves
-          .map((m) => Object.assign({ levelNum: parseInt(m.level, 10) }, m))
-          .filter((m) => isNaN(m.levelNum) || m.levelNum <= currentLevel)
-          .map((m) => `${m.move} (${m.level})`)
+          .map((m) => {
+            const levelNum = parseInt(m.level, 10);
+            return Object.assign(
+              { learned: isNaN(levelNum) || levelNum <= currentLevel },
+              m
+            );
+          })
+          .filter((m) => includeUnlearnedMoves || m.learned)
+          .map(
+            (m) =>
+              `${includeUnlearnedMoves && m.learned ? "[u]" : ""}${m.move} (${
+                m.level
+              })${includeUnlearnedMoves && m.learned ? "[/u]" : ""}`
+          )
           .join(", ");
   }
 
@@ -301,11 +337,14 @@ export class Pokemon {
       this.contestStatsLogs?.reduce(
         ({ total, link, id }, statLog) => {
           return {
-            total:
+            total: Math.min(
+              50,
               total +
-              (statLog.stat === PokemonContestStat.ALL || statLog.stat === stat
-                ? statLog.statChange
-                : 0),
+                (statLog.stat === PokemonContestStat.ALL ||
+                statLog.stat === stat
+                  ? statLog.statChange
+                  : 0)
+            ),
             link: !id
               ? statLog.sourceUrl
               : statLog.id > id

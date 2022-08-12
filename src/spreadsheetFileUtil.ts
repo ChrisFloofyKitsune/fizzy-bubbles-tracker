@@ -242,7 +242,7 @@ export function extractPokemonSheet(workBook: WorkBook, sheetName: string) {
     pkm.boutiqueModsLink = cell("D12");
     pkm.imageLink = cell("E12");
 
-    pkm.bbcodeDescription = cell("A18");
+    pkm.description = cell("A18");
 
     function range(range: string) {
       return extractRange(workBook, sheetName, range);

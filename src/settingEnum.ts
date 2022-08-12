@@ -4,4 +4,10 @@ export enum SettingEnum {
   GDriveAutoSaveCount = "GDriveAutoSaveCount",
   GDriveAskToLoadNewer = "GDriveAskToLoadNewer",
   GDriveAutoLoad = "GDriveAutoLoad",
+  PokemonFormatAlign = "PokemonFormatAlign",
+  PokemonFormatTextSize = "PokemonFormatTextSize",
+  PokemonFormatTextColor = "PokemonFormatTextColor",
+  PokemonFormatTextFont = "PokemonFormatTextFont",
+  PokemonFormatIncludeUnlearnedLevelUpMoves = "PokemonFormatIncludeUnlearnedLevelUpMoves",
+  AdvancedUsePokemonTemplates = "AdvancedUsePokemonTemplates",
 }
