@@ -154,9 +154,13 @@ export function PokemonTemplatesEditor() {
           <Stack
             sx={{
               height: "100%",
+              width: "18em",
             }}
           >
-            <Title order={4}>Possible Placeholders</Title>
+            <Text>
+              <Title order={4}>Possible Placeholders</Title>
+              (Each can only be used for replacement once)
+            </Text>
             <ScrollArea
               offsetScrollbars
               sx={{
@@ -170,16 +174,12 @@ export function PokemonTemplatesEditor() {
               <Title order={5} mt="md">
                 Calculated BBCode
               </Title>
-              <Text>
-                Most just auto-wrap with the
+              <Text pl="sm">
+                Most just auto-wrap with the appropriate bbcode
                 <br />
-                appropriate bbcode
+                (Such as [url] if the corresponding link exists.)
                 <br />
-                (Such as [url] if the corresponding
-                <br />
-                link exists.)
-                <br />
-                <strong>Or</strong> they convert a list into bbcode.
+                Or it converts a list into bbcode.
               </Text>
               <List>{methods}</List>
               <Title order={5} mt="md">

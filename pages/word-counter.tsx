@@ -3,7 +3,7 @@ import { NextPage } from "next";
 import { BBCodeArea } from "~/components";
 import { useDataSource } from "~/services";
 import { useCallback, useEffect, useRef, useState } from "react";
-import useAsyncEffect from "use-async-effect";
+import { useAsyncEffect } from "use-async-effect";
 import { MiscValue } from "~/orm/entities/miscValue";
 import { debounce } from "~/util";
 import { Repository } from "typeorm";
@@ -70,7 +70,7 @@ const WordCounterPage: NextPage = () => {
           label={
             "~" +
             (text
-              ?.replaceAll(/\[quote\S+\].*\[\/quote\]/gis, "")
+              ?.replaceAll(/\[quote\S+].*\[\/quote]/gis, "")
               .split(/\s/gm)
               .filter((w) => w.length !== 0).length ?? 0) +
             " Words"

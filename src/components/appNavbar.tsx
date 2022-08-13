@@ -42,19 +42,20 @@ const useStyles = createStyles((theme) => ({
       borderRadius: borderRadius.hover,
       ".mantine-ThemeIcon-root": {
         borderRadius: borderRadius.hover,
+        transform: "translate(0, -3px)",
       },
       ".mantine-Group-root": {
         borderRadius: borderRadius.hover,
-        backgroundColor: theme.fn.rgba("#000", 0.5),
+        backgroundColor: theme.fn.rgba("#FFF", 0.1),
       },
     },
 
     "&.active": {
       backgroundColor: theme.colors.teal[9],
-      "& .mantine-ThemeIcon-root": {
+      ".mantine-ThemeIcon-root": {
         backgroundColor: theme.colors.red[9],
       },
-      "& .mantine-Text-root": {
+      ".mantine-Text-root": {
         fontWeight: "bolder",
       },
     },

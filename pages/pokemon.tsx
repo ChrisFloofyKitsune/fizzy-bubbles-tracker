@@ -1,5 +1,3 @@
-// noinspection JSUnusedGlobalSymbols
-
 import {
   Box,
   Button,
@@ -29,7 +27,7 @@ import {
   MachineMoveLog,
   MoveLog,
   OtherMoveLog,
-  Pokemon as dbPokemon,
+  Pokemon,
   Trainer,
   TutorMoveLog,
 } from "~/orm/entities";
@@ -50,6 +48,9 @@ import { currentTime } from "~/util";
 import { createSelectPropConfig } from "~/components/dataTable/configCreators/createEnumPropConfig";
 import { createStringPropConfig } from "~/components/dataTable/configCreators/createStringPropConfig";
 import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
+import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
+import { useListState } from "@mantine/hooks";
+import { AccordionSpoiler } from "~/components/AccordionSpoiler";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
@@ -65,7 +66,7 @@ const useEditorStyle = createStyles((theme) => ({
                           .   e2l .   e3l .
                           bqm bqm bqm bql bql
                           con con con con con
-                          lmv emv mmv tmv omv  `
+                          lmv emv mmv tmv omv`
         .split("\n")
         .map((l) => `"${l.trim()}"`)
         .join(""),
@@ -151,13 +152,13 @@ const useModalDataTableStyles = createStyles({
   },
 });
 
-const Pokemon: NextPage = () => {
-  const [repo, trainerRepo] = useRepositories(dbPokemon, Trainer) as [
-    Repository<dbPokemon> | undefined,
+const PokemonPage: NextPage = () => {
+  const [repo, trainerRepo] = useRepositories(Pokemon, Trainer) as [
+    Repository<Pokemon> | undefined,
     Repository<Trainer> | undefined
   ];
-  const [entityList, setEntityList] = useState<dbPokemon[]>([]);
-  const [selected, setSelected] = useState<dbPokemon>();
+  const [entityList, entityListHandler] = useListState<Pokemon>([]);
+  const [selected, setSelected] = useState<Pokemon>();
 
   const [trainerList, setTrainerList] = useState<Trainer[]>();
 
@@ -169,7 +170,7 @@ const Pokemon: NextPage = () => {
     const list = await repo.find({
       loadEagerRelations: true,
     });
-    setEntityList(list);
+    entityListHandler.setState(list);
     setSelected(selected ?? list[0] ?? undefined);
   }, [repo]);
 
@@ -198,7 +199,7 @@ const Pokemon: NextPage = () => {
       tutorMoveLogs: [],
       otherMoveLogs: [],
       contestStatsLogs: [],
-    }) as dbPokemon;
+    }) as Pokemon;
   }, [repo]);
 
   const editorStyle = useEditorStyle();
@@ -457,7 +458,7 @@ const Pokemon: NextPage = () => {
             onClick={async () => {
               await waitForTransactions(repo);
               const pokemon = await repo!.save(createNewPokemon());
-              setEntityList([pokemon]);
+              entityListHandler.append(pokemon);
               setSelected(pokemon);
               setEditModeOn(true);
             }}
@@ -476,26 +477,26 @@ const Pokemon: NextPage = () => {
               selected.name || selected.species || "(New Pokemon)"
             } has fainted!`}
             createNewEntity={createNewPokemon}
-            onAdd={(pokemon: dbPokemon) => {
-              setEntityList(entityList.concat(pokemon));
+            onAdd={(pokemon: Pokemon) => {
+              entityListHandler.append(pokemon);
               setSelected(pokemon);
             }}
-            onUpdate={(pokemon: dbPokemon) => {
+            onUpdate={(pokemon: Pokemon) => {
               setSelected(pokemon);
               const index = entityList.findIndex(
                 (t) => t.uuid === pokemon.uuid
               );
-              entityList[index] = pokemon;
-              setEntityList(entityList.slice());
+              entityListHandler.setItem(index, pokemon);
             }}
-            onConfirmedDelete={(pokemon: dbPokemon) => {
+            onConfirmedDelete={(pokemon: Pokemon) => {
               const index = entityList.findIndex(
-                (t) => t.uuid === pokemon.uuid
+                (p) => p.uuid === pokemon.uuid
               );
-              const list = entityList.filter((t) => t.uuid !== pokemon.uuid);
-              setEntityList(list);
+              entityListHandler.filter((p) => p.uuid !== pokemon.uuid);
               setSelected(
-                list.length === 0 ? undefined : list[Math.max(0, index - 1)]
+                entityList.length - 1 === 0
+                  ? undefined
+                  : entityList[Math.max(0, index - 1)]
               );
             }}
           >
@@ -536,7 +537,10 @@ const Pokemon: NextPage = () => {
                   className="input-bond"
                   modalTitle={<Title>Edit Bond Logs</Title>}
                   valueToDisplayElement={(logs: BondLog[]) =>
-                    logs.reduce((prev, curr) => prev + curr.value, 0)
+                    logs.reduce(
+                      (prev, curr) => Math.max(30, prev + curr.value),
+                      0
+                    )
                   }
                   {...inputPropMap.bondLogs}
                   modalProps={bondModalProps}
@@ -564,20 +568,6 @@ const Pokemon: NextPage = () => {
                   id="input-gender"
                   className="input-gender"
                   data={genderOptions}
-                  placeholder="Select or Type"
-                  searchable
-                  creatable
-                  getCreateLabel={(query) => `${query}`}
-                  onCreate={(query) => {
-                    const freedomOfGenderExpression = {
-                      value: query,
-                      label: query,
-                    };
-                    setGenderOptions((current) =>
-                      current.concat(freedomOfGenderExpression)
-                    );
-                    return freedomOfGenderExpression;
-                  }}
                   {...inputPropMap.gender}
                 />
                 <Select
@@ -592,6 +582,7 @@ const Pokemon: NextPage = () => {
                   label="Image Link"
                   id="input-image-link"
                   className="input-image-link"
+                  placeholder="https://www.serebii.net/art/th/(dex number here).png"
                   {...inputPropMap.imageLink}
                 />
                 <Textarea
@@ -778,15 +769,25 @@ const Pokemon: NextPage = () => {
             bbCode={bbCode}
           />
         )}
+        <AccordionSpoiler
+          label={<Title order={3}>Combined Pokemon Output</Title>}
+        >
+          {entityList && trainerList && (
+            <CombinedPokemonOutput
+              pokemonList={entityList}
+              trainerOptions={trainerList}
+            />
+          )}
+        </AccordionSpoiler>
       </Stack>
     </>
   );
 };
 
-export default Pokemon;
+export default PokemonPage;
 
 type ContestStatesDisplayProps = {
-  pokemon: dbPokemon | undefined;
+  pokemon: Pokemon | undefined;
 };
 function ContestStatsDisplay({ pokemon }: ContestStatesDisplayProps) {
   return (
@@ -825,7 +826,7 @@ function ContestStatsDisplay({ pokemon }: ContestStatesDisplayProps) {
   );
 }
 
-function DisplayLevelUpMoves({ pokemon }: { pokemon: dbPokemon }) {
+function DisplayLevelUpMoves({ pokemon }: { pokemon: Pokemon }) {
   const level = useMemo(
     () =>
       pokemon.levelLogs.reduce((prev, curr) => Math.max(prev, curr.value), 1),

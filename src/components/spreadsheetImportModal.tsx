@@ -22,13 +22,20 @@ import {
 } from "@mantine/core";
 import { WorkBook } from "xlsx";
 import {
+  extractBondConfigs,
   extractInventory,
   extractPokemonSheet,
   extractWallet,
   fileToWorkBook,
   findPokemonSheets,
-} from "~/spreadsheetFileUtil";
-import { ItemDefinition, ItemLog, Pokemon, WalletLog } from "~/orm/entities";
+} from "~/spreadsheetFileImportUtil";
+import {
+  BondStylingConfig,
+  ItemDefinition,
+  ItemLog,
+  Pokemon,
+  WalletLog,
+} from "~/orm/entities";
 import { CurrencyType } from "~/orm/enums";
 import { useListState, UseListStateHandlers } from "@mantine/hooks";
 import { CancelIcon, SaveIcon } from "~/appIcons";
@@ -40,6 +47,7 @@ interface SpreadSheetData {
   itemLogs: ItemLog[] | null;
   itemDefinitions: ItemDefinition[] | null;
   walletLogs: WalletLog[] | null;
+  bondConfigs: Omit<BondStylingConfig, "pokemonUuid">[] | null;
 }
 
 interface PokemonImportOpt {
@@ -65,6 +73,7 @@ export function SpreadsheetImportModal({
   const optPokeDollars = useImportOption("PokeDollars");
   const optWatts = useImportOption("Watts");
   const optRareCandies = useImportOption("Rare Candies");
+  const optBondConfigs = useImportOption("Bond Styling Configs");
 
   const [data, setData] = useState<SpreadSheetData | null>(null);
   const [pkmOpts, pkmOptsHandler] = useListState<PokemonImportOpt>([]);
@@ -89,10 +98,33 @@ export function SpreadsheetImportModal({
           .map((s) => extractPokemonSheet(workBook, s))
           .filter((pkm) => !!pkm) as Pokemon[];
 
+        const bondConfigs = extractBondConfigs(workBook)
+          ?.map(
+            (config) =>
+              ({
+                pokemon: pokemon.find(
+                  (pkm) =>
+                    pkm.name &&
+                    pkm.species &&
+                    config.pokemonLabel &&
+                    config.pokemonLabel.includes(pkm.name.toLowerCase()) &&
+                    config.pokemonLabel.includes(pkm.species.toLowerCase())
+                ),
+                colorCode: config.colorCode,
+                iconImageLink: config.iconImageLink,
+                preHeaderBBCode: config.preHeaderBBCode,
+                postHeaderBBCode: config.postHeaderBBCode,
+                preFooterBBCode: config.preFooterBBCode,
+                postFooterBBCode: config.postFooterBBCode,
+              } as Omit<BondStylingConfig, "pokemonUuid">)
+          )
+          .filter((config) => !!config.pokemon);
+
         setData({
           itemLogs: inventory?.logs || null,
           itemDefinitions: inventory?.definitions || null,
           walletLogs: walletLogs || null,
+          bondConfigs: bondConfigs || null,
         });
 
         const itemLogsCount = await ds.getRepository(ItemLog).count();
@@ -155,6 +187,15 @@ export function SpreadsheetImportModal({
         optRareCandies.setValue(!rcWarn);
         optRareCandies.setOverwriteWarning(rcWarn);
 
+        const bondConfigRepo = ds.getRepository(BondStylingConfig);
+
+        const bcWarn = (await bondConfigRepo.count()) > 0;
+        optBondConfigs.setLabel(
+          bondConfigs ? `(${bondConfigs.length} Configs)` : ""
+        );
+        optBondConfigs.setValue(!bcWarn);
+        optBondConfigs.setOverwriteWarning(bcWarn);
+
         const pkmRepo = ds.getRepository(Pokemon);
         const pkmOpts: PokemonImportOpt[] = [];
         for (const pkm of pokemon) {
@@ -180,6 +221,7 @@ export function SpreadsheetImportModal({
     optWatts,
     pkmOptsHandler,
     workBook,
+    optBondConfigs,
   ]);
 
   const saveData = useCallback(async () => {
@@ -191,7 +233,7 @@ export function SpreadsheetImportModal({
       await logRepo.clear();
       await defRepo.clear();
       await defRepo.save(data.itemDefinitions);
-      await defRepo.save(data.itemLogs);
+      await logRepo.save(data.itemLogs);
     }
 
     if (
@@ -235,7 +277,37 @@ export function SpreadsheetImportModal({
         )
         .map((o) => o.pokemon)
     );
-  }, [ds, data, optItems, optPokeDollars, optWatts, optRareCandies, pkmOpts]);
+
+    if (data?.bondConfigs && optBondConfigs.value) {
+      const pkmList = (await pkmRepo.find({
+        select: ["uuid", "name"],
+      })) as Pick<Pokemon, "uuid" | "name">[];
+      const finishedConfigs: BondStylingConfig[] = data.bondConfigs.map(
+        (config) => {
+          const uuid = pkmList.find(
+            (pkm) => pkm.name === config.pokemon.name
+          )!.uuid;
+
+          return {
+            ...config,
+            pokemonUuid: uuid,
+            pokemon: uuid as any,
+          };
+        }
+      );
+
+      await ds.getRepository(BondStylingConfig).save(finishedConfigs);
+    }
+  }, [
+    ds,
+    data,
+    optItems,
+    optPokeDollars,
+    optWatts,
+    optRareCandies,
+    pkmOpts,
+    optBondConfigs,
+  ]);
 
   return !ds ? (
     <>Error when loading database. :(</>
@@ -277,6 +349,12 @@ export function SpreadsheetImportModal({
             <ImportOptionDisplay
               disabled={!workBook}
               importOption={optRareCandies}
+            />
+          </List.Item>
+          <List.Item>
+            <ImportOptionDisplay
+              disabled={!workBook}
+              importOption={optBondConfigs}
             />
           </List.Item>
         </List>

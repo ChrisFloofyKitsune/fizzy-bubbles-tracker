@@ -21,7 +21,7 @@ import {
   ItemCategorySelectItemProps,
 } from "~/pageComponents/items/InventorySelectItems";
 import { filterUnique } from "~/util";
-import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
+import { AvatarIconImage } from "~/components/AvatarIconImage";
 import {
   LogDataTable,
   LogDataTableProps,
@@ -235,7 +235,7 @@ export function EditInventoryModal({
 
         <TextInput
           label="Item Icon"
-          icon={<ItemDefinitionImage imageLink={imageLink} />}
+          icon={<AvatarIconImage imageLink={imageLink} />}
           styles={{
             icon: {
               marginLeft: "0.25em",

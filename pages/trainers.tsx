@@ -18,7 +18,7 @@ import { waitUntil } from "async-wait-until";
 import { AddIcon } from "~/appIcons";
 import { useAsyncEffect } from "use-async-effect";
 
-const Trainers: NextPage = () => {
+const TrainersPage: NextPage = () => {
   const repo = useRepository(Trainer);
   const [entityList, setEntityList] = useState<Trainer[]>([]);
   const [selected, setSelected] = useState<Trainer>();
@@ -155,4 +155,4 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
   );
 };
 
-export default Trainers;
+export default TrainersPage;

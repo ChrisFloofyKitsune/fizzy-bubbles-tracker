@@ -1,6 +1,7 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": ["plugin:react/recommended","next/core-web-vitals"],
   "root": true,
+  "plugins": ["react","unused-imports"],
   "rules": {
     "semi": [
       "warn",
@@ -8,6 +9,9 @@
       {
         "omitLastInOneLineBlock": true
       }
-    ]
+    ],
+    "react/jsx-uses-vars": "warn",
+    "no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error"
   }
 }

@@ -38,7 +38,7 @@ const propStyles = createStyles({
   },
 } as Record<keyof WalletLog, CSSObject>);
 
-const Wallet: NextPage = () => {
+const WalletPage: NextPage = () => {
   const repo = useRepository(WalletLog);
   const [walletLogs, walletLogsHandler] = useListState<WalletLog>([]);
   const [editModeOn, setEditModeOn] = useState<boolean>(false);
@@ -293,4 +293,4 @@ const Wallet: NextPage = () => {
   );
 };
 
-export default Wallet;
+export default WalletPage;

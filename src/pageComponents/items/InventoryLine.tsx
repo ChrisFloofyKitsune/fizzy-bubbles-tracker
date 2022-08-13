@@ -2,7 +2,7 @@ import { ItemLog } from "~/orm/entities";
 import { createStyles, ThemeIcon, Tooltip } from "@mantine/core";
 import { TbAlertTriangle, TbCaretRight } from "react-icons/tb";
 import { ReactNode, useMemo } from "react";
-import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
+import { AvatarIconImage } from "~/components/AvatarIconImage";
 import { WrapIf } from "~/util";
 
 export type InventoryLineProps = {
@@ -114,7 +114,12 @@ export function InventoryLine({
               key={`line-${data.itemDefId}-quantity`}
             >{`x${data.quantity}`}</span>
           )}
-          {data.imageLink && <ItemDefinitionImage imageLink={data.imageLink} />}
+          {data.imageLink && (
+            <AvatarIconImage
+              key={`line-${data.itemDefId}-icon-image`}
+              imageLink={data.imageLink}
+            />
+          )}
           {shortForm ? (
             <WrapIf
               key={`line-${data.itemDefId}-link-if`}

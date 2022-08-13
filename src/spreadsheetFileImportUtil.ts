@@ -1,6 +1,7 @@
 import { CellObject, read, utils, WorkBook } from "xlsx";
 import {
   BondLog,
+  BondStylingConfig,
   ContestStatLog,
   EggMoveLog,
   ItemDefinition,
@@ -377,4 +378,43 @@ export function findPokemonSheets(workBook: WorkBook) {
     "C2:C200"
   );
   return sheetNameList?.flat() as string[];
+}
+
+export function extractBondConfigs(workBook: WorkBook):
+  | (Omit<BondStylingConfig, "pokemon" | "pokemonUuid"> & {
+      pokemonLabel: string | null;
+    })[]
+  | null {
+  const rows = extractRange(workBook, "Bond Tracker", "A3:D100");
+  return (
+    rows?.map((row) => {
+      let preHeaderText = (row[1] as string | undefined) ?? null;
+      let postHeaderText = (row[2] as string | undefined) ?? null;
+      let postFooterText = (row[3] as string | undefined) ?? null;
+
+      const color = preHeaderText?.match(/\[color=(#?\w+?)]/i)?.[1] ?? null;
+      if (color !== null) {
+        preHeaderText =
+          preHeaderText?.replace(/\[color=(#?\w+?)]/i, "") || null;
+        postFooterText = postFooterText?.replace(/\[\/color]/i, "") || null;
+      }
+
+      const imageLink =
+        postHeaderText?.match(/\[img]([^\[\]]+?)\[\/img]/i)?.[1] ?? null;
+      if (imageLink !== null) {
+        postHeaderText =
+          postHeaderText?.replace(/\[img][^\[\]]+?\[\/img]/i, "") || null;
+      }
+
+      return {
+        pokemonLabel: (row[0] as string | undefined)?.toLowerCase() ?? null,
+        colorCode: color,
+        iconImageLink: imageLink,
+        preHeaderText,
+        postHeaderText,
+        preFooterText: null,
+        postFooterText,
+      };
+    }) ?? null
+  );
 }

@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { IconType } from "react-icons";
 import { CancelIcon, SaveIcon } from "~/appIcons";
 import { uniqueOnProp } from "~/util";
-import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
+import { AvatarIconImage } from "~/components/AvatarIconImage";
 import {
   ItemCategorySelectItem,
   ItemCategorySelectItemProps,
@@ -114,7 +114,7 @@ export function InventoryEditItemDefModal({
             false)
         }
         icon={
-          <ItemDefinitionImage
+          <AvatarIconImage
             imageLink={
               selectedDef ? defsMap.get(selectedDef)?.imageLink : undefined
             }

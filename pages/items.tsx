@@ -63,7 +63,7 @@ import { createStringPropConfig } from "~/components/dataTable/configCreators/cr
 import { createImagePropConfig } from "~/components/dataTable/configCreators/createImagePropConfig";
 import { createTextAreaPropConfig } from "~/components/dataTable/configCreators/createTextAreaPropConfig";
 import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
-import { ItemDefinitionImage } from "~/pageComponents/items/ItemDefinitionImage";
+import { AvatarIconImage } from "~/components/AvatarIconImage";
 import { ModalName } from "~/modalsList";
 import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
 import { InventoryBBCodeOutput } from "~/pageComponents/items/InventoryBBCodeOutput";
@@ -113,7 +113,7 @@ const useDataTableStyles = createStyles({
   },
 } as Record<keyof (ItemDefinition & ItemLog), CSSObject>);
 
-const Items: NextPage = () => {
+const ItemsPage: NextPage = () => {
   const [logRepo, defRepo] = useRepositories(ItemLog, ItemDefinition) as [
     Repository<ItemLog> | undefined,
     Repository<ItemDefinition> | undefined
@@ -280,7 +280,7 @@ const Items: NextPage = () => {
         return (
           <Group noWrap position="left" spacing="0.25em">
             {def && def.imageLink && (
-              <ItemDefinitionImage imageLink={def.imageLink} />
+              <AvatarIconImage imageLink={def.imageLink} />
             )}
             <Text>{def?.name}</Text>
             <ActionIcon ml="auto" onClick={() => openViewItemDefModal(def)}>
@@ -575,4 +575,4 @@ const Items: NextPage = () => {
 };
 
 // noinspection JSUnusedGlobalSymbols
-export default Items;
+export default ItemsPage;

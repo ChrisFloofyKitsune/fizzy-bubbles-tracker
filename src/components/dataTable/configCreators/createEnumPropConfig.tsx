@@ -18,7 +18,11 @@ export function createSelectPropConfig<T extends {}, P extends keyof T>(
           padding: "0 0.25em",
         }}
       >
-        <Text key={"select-prop-text"}>{value ?? ""}</Text>
+        <Text key={"select-prop-text"}>
+          {selectOptions.find((opt) => opt.value === value)?.label ??
+            value ??
+            ""}
+        </Text>
       </Box>
     ),
     editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (

@@ -47,6 +47,7 @@ import {
   TutorMoveLog,
   OtherMoveLog,
   Setting,
+  BondStylingConfig,
 } from "~/orm/entities";
 import * as migrations from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
@@ -73,6 +74,7 @@ let DataSourceOpts: DataSourceOptions = {
     BBCodeReplacementConfig,
     MiscValue,
     Setting,
+    BondStylingConfig,
   ],
   migrations: Array.from(Object.values(migrations)),
   // dropSchema: true,

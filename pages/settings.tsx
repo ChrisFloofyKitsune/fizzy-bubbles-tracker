@@ -1,10 +1,10 @@
 import {
-  Accordion,
   Box,
   List,
   NumberInput,
   Select,
   SimpleGrid,
+  Space,
   Stack,
   Switch,
   Text,
@@ -20,8 +20,9 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { SettingEnum } from "~/settingEnum";
 import { PokemonProfileExample } from "~/pageComponents/settings/PokemonProfileExample";
 import { PokemonTemplatesEditor } from "~/pageComponents/settings/PokemonTemplatesEditor";
+import { AccordionSpoiler } from "~/components/AccordionSpoiler";
 
-const Settings: NextPage = () => {
+const SettingsPage: NextPage = () => {
   const settingRepo = useRepository(Setting);
   const [settings, settingsHandler] = useListState<Setting>([]);
 
@@ -92,25 +93,18 @@ const Settings: NextPage = () => {
         </Stack>
       </SimpleGrid>
       <PokemonProfileExample />
-      <Accordion
-        variant="separated"
-        value={accordionSelected}
-        onChange={setAccordionSelected}
+      <Space h="1em" />
+      <AccordionSpoiler
+        disabled={!enableTemplateEditor}
+        label={
+          <Title order={4}>
+            Edit Pokemon Profile Templates
+            {enableTemplateEditor ? "" : " (Enable to use)"}
+          </Title>
+        }
       >
-        <Accordion.Item value="pokemon-templates">
-          <Accordion.Control disabled={!enableTemplateEditor}>
-            <Title order={4}>
-              Edit Pokemon Profile Templates
-              {enableTemplateEditor ? "" : " (Enable to use)"}
-            </Title>
-          </Accordion.Control>
-          <Accordion.Panel>
-            {accordionSelected === "pokemon-templates" && (
-              <PokemonTemplatesEditor />
-            )}
-          </Accordion.Panel>
-        </Accordion.Item>
-      </Accordion>
+        <PokemonTemplatesEditor />
+      </AccordionSpoiler>
     </>
   );
 };
@@ -215,4 +209,4 @@ function GroupSettings({
   );
 }
 
-export default Settings;
+export default SettingsPage;

@@ -8,3 +8,4 @@ export * from "./pokemonLogs";
 export * from "./trainer";
 export * from "./walletLog";
 export * from "./setting";
+export * from "./bondStylingConfig";
