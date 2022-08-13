@@ -44,8 +44,6 @@ import {
   DataTableProps,
   PropConfigEntry,
 } from "~/components/dataTable/dataTable";
-import { createDayjsPropConfig } from "~/components/dataTable/configCreators/createDayjsPropConfig";
-import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
 import { openContextModal, openModal } from "@mantine/modals";
 import { AddIcon, EditIcon, ViewIcon } from "~/appIcons";
 import { InventoryLine } from "~/pageComponents/items/InventoryLine";
@@ -59,14 +57,18 @@ import {
   LogDataTable,
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
-import { createStringPropConfig } from "~/components/dataTable/configCreators/createStringPropConfig";
-import { createImagePropConfig } from "~/components/dataTable/configCreators/createImagePropConfig";
-import { createTextAreaPropConfig } from "~/components/dataTable/configCreators/createTextAreaPropConfig";
 import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
 import { AvatarIconImage } from "~/components/AvatarIconImage";
 import { ModalName } from "~/modalsList";
 import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
 import { InventoryBBCodeOutput } from "~/pageComponents/items/InventoryBBCodeOutput";
+import {
+  createDayjsPropConfig,
+  createImagePropConfig,
+  createNumberPropConfig,
+  createStringPropConfig,
+  createTextAreaPropConfig,
+} from "~/components/dataTable/configCreators";
 
 const CategoryIconPatterns = {
   "^depleted$": TbCircleDotted,

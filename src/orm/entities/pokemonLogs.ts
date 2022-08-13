@@ -1,6 +1,6 @@
 import { Column, Entity, ManyToOne } from "typeorm";
 import { PokemonContestStat } from "~/orm/enums";
-import { Pokemon } from "~/orm/entities";
+import { Pokemon } from "./pokemon";
 import { ChangeLogBase, ShopTrackedChangeLog } from "./changeLogBase";
 
 export abstract class MoveLog extends ChangeLogBase {

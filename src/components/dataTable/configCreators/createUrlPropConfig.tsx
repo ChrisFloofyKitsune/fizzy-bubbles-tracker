@@ -12,10 +12,10 @@ export function createUrlPropConfig<T extends {}, P extends keyof T>(
     viewComponent: (value: any) => (
       <Box
         key={"url-prop-view"}
-        sx={(theme) => ({
+        sx={{
           height: "2em",
           padding: "0 0.25em",
-        })}
+        }}
       >
         {value && (
           <Anchor key={"url-prop-anchor"} href={value} target="_blank">

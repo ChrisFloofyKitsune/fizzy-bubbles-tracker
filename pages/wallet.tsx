@@ -24,7 +24,7 @@ import { CurrencyType, CurrencyTypeDisplayName } from "~/orm/enums";
 import { PokeDollarIcon } from "~/appIcons";
 import { TbCandy } from "react-icons/tb";
 import { DataTableCallbacks } from "~/components/dataTable/dataTable";
-import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
+import { createNumberPropConfig } from "~/components/dataTable/configCreators";
 import {
   LogDataTable,
   LogDataTableProps,

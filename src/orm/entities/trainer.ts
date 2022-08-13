@@ -1,5 +1,5 @@
 import { Entity, Column, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Pokemon } from "~/orm/entities";
+import { Pokemon } from "./pokemon";
 
 @Entity()
 export class Trainer {

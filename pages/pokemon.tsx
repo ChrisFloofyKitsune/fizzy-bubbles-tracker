@@ -17,7 +17,7 @@ import { NextPage } from "next";
 import { useRepositories, waitForTransactions } from "~/services";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Repository } from "typeorm";
-import useAsyncEffect from "use-async-effect";
+import { useAsyncEffect } from "use-async-effect";
 import {
   BondLog,
   ContestStatLog,
@@ -42,11 +42,13 @@ import {
   InputDataTableModal,
   InputDataTableModalProps,
 } from "~/components/input/InputDataTableModal";
-import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
+import {
+  createNumberPropConfig,
+  createSelectPropConfig,
+  createStringPropConfig,
+} from "~/components/dataTable/configCreators";
 import { PropConfig } from "~/components/dataTable/dataTable";
 import { currentTime } from "~/util";
-import { createSelectPropConfig } from "~/components/dataTable/configCreators/createEnumPropConfig";
-import { createStringPropConfig } from "~/components/dataTable/configCreators/createStringPropConfig";
 import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
 import { useListState } from "@mantine/hooks";

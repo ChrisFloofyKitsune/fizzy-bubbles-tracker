@@ -6,23 +6,23 @@ const isProd = process.env.NODE_ENV === "production";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  swcMinify: true,
+  reactStrictMode: false,
+  swcMinify: false,
 
-  // experimental: !isProd
-  //   ? {}
-  //   : {
-  //       swcMinifyDebugOptions: {
-  //         mangle: {
-  //           keep_classnames: true,
-  //           keep_fnames: true,
-  //         },
-  //         compress: {
-  //           defaults: false,
-  //           side_effects: false,
-  //         },
-  //       },
-  //     },
+  experimental: !isProd
+    ? {}
+    : {
+        swcMinifyDebugOptions: {
+          mangle: {
+            keep_classnames: true,
+            keep_fnames: true,
+          },
+          compress: {
+            defaults: false,
+            side_effects: false,
+          },
+        },
+      },
 
   /**
    * @param {WebpackConfig} config
@@ -38,26 +38,26 @@ const nextConfig = {
       };
     }
 
-    // config.plugins.push(
-    //   new CopyPlugin({
-    //     patterns: [
-    //       {
-    //         from: path.join(
-    //           __dirname,
-    //           `node_modules/sql.js/dist/sql-wasm${!isProd ? "-debug" : ""}.wasm`
-    //         ),
-    //         to: path.join(__dirname, "/public/dist/sql-wasm.wasm"),
-    //       },
-    //       {
-    //         from: path.join(
-    //           __dirname,
-    //           `node_modules/sql.js/dist/sql-wasm${!isProd ? "-debug" : ""}.js`
-    //         ),
-    //         to: path.join(__dirname, "/public/dist/sql-wasm.js"),
-    //       },
-    //     ],
-    //   })
-    // );
+    config.plugins.push(
+      new CopyPlugin({
+        patterns: [
+          {
+            from: path.join(
+              __dirname,
+              `node_modules/sql.js/dist/sql-wasm${!isProd ? "-debug" : ""}.wasm`
+            ),
+            to: path.join(__dirname, "/public/dist/sql-wasm.wasm"),
+          },
+          {
+            from: path.join(
+              __dirname,
+              `node_modules/sql.js/dist/sql-wasm${!isProd ? "-debug" : ""}.js`
+            ),
+            to: path.join(__dirname, "/public/dist/sql-wasm.js"),
+          },
+        ],
+      })
+    );
 
     config.ignoreWarnings = [
       /mongodb/,

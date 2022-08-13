@@ -22,8 +22,10 @@ import { useCallback, useMemo, useState } from "react";
 import { BondSummary } from "~/pageComponents/bond/BondSummary";
 import { BondConfigEditor } from "~/pageComponents/bond/BondConfigEditor";
 import { DataTableProps, PropConfig } from "~/components/dataTable/dataTable";
-import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
-import { createSelectPropConfig } from "~/components/dataTable/configCreators/createEnumPropConfig";
+import {
+  createNumberPropConfig,
+  createSelectPropConfig,
+} from "~/components/dataTable/configCreators";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import { LogDataTable } from "~/components/dataTable/logDataTable";

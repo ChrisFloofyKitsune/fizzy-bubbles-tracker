@@ -2,24 +2,23 @@ import { ChangeLogBase, ShopTrackedChangeLog } from "~/orm/entities";
 import { DataTable, DataTableProps, PropConfigEntry } from "./dataTable";
 import { createStyles, CSSObject } from "@mantine/core";
 import { useMemo } from "react";
-import { createStringPropConfig } from "./configCreators/createStringPropConfig";
-import { createUrlPropConfig } from "~/components/dataTable/configCreators/createUrlPropConfig";
-import { createDayjsPropConfig } from "~/components/dataTable/configCreators/createDayjsPropConfig";
-import { createBooleanPropConfig } from "~/components/dataTable/configCreators/createBooleanPropConfig";
+import {
+  createStringPropConfig,
+  createUrlPropConfig,
+  createDayjsPropConfig,
+  createBooleanPropConfig,
+} from "~/components/dataTable/configCreators";
 
-const useLogTableStyles = createStyles(
-  (theme) =>
-    ({
-      sourceNote: {},
-      sourceUrl: {},
-      date: {
-        width: "7em",
-      },
-      verifiedInShopUpdate: {
-        width: "6em",
-      },
-    } as Record<keyof ShopTrackedChangeLog, CSSObject>)
-);
+const useLogTableStyles = createStyles({
+  sourceNote: {},
+  sourceUrl: {},
+  date: {
+    width: "7em",
+  },
+  verifiedInShopUpdate: {
+    width: "6em",
+  },
+} as Record<keyof ShopTrackedChangeLog, CSSObject>);
 
 export type LogDataTableProps<T extends ChangeLogBase | ShopTrackedChangeLog> =
   DataTableProps<T> & {

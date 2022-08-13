@@ -26,8 +26,10 @@ import {
   LogDataTable,
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
-import { createNumberPropConfig } from "~/components/dataTable/configCreators/createNumberPropConfig";
-import { createDayjsPropConfig } from "~/components/dataTable/configCreators/createDayjsPropConfig";
+import {
+  createNumberPropConfig,
+  createDayjsPropConfig,
+} from "~/components/dataTable/configCreators";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);

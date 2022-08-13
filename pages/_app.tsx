@@ -24,7 +24,7 @@ import { useResizeObserver } from "@mantine/hooks";
 import {
   AppNavbar,
   // GoogleLoginCredentials,
-  GoogleDriveCommunicator,
+  // GoogleDriveCommunicator,
 } from "~/components/";
 import {
   DataSourceContext,
@@ -53,6 +53,7 @@ import * as migrations from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
 import { Prism } from "prism-react-renderer";
 import { Modals } from "~/modalsList";
+import { emotionCache } from "../emotion-cache";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
@@ -101,12 +102,13 @@ function MyApp({ Component, pageProps }: AppProps) {
     // <GoogleOAuthProvider clientId='39206396503-heot00318gquae6rrc7diepb5uj4pa4i.apps.googleusercontent.com'>
     //   <GoogleSessionProvider requestAuth={googleSyncEnabled} loginCredentials={typeof loginCredentials === 'object' ? loginCredentials : null}>
     <DataSourceProvider options={DataSourceOpts}>
-      <GoogleDriveCommunicator autoSaveOn={googleSyncEnabled} />
+      {/*<GoogleDriveCommunicator autoSaveOn={googleSyncEnabled} />*/}
       <DataSourceContext.Consumer>
         {(ds) => (
           <MantineProvider
             withGlobalStyles
             withNormalizeCSS
+            emotionCache={emotionCache}
             theme={{
               colorScheme: "dark",
               components: {
