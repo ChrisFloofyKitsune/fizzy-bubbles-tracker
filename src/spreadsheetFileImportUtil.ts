@@ -16,7 +16,11 @@ import {
 } from "~/orm/entities";
 import dayjs, { Dayjs } from "dayjs";
 import utc from "dayjs/plugin/utc";
-import { CurrencyType, PokemonContestStat } from "~/orm/enums";
+import {
+  CurrencyType,
+  PokemonContestStat,
+  PokemonGenderOptions,
+} from "~/orm/enums";
 import { findLastIndex } from "~/util";
 
 dayjs.extend(utc);
@@ -225,7 +229,12 @@ export function extractPokemonSheet(workBook: WorkBook, sheetName: string) {
     pkm.heldItem = cell("E4");
 
     pkm.nature = cell("A6");
-    pkm.ability = cell("B6");
+    const genderCell = cell("B6").toLowerCase();
+    pkm.gender =
+      Object.values(PokemonGenderOptions).find((opt) => {
+        const optLower = opt.toLowerCase();
+        return optLower.includes(genderCell) || genderCell.includes(optLower);
+      }) ?? PokemonGenderOptions.UNDECIDED;
     pkm.obtainedLink = cell("C6");
     pkm.pokeballLink = cell("D6");
     pkm.heldItemLink = cell("E6");

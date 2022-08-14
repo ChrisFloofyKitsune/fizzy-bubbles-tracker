@@ -1,6 +1,5 @@
 import {
   Blockquote,
-  List,
   Stack,
   Text,
   Title,
@@ -9,13 +8,28 @@ import {
   Group,
   Button,
   FileButton,
+  TypographyStylesProvider,
 } from "@mantine/core";
 import { NextPage } from "next";
 import { GiFox } from "react-icons/gi";
 import { ButtonOpenSpreadsheetImportModal } from "~/components/spreadsheetImportModal";
 import { DBService } from "~/services";
+import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
+  const [changelog, setChangelog] = useState<string>("Loading...");
+
+  useEffect(() => {
+    axios.get("/changelog.md").then((response) => {
+      setChangelog(
+        response.status === 200 ? response.data : "Could not load change log :("
+      );
+    });
+  }, []);
+
   return (
     <>
       <Blockquote
@@ -87,32 +101,16 @@ const Home: NextPage = () => {
           </Box>
         </Stack>
 
-        <Title order={2}>Update Log</Title>
-        <Text>
-          v0.1 -- Initial Release
-          <List withPadding>
-            <List.Item>
-              Pages: Trainers, Pokemon, Items, Wallet, Bond, Word Counter,
-              Settings, and a hidden-by-default Data page.
-            </List.Item>
-            <List.Item>
-              Feature: Import from spreadsheet downloaded as a copy of the
-              previous tracker that was based in Google Sheets.
-            </List.Item>
-            <List.Item>
-              Feature: Import (Upload) from and Export (Download) to file on
-              your local device.
-            </List.Item>
-            <List.Item>
-              To Do: Add Quick Logging feature to easily log everything that has
-              happened in a single post.
-            </List.Item>
-            <List.Item>
-              To Do: Get Google Drive syncing working in an easy-to-use and
-              unobtrusive way.
-            </List.Item>
-          </List>
-        </Text>
+        <Title order={2}>Change Log</Title>
+        <TypographyStylesProvider
+          sx={{
+            h3: {
+              margin: "0",
+            },
+          }}
+        >
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{changelog}</ReactMarkdown>
+        </TypographyStylesProvider>
       </Stack>
     </>
   );
