@@ -67,7 +67,7 @@ export function BondBbCodeOutput({
         (l) =>
           `${l.sourceUrl ? `[url=${l.sourceUrl}]` : ""}${
             l.value > 0 ? "+" : ""
-          }${l.value} - ${l.sourceNote} (${l.date.format("DD-MMM-YYY")})${
+          }${l.value} - ${l.sourceNote} (${l.date.format("DD-MMM-YYYY")})${
             l.sourceUrl ? "[/url]" : ""
           }\n`
       );

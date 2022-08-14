@@ -630,7 +630,7 @@ const PokemonPage: NextPage = () => {
                   label="Evo. Stage 3 Method Link"
                   id="input-evo-stage-3-method-link"
                   className="input-evo-stage-3-method-link"
-                  {...inputPropMap.evolutionStageThreeMethod}
+                  {...inputPropMap.evolutionStageThreeMethodLink}
                 />
                 <TextInput
                   label="Evolution Stage 3"
