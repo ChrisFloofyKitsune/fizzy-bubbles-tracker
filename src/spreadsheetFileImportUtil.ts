@@ -229,12 +229,11 @@ export function extractPokemonSheet(workBook: WorkBook, sheetName: string) {
     pkm.heldItem = cell("E4");
 
     pkm.nature = cell("A6");
-    const genderCell = cell("B6").toLowerCase();
+    const genderCell = cell("B6").toLowerCase().trim();
     pkm.gender =
-      Object.values(PokemonGenderOptions).find((opt) => {
-        const optLower = opt.toLowerCase();
-        return optLower.includes(genderCell) || genderCell.includes(optLower);
-      }) ?? PokemonGenderOptions.UNDECIDED;
+      Object.values(PokemonGenderOptions).find(
+        (opt) => opt.toLowerCase() === genderCell
+      ) ?? PokemonGenderOptions.UNDECIDED;
     pkm.obtainedLink = cell("C6");
     pkm.pokeballLink = cell("D6");
     pkm.heldItemLink = cell("E6");

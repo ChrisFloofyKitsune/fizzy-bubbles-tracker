@@ -8,6 +8,9 @@
 - Allow custom fields for Pokémon profiles (straight replacement only) to allow for extra customization
 - Autofill Pokemon data from FizzyDex data
 
+### v0.1.2
+- Fix: Spreadsheet imports "Female" as "Male"
+
 ### v0.1.1
 - Feature: Home Page - Improved Change Log
 - Fix: Pokémon Page - Evolution Stage 3 Method Link input changing wrong field
