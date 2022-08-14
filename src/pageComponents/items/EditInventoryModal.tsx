@@ -83,10 +83,14 @@ export function EditInventoryModal({
       description: props.startingItemDef?.description ?? "",
     } as Omit<ItemDefinition, "id"> & { id: number | null },
     validate: {
-      name: (value: string) =>
-        validItemNames.includes(value)
-          ? "That item name is already in use"
-          : null,
+      name: (value: string) => {
+        if (value.trim().length === 0) return "Must enter an item name";
+
+        if (validItemNames.includes(value))
+          return "That item name is already in use";
+
+        return null;
+      },
       category: (value: string) =>
         value.length === 0 ? "Must enter an item category" : null,
     },
@@ -94,10 +98,10 @@ export function EditInventoryModal({
   });
 
   const makeNewItemLog = useCallback(
-    (logsLength: number) => {
+    (logsLength: number, startQuantity = 1) => {
       const newLog = new ItemLog();
       newLog.id = -(logsLength + 1);
-      newLog.quantityChange = 0;
+      newLog.quantityChange = startQuantity;
       newLog.itemDefinitionId = form.values["id"];
       newLog.date = dayjs().utc();
       return newLog;
@@ -110,7 +114,7 @@ export function EditInventoryModal({
       ? props.itemLogs.filter(
           (l) => l.itemDefinitionId === props?.startingItemDef?.id
         )
-      : [makeNewItemLog(0)]
+      : [makeNewItemLog(0, 1)]
   );
 
   const categorySelectItems: ItemCategorySelectItemProps[] = useMemo(
@@ -221,7 +225,7 @@ export function EditInventoryModal({
             onCreate={onCategoryCreate}
             icon={validCategoryIcons[
               form.values["category"] || "Uncategorized"
-            ]({
+            ]?.({
               size: 24,
             })}
             {...form.getInputProps("category")}
@@ -293,6 +297,11 @@ export function EditInventoryModal({
           disabled={logs.length === 0}
           color="green"
           onClick={async () => {
+            const validationResult = form.validate();
+            if (validationResult.hasErrors) {
+              return;
+            }
+
             await onSaveCallback(form.values as ItemDefinition, logs);
             context.closeModal(modalId);
           }}

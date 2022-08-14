@@ -9,6 +9,7 @@ import {
   Button,
   FileButton,
   TypographyStylesProvider,
+  Spoiler,
 } from "@mantine/core";
 import { NextPage } from "next";
 import { GiFox } from "react-icons/gi";
@@ -20,9 +21,16 @@ import remarkGfm from "remark-gfm";
 import { useEffect, useState } from "react";
 
 const Home: NextPage = () => {
+  const [comingSoon, setComingSoon] = useState<string>("Loading...");
   const [changelog, setChangelog] = useState<string>("Loading...");
 
   useEffect(() => {
+    axios.get("/soon_tm.md").then((response) => {
+      setComingSoon(
+        response.status === 200 ? response.data : "Could not load change log :("
+      );
+    });
+
     axios.get("/changelog.md").then((response) => {
       setChangelog(
         response.status === 200 ? response.data : "Could not load change log :("
@@ -101,7 +109,6 @@ const Home: NextPage = () => {
           </Box>
         </Stack>
 
-        <Title order={2}>Change Log</Title>
         <TypographyStylesProvider
           sx={{
             h3: {
@@ -109,7 +116,28 @@ const Home: NextPage = () => {
             },
           }}
         >
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{changelog}</ReactMarkdown>
+          <Title order={2}>Coming Soonish</Title>
+          <Spoiler
+            pl="xl"
+            maxHeight={250}
+            hideLabel={"> Hide"}
+            showLabel={"> Show More"}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {comingSoon}
+            </ReactMarkdown>
+          </Spoiler>
+          <Title order={2}>Change Log</Title>
+          <Spoiler
+            pl="xl"
+            maxHeight={250}
+            hideLabel={"> Hide"}
+            showLabel={"> Show More"}
+          >
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {changelog}
+            </ReactMarkdown>
+          </Spoiler>
         </TypographyStylesProvider>
       </Stack>
     </>

@@ -1,4 +1,14 @@
-import { Stack, Tabs, Box, Group, ActionIcon } from "@mantine/core";
+import {
+  Stack,
+  Tabs,
+  Box,
+  Group,
+  ActionIcon,
+  Title,
+  Badge,
+  Center,
+  Text,
+} from "@mantine/core";
 import {
   InventoryLine,
   InventoryLineProps,
@@ -7,7 +17,8 @@ import { IconType } from "react-icons";
 import { ItemDefinition } from "~/orm/entities";
 import { useMemo, useState } from "react";
 import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
-import { EditIcon } from "~/appIcons";
+import { DeleteIcon, EditIcon } from "~/appIcons";
+import { openConfirmModal } from "@mantine/modals";
 
 export type InventoryCurrentProps = {
   categories: string[];
@@ -18,6 +29,7 @@ export type InventoryCurrentProps = {
   >;
   isEditMode: boolean;
   onEditClick?: (itemDefId: number) => void;
+  onConfirmedDelete?: (itemDefId: number) => Promise<void>;
 };
 
 export function InventoryCurrent({
@@ -26,6 +38,7 @@ export function InventoryCurrent({
   data,
   isEditMode,
   onEditClick,
+  onConfirmedDelete,
 }: InventoryCurrentProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>(
     categories[0]
@@ -100,12 +113,64 @@ export function InventoryCurrent({
                   data={lineData}
                 />
                 {isEditMode && (
-                  <ActionIcon
-                    variant="default"
-                    onClick={() => onEditClick?.(lineData.itemDefId)}
+                  <Group
+                    key={`inv-buttons-${selectedCategory}-${lineData.itemDefId}`}
+                    noWrap
                   >
-                    <EditIcon />
-                  </ActionIcon>
+                    <ActionIcon
+                      variant="default"
+                      onClick={() => onEditClick?.(lineData.itemDefId)}
+                    >
+                      <EditIcon />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="filled"
+                      color="red"
+                      onClick={() =>
+                        openConfirmModal({
+                          title: (
+                            <Badge color="red" size="xl" sx={{ height: "4em" }}>
+                              <Title>Confirm Item Deletion</Title>
+                            </Badge>
+                          ),
+                          children: (
+                            <Center>
+                              <Text size="xl" weight="bold">
+                                Deletion cannot be undone!
+                              </Text>
+                            </Center>
+                          ),
+                          withCloseButton: false,
+                          styles: {
+                            modal: {
+                              width: "min-content",
+                            },
+                          },
+                          centered: true,
+                          labels: {
+                            cancel: "Cancel",
+                            confirm: "DELETE",
+                          },
+                          groupProps: {
+                            position: "center",
+                          },
+                          cancelProps: {
+                            size: "lg",
+                            variant: "outline",
+                            color: "yellow",
+                          },
+                          confirmProps: {
+                            size: "lg",
+                            color: "red",
+                          },
+                          onConfirm: async () =>
+                            await onConfirmedDelete?.(lineData.itemDefId),
+                        })
+                      }
+                    >
+                      <DeleteIcon />
+                    </ActionIcon>
+                  </Group>
                 )}
               </Group>
             ))}

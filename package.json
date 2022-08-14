@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build && next export",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "server": "http-server ./out -a localhost -c-1 -o"
   },
   "dependencies": {
     "@emotion/react": "^11.9.3",

@@ -137,7 +137,7 @@ const ItemsPage: NextPage = () => {
   }, [defRepo]);
 
   const categories: string[] | null = useMemo(() => {
-    if (itemDefs.length === 0) return null;
+    if (itemDefs.length === 0) return ["Depleted", "Uncategorized"];
     return itemDefs
       .filter((d) => !!d.category)
       .map((d) => d.category)
@@ -169,7 +169,7 @@ const ItemsPage: NextPage = () => {
 
   const currentInventoryData: InventoryCurrentProps["data"] | null =
     useMemo(() => {
-      if (!itemLogs || !itemDefsIndex) return null;
+      if (!itemLogs || itemLogs.length === 0 || !itemDefsIndex) return null;
       const result: typeof currentInventoryData = {};
 
       for (const log of itemLogs.filter((l) => !!l.itemDefinitionId)) {
@@ -351,7 +351,7 @@ const ItemsPage: NextPage = () => {
           startingItemDef: itemDef,
           itemDefNames: itemDefs.map((d) => d.name),
           itemLogs: itemLogs,
-          categories: categories!.filter(
+          categories: categories.filter(
             (c) => c !== "Depleted" && c !== "Uncategorized"
           ),
           categoryIconsPatterns: CategoryIconPatterns,
@@ -372,6 +372,19 @@ const ItemsPage: NextPage = () => {
     ]
   );
 
+  const deleteItemDefinition = useCallback(
+    async (itemDefId: number) => {
+      if (!logRepo || !defRepo) return;
+      itemLogsHandler.filter((l) => l.itemDefinitionId !== itemDefId);
+      itemDefsHandler.filter((l) => l.id !== itemDefId);
+      await waitForTransactions(logRepo);
+      await logRepo.delete({ itemDefinitionId: itemDefId });
+      await waitForTransactions(defRepo);
+      await defRepo.delete({ id: itemDefId });
+    },
+    [logRepo, defRepo]
+  );
+
   const currentInventoryComp = useMemo(
     () =>
       categories === null || currentInventoryData == null ? (
@@ -384,6 +397,7 @@ const ItemsPage: NextPage = () => {
           data={currentInventoryData}
           isEditMode={editModeOn}
           onEditClick={openEditInventoryModal}
+          onConfirmedDelete={deleteItemDefinition}
         />
       ),
     [
@@ -392,6 +406,7 @@ const ItemsPage: NextPage = () => {
       currentInventoryData,
       editModeOn,
       openEditInventoryModal,
+      deleteItemDefinition,
     ]
   );
 
@@ -530,22 +545,6 @@ const ItemsPage: NextPage = () => {
             },
           })}
         >
-          <Accordion.Item value={"item-log"}>
-            <Accordion.Control>
-              <Title order={4}>Item Log</Title>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <ScrollArea.Autosize maxHeight="50vh">
-                <LogDataTable
-                  key={`items-log-editor`}
-                  {...itemLogDataTableProps}
-                  rowObjs={itemLogs}
-                  isEditMode={editModeOn}
-                  propsToMantineClasses={dataTableStyles.classes}
-                />
-              </ScrollArea.Autosize>
-            </Accordion.Panel>
-          </Accordion.Item>
           <Accordion.Item value={"item-defs"}>
             <Accordion.Control>
               <Title order={4}>Item Definitions</Title>
@@ -556,6 +555,22 @@ const ItemsPage: NextPage = () => {
                   key={`items-log-editor`}
                   {...defDataTableProps}
                   rowObjs={itemDefs}
+                  isEditMode={editModeOn}
+                  propsToMantineClasses={dataTableStyles.classes}
+                />
+              </ScrollArea.Autosize>
+            </Accordion.Panel>
+          </Accordion.Item>
+          <Accordion.Item value={"item-log"}>
+            <Accordion.Control>
+              <Title order={4}>Item Log</Title>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <ScrollArea.Autosize maxHeight="50vh">
+                <LogDataTable
+                  key={`items-log-editor`}
+                  {...itemLogDataTableProps}
+                  rowObjs={itemLogs}
                   isEditMode={editModeOn}
                   propsToMantineClasses={dataTableStyles.classes}
                 />

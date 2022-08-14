@@ -1,12 +1,8 @@
-### Coming Soonish
-- Add Quick Log feature to easily log everything that has happened in a single post
-- Get Google Drive syncing working in an easy-to-use and unobtrusive way
-- Less hard coding, more flexible templates
-  - evolution chain as template instead of hard coding
-  - list item templates - Ex: "Pokemon.levelLogs.item"
-  - better link wrapping/inclusion - Ex: {{field_link}}
-- Allow custom fields for Pokémon profiles (straight replacement only) to allow for extra customization
-- Autofill Pokemon data from FizzyDex data
+### v0.1.3
+- Fix: Items Page - Summary - Add New Item button not working if no items exist
+- Changed: Items Page - Summary - Added Delete button (with confirmation popup) to accompany the Edit button.
+- Changed: Items Page - Details - Reorganized so the order is now Definitions then Logs
+- Changed: Home Page - Split up Change Log and SOON(TM) stuff. Hide full length of stuff by default.
 
 ### v0.1.2
 - Fix: Spreadsheet imports "Female" as "Male"
