@@ -1,3 +1,6 @@
+### v0.1.4
+- Actually fix Textarea on Firefox. Thanks to @blu3shift
+
 ### v0.1.3
 - Fix: Items Page - Summary - Add New Item button not working if no items exist
 - Changed: Items Page - Summary - Added Delete button (with confirmation popup) to accompany the Edit button.

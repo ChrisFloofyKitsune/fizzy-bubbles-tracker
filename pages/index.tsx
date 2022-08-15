@@ -48,11 +48,13 @@ const Home: NextPage = () => {
         <Text>
           Welcome to the web app version of the Fizzy Tracker
           <br />
+          {
+            "Issues, problems, or ideas for improvement can be posted here on the website's "
+          }
           <Anchor href="https://github.com/ChrisClark13/fizzy-bubbles-tracker/issues">
-            {
-              "Issues, problems, or ideas for improvement can be posted here on the website's GitHub issues page."
-            }
+            {"GitHub issues page"}
           </Anchor>
+          {` Or `}
           <br />
           <br />
           To use, go to any of pages on the left (or in hidden away in the menu
