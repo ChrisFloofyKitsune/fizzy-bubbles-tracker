@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import { NextPage } from "next";
 import {
-  useDebouncedListSave,
+  useDebouncedRepoSave,
   useRepositories,
   waitForTransactions,
 } from "~/services";
@@ -315,8 +315,8 @@ const ItemsPage: NextPage = () => {
   );
 
   const dataTableStyles = useDataTableStyles();
-  const saveItemLog = useDebouncedListSave(logRepo ?? null);
-  const saveItemDef = useDebouncedListSave(defRepo ?? null);
+  const saveItemLog = useDebouncedRepoSave(logRepo ?? null);
+  const saveItemDef = useDebouncedRepoSave(defRepo ?? null);
 
   const editInventoryModalSaveCallback = useCallback(
     async (itemDef: ItemDefinition, itemLogs: ItemLog[]) => {

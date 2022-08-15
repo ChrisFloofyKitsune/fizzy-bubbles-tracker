@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { NextPage } from "next";
 import { useRepositories, waitForTransactions } from "~/services";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Repository } from "typeorm";
 import { useAsyncEffect } from "use-async-effect";
 import {
@@ -28,6 +28,7 @@ import {
   MoveLog,
   OtherMoveLog,
   Pokemon,
+  PokemonSpecialStatus,
   Trainer,
   TutorMoveLog,
 } from "~/orm/entities";
@@ -46,6 +47,7 @@ import {
   createNumberPropConfig,
   createSelectPropConfig,
   createStringPropConfig,
+  createUrlPropConfig,
 } from "~/components/dataTable/configCreators";
 import { PropConfig } from "~/components/dataTable/dataTable";
 import { currentTime } from "~/util";
@@ -62,7 +64,7 @@ const useEditorStyle = createStyles((theme) => ({
       gridTemplateAreas: `nme spe dex lvl bnd
                           typ abl obt pkb hld
                           nat gen obl pkl hll
-                          trn sub sub img img
+                          trn sst sub sub img
                           des des des des des
                           ev1 e2m ev2 e3m ev3
                           .   e2l .   e3l .
@@ -80,7 +82,8 @@ const useEditorStyle = createStyles((theme) => ({
                           abl nat gen
                           obt pkb hld
                           obl pkl hll
-                          trn sub img
+                          trn sst img
+                          sub sub   .
                           des des des
                           ev1 ev2 ev3
                           .   e2m e3m
@@ -129,6 +132,7 @@ const useEditorStyle = createStyles((theme) => ({
     ".input-tutor-moves": { gridArea: "tmv" },
     ".input-other-moves": { gridArea: "omv" },
     ".input-sub": { gridArea: "sub" },
+    ".input-special-statuses": { gridArea: "sst" },
     "button.mantine-InputBase-input": {
       height: "min-content",
     },
@@ -153,6 +157,13 @@ const useModalDataTableStyles = createStyles({
     maxWidth: "10em",
   },
 });
+
+const genderOptions: SelectItem[] = [
+  { label: "\xa0", value: PokemonGenderOptions.UNDECIDED },
+  { label: "Genderless", value: PokemonGenderOptions.GENDERLESS },
+  { label: "Male", value: PokemonGenderOptions.MALE },
+  { label: "Female", value: PokemonGenderOptions.FEMALE },
+];
 
 const PokemonPage: NextPage = () => {
   const [repo, trainerRepo] = useRepositories(Pokemon, Trainer) as [
@@ -201,32 +212,11 @@ const PokemonPage: NextPage = () => {
       tutorMoveLogs: [],
       otherMoveLogs: [],
       contestStatsLogs: [],
+      specialStatuses: [],
     }) as Pokemon;
   }, [repo]);
 
   const editorStyle = useEditorStyle();
-
-  const [genderOptions, setGenderOptions] = useState<SelectItem[]>(
-    [
-      ["\xa0", PokemonGenderOptions.UNDECIDED],
-      ["Genderless", PokemonGenderOptions.GENDERLESS],
-      ["Male", PokemonGenderOptions.MALE],
-      ["Female", PokemonGenderOptions.FEMALE],
-    ].map(([l, v]) => ({ label: l, value: v }))
-  );
-
-  useEffect(() => {
-    if (!selected) return;
-    const g = selected.gender;
-    if (
-      g &&
-      !genderOptions.some(
-        ({ value }) => value.toLowerCase() === g.toLowerCase()
-      )
-    ) {
-      setGenderOptions((current) => current.concat({ label: g, value: g }));
-    }
-  }, [genderOptions, selected]);
 
   const trainerOpts: SelectItem[] = useMemo(
     () => [
@@ -411,11 +401,31 @@ const PokemonPage: NextPage = () => {
     [makeMoveModalProps]
   );
 
+  const specialStatuesProps: InputDataTableModalProps<PokemonSpecialStatus>["modalProps"] =
+    useMemo(
+      () => ({
+        dataTableType: "normal",
+        rowObjToId: (status) => (status as any).tempId ?? status.status,
+        createRowObj: (rowsObjsCount) => {
+          const newStatus = new PokemonSpecialStatus();
+          (newStatus as any).tempId = rowsObjsCount;
+          return newStatus;
+        },
+        prepareForSaveCallback: async (logs: PokemonSpecialStatus[]) => {
+          if (!selected) return;
+          return logs;
+        },
+        propConfig: {
+          status: createStringPropConfig("status", "Status", 0),
+          statusLink: createUrlPropConfig("statusLink", "Link", 1),
+          statusColor: createStringPropConfig("statusColor", "Color", 2),
+        } as PropConfig<PokemonSpecialStatus>,
+        propsToMantineClasses: modalTableStyles.classes,
+      }),
+      [modalTableStyles.classes, selected]
+    );
+
   const applyBBCodeTemplate = usePokemonBBCodeTemplate();
-  const bbCode: string = useMemo(
-    () => applyBBCodeTemplate(selected),
-    [applyBBCodeTemplate, selected]
-  );
 
   if (!repo) {
     return <>Loading...?</>;
@@ -483,12 +493,16 @@ const PokemonPage: NextPage = () => {
               entityListHandler.append(pokemon);
               setSelected(pokemon);
             }}
-            onUpdate={(pokemon: Pokemon) => {
-              setSelected(pokemon);
-              const index = entityList.findIndex(
-                (t) => t.uuid === pokemon.uuid
-              );
-              entityListHandler.setItem(index, pokemon);
+            onUpdate={(updatedPokemon: Pokemon[]) => {
+              for (const pokemon of updatedPokemon) {
+                const index = entityList.findIndex(
+                  (t) => t.uuid === pokemon.uuid
+                );
+                if (pokemon.uuid === selected?.uuid) {
+                  setSelected(pokemon);
+                }
+                entityListHandler.setItem(index, pokemon);
+              }
             }}
             onConfirmedDelete={(pokemon: Pokemon) => {
               const index = entityList.findIndex(
@@ -570,7 +584,8 @@ const PokemonPage: NextPage = () => {
                   id="input-gender"
                   className="input-gender"
                   data={genderOptions}
-                  {...inputPropMap.gender}
+                  value={selected?.gender ?? null}
+                  onChange={inputPropMap.gender.onChange}
                 />
                 <Select
                   data={trainerOpts}
@@ -594,6 +609,11 @@ const PokemonPage: NextPage = () => {
                   autosize={true}
                   minRows={3}
                   maxRows={6}
+                  styles={{
+                    input: {
+                      resize: "vertical",
+                    },
+                  }}
                   {...inputPropMap.description}
                 />
                 <TextInput
@@ -761,6 +781,21 @@ const PokemonPage: NextPage = () => {
                   className="input-sub"
                   {...inputPropMap.subHeading}
                 />
+                <InputDataTableModal
+                  label="Special Statuses"
+                  id="input-special-statuses"
+                  className="input-special-statuses"
+                  modalTitle={<Title>Edit Special Statuses</Title>}
+                  valueToDisplayElement={(value: PokemonSpecialStatus[]) =>
+                    value?.length > 0 ? (
+                      <Text>{value.map((v) => v.status).join(" / ")}</Text>
+                    ) : (
+                      <Text color="dimmed">Ex: Shiny, Shadow, GMax Factor</Text>
+                    )
+                  }
+                  {...inputPropMap.specialStatuses}
+                  modalProps={specialStatuesProps}
+                />
               </Box>
             )}
           </EntityEditor>
@@ -768,7 +803,7 @@ const PokemonPage: NextPage = () => {
         {selected && (
           <BBCodeArea
             label={`Pokemon ${selected?.name || ""}`}
-            bbCode={bbCode}
+            bbCode={applyBBCodeTemplate(selected)}
           />
         )}
         <AccordionSpoiler

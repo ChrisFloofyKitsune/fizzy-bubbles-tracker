@@ -30,6 +30,12 @@ export class LevelUpMove {
   level: "-" | "evolve" | `${number}`;
 }
 
+export class PokemonSpecialStatus {
+  status: string;
+  statusLink: string;
+  statusColor: string;
+}
+
 @Entity()
 export class Pokemon {
   // COLUMNS
@@ -152,6 +158,9 @@ export class Pokemon {
 
   @Column({ nullable: true })
   description?: string = "";
+
+  @Column("simple-json", { nullable: true })
+  specialStatuses: PokemonSpecialStatus[] | null;
 
   // GETTER FUNCTIONS
   // noinspection JSUnusedGlobalSymbols
@@ -380,5 +389,20 @@ export class Pokemon {
     return !list || list.length === 0
       ? ""
       : list.map((m) => wrapUrlIfLink(m.move, m.sourceUrl)).join(", ");
+  }
+
+  get specialStatusesBBCode() {
+    if (!this.specialStatuses || this.specialStatuses.length === 0) return "";
+
+    return `${this.specialStatuses
+      .map(
+        (s) =>
+          `${s.statusLink ? `[url=${s.statusLink}]` : ""}${
+            s.statusColor ? `[color=${s.statusColor}]` : ""
+          }${s.status}${s.statusColor ? "[/color]" : ""}${
+            s.statusLink ? "[/url]" : ""
+          }`
+      )
+      .join(" ")}`;
   }
 }

@@ -11,7 +11,7 @@ import {
 } from "@mantine/core";
 import { NextPage } from "next";
 import {
-  useDebouncedListSave,
+  useDebouncedRepoSave,
   useRepository,
   waitForTransactions,
 } from "~/services";
@@ -56,7 +56,7 @@ const WalletPage: NextPage = () => {
     }, Object.assign({} as Balances, ...Object.values(CurrencyType).map((c) => ({ [c]: 0 }))) as Balances);
   }, [walletLogs]);
 
-  const requestSave = useDebouncedListSave(repo);
+  const requestSave = useDebouncedRepoSave(repo);
 
   const makeCurrencyTypeOptions = useCallback(
     (
