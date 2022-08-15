@@ -5,7 +5,7 @@ import {
   ObjectLiteral,
   In,
 } from "typeorm";
-import SqlJs from "/public/dist/sql-wasm";
+import SqlJs from "/public/dist/sql-wasm.js";
 import type { SqljsConnectionOptions } from "typeorm/driver/sqljs/SqljsConnectionOptions";
 import {
   createContext,
