@@ -1,3 +1,9 @@
+### v0.1.6
+- Fix: Trainer, Pokemon Pages - Editing long text boxes should no longer randomly set your position to end of text.
+- Changed: Loading spinner shows up on changing pages, close nav bar on page change on mobile
+- Feature: Pokemon - Added "Special Statuses" field for tracking things like Shadow, Shiny, GMax Factor, whatever else you want.
+  - (If you've changed the template, add in {{specialStatusesBBCode}} to be able to see it.)
+
 ### v0.1.5
 - Fix: Pokemon Page - Bond shows up as 30 in edit area
 

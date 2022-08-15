@@ -13,7 +13,7 @@ import {
 } from "@mantine/core";
 import { NextPage } from "next";
 import { Setting } from "~/orm/entities";
-import { useDebouncedListSave, useRepository } from "~/services";
+import { useDebouncedRepoSave, useRepository } from "~/services";
 import { useListState } from "@mantine/hooks";
 import { useAsyncEffect } from "use-async-effect";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -31,7 +31,7 @@ const SettingsPage: NextPage = () => {
     settingsHandler.setState(await settingRepo.find());
   }, [settingRepo]);
 
-  const debouncedSave = useDebouncedListSave(settingRepo);
+  const debouncedSave = useDebouncedRepoSave(settingRepo);
 
   const changeSetting = useCallback(
     async (setting: Setting, value: string | number | boolean) => {

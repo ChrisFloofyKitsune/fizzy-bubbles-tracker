@@ -268,64 +268,7 @@ export async function waitForTransactions(
   });
 }
 
-export function useDebouncedEntitySave<T extends ObjectLiteral>(
-  targetEntity: T | null,
-  entityRepo: Repository<T> | null,
-  options?: {
-    beforeSavedToRepo?: (updatedEntity: T) => void;
-    afterSavedToRepo?: (entityAfterSave: T) => void;
-    debounceTime?: number;
-  }
-) {
-  const opts: typeof options = useMemo(
-    () => Object.assign({ debounceTime: 300 }, options),
-    [options]
-  );
-
-  const pendingChanges = useRef<Partial<T>>({});
-  const blankEntity = useMemo(() => entityRepo?.create() ?? null, [entityRepo]);
-  useEffect(() => {
-    pendingChanges.current = {};
-  }, [targetEntity, entityRepo]);
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSaveChanges = useCallback(
-    debounce((changes: Partial<T>) => {
-      if (!entityRepo) return;
-
-      pendingChanges.current = {};
-      const updatedEntity = Object.assign(
-        Object.create(blankEntity),
-        targetEntity,
-        changes
-      );
-
-      opts.beforeSavedToRepo?.(updatedEntity);
-
-      waitForTransactions(entityRepo)
-        .then(() => entityRepo.save(updatedEntity))
-        .then((entityAfterSave) => opts.afterSavedToRepo?.(entityAfterSave));
-    }, opts.debounceTime),
-    [
-      targetEntity,
-      entityRepo,
-      options?.beforeSavedToRepo,
-      options?.afterSavedToRepo,
-    ]
-  );
-
-  useDebugValue("useDebounced_Entity_Save");
-
-  return useCallback(
-    function submitChanges(updatePayload: Partial<T>) {
-      const changes = Object.assign(pendingChanges.current, updatePayload);
-      debouncedSaveChanges(changes);
-    },
-    [debouncedSaveChanges]
-  );
-}
-
-export function useDebouncedListSave<T extends ObjectLiteral>(
+export function useDebouncedRepoSave<T extends ObjectLiteral>(
   entityRepo: Repository<T> | null,
   options?: {
     beforeSavedToRepo?: (updatedEntities: T[]) => void;
@@ -338,29 +281,18 @@ export function useDebouncedListSave<T extends ObjectLiteral>(
     [options]
   );
 
-  const getIdAsString = useCallback(
-    (entity: T): string => {
-      if (!entityRepo) return "";
-      let id = entityRepo.getId(entity);
-      if (typeof id === "object") {
-        return Array.from(Object.values(id)).join("_");
-      }
-      return String(id);
-    },
-    [entityRepo]
-  );
-
-  const pendingChanges = useRef<Record<string, T>>({});
+  const pendingChanges = useRef<Map<any, T>>(new Map());
   const blankEntity = useMemo(() => entityRepo?.create() ?? null, [entityRepo]);
   useEffect(() => {
-    pendingChanges.current = {};
+    console.debug("cleared pending changes map");
+    pendingChanges.current.clear();
   }, [entityRepo]);
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedSaveChanges = useCallback(
     debounce((changes: T[]) => {
       if (!entityRepo) return;
-      pendingChanges.current = {};
+      pendingChanges.current.clear();
       opts.beforeSavedToRepo?.(changes);
       waitForTransactions(entityRepo)
         .then(() => entityRepo.save(changes))
@@ -375,16 +307,17 @@ export function useDebouncedListSave<T extends ObjectLiteral>(
 
   return useCallback(
     function submitChanges(entity: T, updatePayload: Partial<T>) {
-      const id = getIdAsString(entity);
-      const current = pendingChanges.current[id] ?? Object.create(blankEntity);
-      pendingChanges.current[id] = Object.assign(
-        current,
-        entity,
-        updatePayload
+      if (!entityRepo) return;
+      const id = entityRepo.getId(entity);
+      const current =
+        pendingChanges.current.get(id) ?? Object.create(blankEntity);
+      pendingChanges.current.set(
+        id,
+        Object.assign(current, entity, updatePayload)
       );
-      debouncedSaveChanges(Object.values(pendingChanges.current));
+      debouncedSaveChanges(Array.from(pendingChanges.current.values()));
     },
-    [blankEntity, debouncedSaveChanges, getIdAsString]
+    [blankEntity, debouncedSaveChanges, entityRepo]
   );
 }
 

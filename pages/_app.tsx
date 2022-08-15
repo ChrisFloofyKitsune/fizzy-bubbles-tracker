@@ -54,6 +54,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { Prism } from "prism-react-renderer";
 import { Modals } from "~/modalsList";
 import { emotionCache } from "../emotion-cache";
+import { useRouter } from "next/router";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
@@ -78,7 +79,6 @@ let DataSourceOpts: DataSourceOptions = {
     BondStylingConfig,
   ],
   migrations: Array.from(Object.values(migrations)),
-  // dropSchema: true,
 };
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -97,6 +97,29 @@ function MyApp({ Component, pageProps }: AppProps) {
   }, []);
 
   const [headerRef, headerBoxRect] = useResizeObserver();
+  const [changingPage, setChangingPage] = useState<boolean>(false);
+
+  const router = useRouter();
+  useEffect(() => {
+    const onRouteChange = () => {
+      setOpened(false);
+      setChangingPage(true);
+    };
+
+    const onRouteComplete = () => {
+      setChangingPage(false);
+    };
+
+    router.events.on("routeChangeStart", onRouteChange);
+    router.events.on("routeChangeComplete", onRouteComplete);
+    router.events.on("routeChangeError", onRouteComplete);
+
+    return () => {
+      router.events.off("routeChangeStart", onRouteChange);
+      router.events.off("routeChangeComplete", onRouteComplete);
+      router.events.off("routeChangeError", onRouteComplete);
+    };
+  }, [router, setOpened]);
 
   return (
     // <GoogleOAuthProvider clientId='39206396503-heot00318gquae6rrc7diepb5uj4pa4i.apps.googleusercontent.com'>
@@ -122,7 +145,7 @@ function MyApp({ Component, pageProps }: AppProps) {
           >
             <ModalsProvider modals={Modals}>
               <LoadingOverlay
-                visible={!ds}
+                visible={!ds || changingPage}
                 sx={(theme) => ({
                   svg: {
                     width: "50%",

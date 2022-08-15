@@ -25,7 +25,7 @@ import {
 
 import { AddIcon, CancelIcon, DeleteIcon, WarningIcon } from "~/appIcons";
 import { waitUntil } from "async-wait-until";
-import { useDebouncedEntitySave } from "~/services";
+import { useDebouncedRepoSave } from "~/services";
 
 type EntityCallback<T extends ObjectLiteral> = (entity: T) => void;
 export type InputRef = RefObject<{ value: any } | any>;
@@ -52,7 +52,7 @@ export type EditorWrapperProps<T extends ObjectLiteral> = {
 
   createNewEntity?: () => T;
   onAdd?: EntityCallback<T>;
-  onUpdate?: EntityCallback<T>;
+  onUpdate?: EntityCallback<T[]>;
   onConfirmedDelete?: EntityCallback<T>;
   confirmDeletePlaceholder?: string;
 
@@ -75,12 +75,12 @@ export function EntityEditor<T extends ObjectLiteral>({
 }: EditorWrapperProps<T>) {
   const targetKeys = useMemo(() => Object.keys(targetEntity), [targetEntity]);
 
-  const saveChange = useDebouncedEntitySave(targetEntity, entityRepo, {
+  const saveChange = useDebouncedRepoSave(entityRepo, {
     beforeSavedToRepo: (updatedEntity) => {
       console.debug("Saving Entity to repo...", updatedEntity);
       onUpdate?.(updatedEntity);
     },
-    debounceTime: 500,
+    debounceTime: 1000,
   });
 
   const refMap = useRef<Record<string, InputRef>>({});
@@ -119,24 +119,29 @@ export function EntityEditor<T extends ObjectLiteral>({
                     ).checked;
                   }
                 }
-                saveChange({ [k]: eventOrValue } as Partial<T>);
+                console.debug(`${k} changed to`, eventOrValue);
+                ref.current.value = eventOrValue;
+                saveChange(targetEntity, { [k]: eventOrValue } as Partial<T>);
               },
             },
           };
         })
       ) as InputPropMap<T>,
-    [targetKeys, saveChange]
+    [targetKeys, saveChange, targetEntity]
   );
 
+  const [lastEntityId, setLastEntityId] = useState<any>(null);
+
   useEffect(() => {
-    if (!targetEntity) return;
+    if (!targetEntity || lastEntityId === entityId) return;
     for (const [key, { ref }] of Object.entries(inputPropMap)) {
       if (ref.current) {
         ref.current.value =
           resolveValueHelper?.(targetEntity, key) ?? targetEntity[key];
       }
     }
-  }, [inputPropMap, targetEntity, entityId, resolveValueHelper]);
+    setLastEntityId(entityId);
+  }, [inputPropMap, targetEntity, entityId, resolveValueHelper, lastEntityId]);
 
   const addNew = useCallback(async () => {
     let newEntity = createNewEntity?.() ?? entityRepo.create();
