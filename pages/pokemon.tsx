@@ -540,7 +540,7 @@ const PokemonPage: NextPage = () => {
                   modalTitle={<Title>Edit Bond Logs</Title>}
                   valueToDisplayElement={(logs: BondLog[]) =>
                     logs.reduce(
-                      (prev, curr) => Math.max(30, prev + curr.value),
+                      (prev, curr) => Math.min(30, prev + curr.value),
                       0
                     )
                   }

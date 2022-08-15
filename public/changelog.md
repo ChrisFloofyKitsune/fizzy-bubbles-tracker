@@ -1,3 +1,6 @@
+### v0.1.5
+- Fix: Pokemon Page - Bond shows up as 30 in edit area
+
 ### v0.1.4
 - Actually fix Textarea on Firefox. Thanks to @blu3shift
 
