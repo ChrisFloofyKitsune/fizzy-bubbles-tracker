@@ -37,7 +37,7 @@ type Change =
   | boolean
   | number
   | null;
-type InputPropMap<T extends ObjectLiteral> = {
+type InputPropMap<T extends Required<ObjectLiteral>> = {
   [P in keyof T]: {
     ref: InputRef;
     onChange: (event: Change) => void;
@@ -120,7 +120,6 @@ export function EntityEditor<T extends ObjectLiteral>({
                   }
                 }
                 console.debug(`${k} changed to`, eventOrValue);
-                ref.current.value = eventOrValue;
                 saveChange(targetEntity, { [k]: eventOrValue } as Partial<T>);
               },
             },

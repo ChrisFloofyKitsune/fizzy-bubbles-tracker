@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { NextPage } from "next";
 import { useRepositories, waitForTransactions } from "~/services";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Repository } from "typeorm";
 import { useAsyncEffect } from "use-async-effect";
 import {
@@ -427,6 +427,17 @@ const PokemonPage: NextPage = () => {
 
   const applyBBCodeTemplate = usePokemonBBCodeTemplate();
 
+  const [genderState, setGenderState] = useState<PokemonGenderOptions>(
+    PokemonGenderOptions.UNDECIDED
+  );
+  const [trainerIdState, setTrainerIdState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selected) return;
+    setGenderState(selected.gender);
+    setTrainerIdState(selected.trainerId);
+  }, [selected]);
+
   if (!repo) {
     return <>Loading...?</>;
   }
@@ -544,6 +555,7 @@ const PokemonPage: NextPage = () => {
                   valueToDisplayElement={(logs: LevelLog[]) =>
                     logs.reduce((prev, curr) => Math.max(prev, curr.value), 1)
                   }
+                  sortFunction={(a, b) => a.value - b.value}
                   {...inputPropMap.levelLogs}
                   modalProps={levelModalProps}
                 />
@@ -584,16 +596,24 @@ const PokemonPage: NextPage = () => {
                   id="input-gender"
                   className="input-gender"
                   data={genderOptions}
-                  value={selected?.gender ?? null}
-                  onChange={inputPropMap.gender.onChange}
+                  value={genderState}
+                  onChange={(value) => {
+                    if (value) {
+                      setGenderState(value as PokemonGenderOptions);
+                    }
+                    inputPropMap.gender.onChange(value);
+                  }}
                 />
                 <Select
                   data={trainerOpts}
                   label="Owning Trainer"
                   id="input-trainer"
                   className="input-trainer"
-                  value={selected?.trainerId ?? null}
-                  onChange={inputPropMap.trainerId!.onChange}
+                  value={trainerIdState}
+                  onChange={(value) => {
+                    setTrainerIdState(value);
+                    inputPropMap.trainerId.onChange(value);
+                  }}
                 />
                 <TextInput
                   label="Image Link"

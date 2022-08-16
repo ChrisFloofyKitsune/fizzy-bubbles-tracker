@@ -23,6 +23,7 @@ export interface InputDataTableModalProps<T>
   extends Omit<InputBaseProps, "component"> {
   id?: string;
   valueToDisplayElement: (value: T[]) => ReactNode;
+  sortFunction?: (a: T, b: T) => number;
   onChange: (value: T[]) => void;
   modalTitle: ReactNode;
   modalProps: Omit<DataTableModalContentProps<T>, "state" | "saveCallback">;
@@ -34,6 +35,7 @@ type ForwardedButtonRef<T> = ForwardedRef<
 function Inner_InputDataTableModel<T>(
   {
     valueToDisplayElement,
+    sortFunction,
     onChange,
     modalTitle,
     modalProps,
@@ -53,10 +55,10 @@ function Inner_InputDataTableModel<T>(
         return value;
       },
       set value(value: T[]) {
-        setValue(value);
+        setValue(sortFunction ? value.sort(sortFunction) : value);
       },
     }),
-    [value]
+    [sortFunction, value]
   );
 
   return (
@@ -72,8 +74,13 @@ function Inner_InputDataTableModel<T>(
           children: (
             <DataTableModalContent
               {...modalProps}
-              saveCallback={onChange}
-              state={{ startingRowObjs: value }}
+              saveCallback={(rowObjs) => {
+                setValue(rowObjs);
+                onChange(rowObjs);
+              }}
+              state={{
+                startingRowObjs: value,
+              }}
             />
           ),
         });
