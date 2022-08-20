@@ -7,12 +7,29 @@ import { useAsyncEffect } from "use-async-effect";
 import { MiscValue } from "~/orm/entities/miscValue";
 import { debounce } from "~/util";
 import { Repository } from "typeorm";
+import yabbcode from "ya-bbcode";
+
+const stripEverythingBBCodeParser = new yabbcode({
+  newline: true,
+  paragraph: false,
+  cleanUnmatchable: true,
+});
+
+stripEverythingBBCodeParser.clearTags();
+stripEverythingBBCodeParser.registerTag("noparse", {
+  type: "ignore",
+});
+stripEverythingBBCodeParser.registerTag("quote", {
+  type: "content",
+  replace: () => "",
+});
 
 const WordCounterPage: NextPage = () => {
   const ds = useDataSource();
   const [repo, setRepo] = useState<Repository<MiscValue>>();
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [text, setText] = useState<string>();
+  const [wordCount, setWordCount] = useState<number>(0);
 
   useEffect(() => {
     if (ds) {
@@ -32,6 +49,8 @@ const WordCounterPage: NextPage = () => {
   const onTextChange = useCallback(
     debounce((newText: string) => {
       setText(newText);
+      const strippedText = stripEverythingBBCodeParser.parse(newText);
+      setWordCount(strippedText.trim().split(/\s+/).length);
 
       if (!repo) return;
       repo.save({ key: "word counter", value: newText }).then();
@@ -67,14 +86,7 @@ const WordCounterPage: NextPage = () => {
           }}
         />
         <BBCodeArea
-          label={
-            "~" +
-            (text
-              ?.replaceAll(/\[quote\S+].*\[\/quote]/gis, "")
-              .split(/\s/gm)
-              .filter((w) => w.length !== 0).length ?? 0) +
-            " Words"
-          }
+          label={`${wordCount} Words`}
           bbCode={text ?? ""}
           stickyLabel={true}
         />

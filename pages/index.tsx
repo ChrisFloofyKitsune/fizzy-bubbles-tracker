@@ -27,7 +27,7 @@ const Home: NextPage = () => {
   useEffect(() => {
     axios.get("/soon_tm.md").then((response) => {
       setComingSoon(
-        response.status === 200 ? response.data : "Could not load change log :("
+        response.status === 200 ? response.data : "Could not load SOON TM :("
       );
     });
 
@@ -54,7 +54,7 @@ const Home: NextPage = () => {
           <Anchor href="https://github.com/ChrisClark13/fizzy-bubbles-tracker/issues">
             {"GitHub issues page"}
           </Anchor>
-          {` Or `}
+          {` or ping me on the FizzyBubbles Discord in #coding-hell I guess...`}
           <br />
           <br />
           To use, go to any of pages on the left (or in hidden away in the menu
