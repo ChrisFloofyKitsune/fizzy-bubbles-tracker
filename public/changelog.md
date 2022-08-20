@@ -1,3 +1,7 @@
+### v0.1.8
+- Fix BBCode: URLs with "?" in them are no longer broken when rendering the BBCode.
+- Improvement Word Counter: Word count should now be more accurate to other word counters.
+
 ### v0.1.7
 - Fix Pokemon Page
   - "dropdown" / select fields should work now (Gender, Owning Trainer)

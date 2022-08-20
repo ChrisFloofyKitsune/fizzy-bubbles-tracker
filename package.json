@@ -46,7 +46,7 @@
     "typeorm": "^0.3.7",
     "use-async-effect": "^2.2.6",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.18.10/xlsx-0.18.10.tgz",
-    "ya-bbcode": "^3.0.0"
+    "ya-bbcode": "^3.0.1"
   },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.18.9",
