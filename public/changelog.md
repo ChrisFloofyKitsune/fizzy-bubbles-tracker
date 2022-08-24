@@ -1,3 +1,7 @@
+### v0.1.8a
+- Improvement BBCode counter now more strictly strips BBCode and counts words with code borrowed from [writtenkitten.co]().
+This should result in word counts that agree with external sources.
+
 ### v0.1.8
 - Fix BBCode: URLs with "?" in them are no longer broken when rendering the BBCode.
 - Improvement Word Counter: Word count should now be more accurate to other word counters.
