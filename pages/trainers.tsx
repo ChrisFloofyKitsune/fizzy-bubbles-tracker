@@ -106,12 +106,18 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
               setEntityList(entityList.concat(trainer));
               setSelected(trainer);
             }}
-            onUpdate={(trainer) => {
-              setSelected(trainer);
-              const index = entityList.findIndex(
-                (t) => t.uuid === trainer.uuid
-              );
-              entityList[index] = trainer;
+            onUpdate={(updatedTrainers: Trainer[]) => {
+              for (const trainer of updatedTrainers) {
+                const index = entityList.findIndex(
+                  (t) => t.uuid === trainer.uuid
+                );
+                entityList[index] = trainer;
+
+                if (trainer.uuid === selected?.uuid) {
+                  setSelected(trainer);
+                }
+              }
+
               setEntityList(entityList.slice());
             }}
             onConfirmedDelete={(trainer) => {

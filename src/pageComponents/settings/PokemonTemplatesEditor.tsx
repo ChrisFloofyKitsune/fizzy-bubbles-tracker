@@ -1,5 +1,5 @@
 import {
-  useDebouncedListSave,
+  useDebouncedRepoSave,
   useRepository,
   waitForTransactions,
 } from "~/services";
@@ -71,7 +71,7 @@ export function PokemonTemplatesEditor() {
     );
   }, [tab, configs]);
 
-  const saveChanges = useDebouncedListSave(configRepo);
+  const saveChanges = useDebouncedRepoSave(configRepo);
 
   const props = useMemo(
     () => pokeProps.map((p) => <List.Item key={p}>{`{{${p}}}`}</List.Item>),

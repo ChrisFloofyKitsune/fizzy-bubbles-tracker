@@ -1,6 +1,6 @@
 import { NextPage } from "next";
 import {
-  useDebouncedListSave,
+  useDebouncedRepoSave,
   useRepositories,
   waitForTransactions,
 } from "~/services";
@@ -83,7 +83,7 @@ const BondPage: NextPage = () => {
 
   const [editModeOn, setEditModeOn] = useState<boolean>(false);
 
-  const saveBondConfig = useDebouncedListSave(bondConfigRepo);
+  const saveBondConfig = useDebouncedRepoSave(bondConfigRepo);
 
   const onBondConfigEdit = useCallback(
     (
@@ -116,7 +116,7 @@ const BondPage: NextPage = () => {
     [pokemonList]
   );
 
-  const saveBondLog = useDebouncedListSave(bondRepo);
+  const saveBondLog = useDebouncedRepoSave(bondRepo);
 
   const dataTableConfig: Omit<DataTableProps<BondLog>, "rowObjs"> = useMemo(
     () => ({
