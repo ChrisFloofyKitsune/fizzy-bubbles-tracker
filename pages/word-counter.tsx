@@ -7,22 +7,7 @@ import { useAsyncEffect } from "use-async-effect";
 import { MiscValue } from "~/orm/entities/miscValue";
 import { debounce } from "~/util";
 import { Repository } from "typeorm";
-import yabbcode from "ya-bbcode";
-
-const stripEverythingBBCodeParser = new yabbcode({
-  newline: true,
-  paragraph: false,
-  cleanUnmatchable: true,
-});
-
-stripEverythingBBCodeParser.clearTags();
-stripEverythingBBCodeParser.registerTag("noparse", {
-  type: "ignore",
-});
-stripEverythingBBCodeParser.registerTag("quote", {
-  type: "content",
-  replace: () => "",
-});
+import { countWordsInBBCode } from "~/wordCountUtil";
 
 const WordCounterPage: NextPage = () => {
   const ds = useDataSource();
@@ -49,8 +34,7 @@ const WordCounterPage: NextPage = () => {
   const onTextChange = useCallback(
     debounce((newText: string) => {
       setText(newText);
-      const strippedText = stripEverythingBBCodeParser.parse(newText);
-      setWordCount(strippedText.trim().split(/\s+/).length);
+      setWordCount(countWordsInBBCode(newText.trim()));
 
       if (!repo) return;
       repo.save({ key: "word counter", value: newText }).then();
