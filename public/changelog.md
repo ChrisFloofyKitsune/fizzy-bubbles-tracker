@@ -1,3 +1,22 @@
+### v0.1.8a
+- Improvement: BBCode counter now more strictly strips BBCode and counts words with code borrowed from [writtenkitten.co]().
+This should result in word counts that agree (more often) with external sources.
+
+### v0.1.8
+- Fix BBCode: URLs with "?" in them are no longer broken when rendering the BBCode.
+- Improvement Word Counter: Word count should now be more accurate to other word counters.
+
+### v0.1.7
+- Fix Pokemon Page
+  - "dropdown" / select fields should work now (Gender, Owning Trainer)
+  - Level Logs are now properly sorted by level
+
+### v0.1.6
+- Fix: Trainer, Pokemon Pages - Editing long text boxes should no longer randomly set your position to end of text.
+- Changed: Loading spinner shows up on changing pages, close nav bar on page change on mobile
+- Feature: Pokemon - Added "Special Statuses" field for tracking things like Shadow, Shiny, GMax Factor, whatever else you want.
+  - (If you've changed the template, add in {{specialStatusesBBCode}} to be able to see it.)
+
 ### v0.1.5
 - Fix: Pokemon Page - Bond shows up as 30 in edit area
 
