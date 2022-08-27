@@ -1,3 +1,7 @@
+### v0.1.9
+- Improvement Pokemon Page
+  - Move Lists and the Special Statuses List can now have their rows be freely reordered.
+
 ### v0.1.8a
 - Improvement: BBCode counter now more strictly strips BBCode and counts words with code borrowed from [writtenkitten.co]().
 This should result in word counts that agree (more often) with external sources.

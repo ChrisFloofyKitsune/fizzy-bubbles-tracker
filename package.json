@@ -30,7 +30,7 @@
     "js-convert-case": "^4.2.0",
     "jwt-decode": "^3.1.2",
     "localforage": "^1.10.0",
-    "next": "12.2.5",
+    "next": "^12.2.5",
     "object-hash": "^3.0.0",
     "prismjs": "^1.28.0",
     "react": "18.2.0",

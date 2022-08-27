@@ -14,18 +14,10 @@ export abstract class MoveLog extends ChangeLogBase {
   pokemon: Pokemon;
 }
 
-@Entity({
-  orderBy: {
-    id: "ASC",
-  },
-})
+@Entity()
 export class EggMoveLog extends MoveLog {}
 
-@Entity({
-  orderBy: {
-    id: "ASC",
-  },
-})
+@Entity()
 export class MachineMoveLog extends MoveLog {}
 
 @Entity({
@@ -35,18 +27,10 @@ export class MachineMoveLog extends MoveLog {}
 })
 export class TutorMoveLog extends MoveLog {}
 
-@Entity({
-  orderBy: {
-    id: "ASC",
-  },
-})
+@Entity()
 export class OtherMoveLog extends MoveLog {}
 
-@Entity({
-  orderBy: {
-    id: "ASC",
-  },
-})
+@Entity()
 export class LevelLog extends ChangeLogBase {
   @Column("integer")
   value: number;

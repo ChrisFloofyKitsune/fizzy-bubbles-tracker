@@ -1,17 +1,18 @@
 import {
-  Badge,
-  Text,
-  Button,
-  Table,
   ActionIcon,
+  Badge,
+  Button,
   Center,
   createStyles,
   Pagination,
+  Table,
+  Text,
 } from "@mantine/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AddIcon, DeleteIcon } from "~/appIcons";
 import { openConfirmModal } from "@mantine/modals";
 import { CSSLengthPercentage } from "../../../typefixes.global";
+import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 export type PropConfigEntry<T, P extends keyof T> = {
   headerLabel: string;
@@ -31,6 +32,7 @@ export type DataTableCallbacks<T extends {}> = {
   add?: () => Promise<void>;
   edit?: (rowObj: T, prop: keyof T, value: T[typeof prop]) => Promise<void>;
   remove?: (rowObj: T) => Promise<void>;
+  onRowReorder?: (rowObj: T, newPosition: number) => void | Promise<void>;
 };
 
 export type DataTableProps<T extends {}> = {
@@ -43,6 +45,7 @@ export type DataTableProps<T extends {}> = {
   minHeightPerRow?: CSSLengthPercentage;
   startingPage?: number;
   onPageChange?: (pageNumber: number) => void;
+  allowRowReordering?: boolean;
 } & DataTableCallbacks<T>;
 
 type tableStyleProps = {
@@ -69,6 +72,24 @@ const removeColumnStyle = createStyles({
       margin: "0 auto",
     },
   },
+  reorder: {
+    width: "5.5em",
+    "& span": {
+      display: "flex",
+    },
+    "& button": {
+      margin: "0 auto",
+      borderRadius: "0.75em",
+      "&:first-of-type": {
+        borderTopRightRadius: "0",
+        borderBottomRightRadius: "0",
+      },
+      "&:last-of-type": {
+        borderTopLeftRadius: "0",
+        borderBottomLeftRadius: "0",
+      },
+    },
+  },
 });
 
 export function DataTable<T extends {}>({
@@ -81,15 +102,17 @@ export function DataTable<T extends {}>({
   minHeightPerRow = "43px",
   startingPage = 1,
   onPageChange,
+  allowRowReordering = false,
   add,
   edit,
   remove,
+  onRowReorder,
 }: DataTableProps<T>): JSX.Element {
   const myStyles = removeColumnStyle();
   const myClasses = useMemo(() => {
     return Object.assign({}, myStyles.classes, propsToMantineClasses);
   }, [myStyles.classes, propsToMantineClasses]) as Record<keyof T, string> &
-    Record<"remove", string>;
+    Record<"remove" | "reorder", string>;
 
   type sortedConfigEntry = [keyof T, PropConfigEntry<T, keyof T>];
   const sortedConfig: sortedConfigEntry[] = useMemo(() => {
@@ -99,10 +122,32 @@ export function DataTable<T extends {}>({
   }, [propConfig]);
 
   const headers = useMemo(() => {
-    return sortedConfig.map(([prop, { headerLabel }]) => (
+    const result = sortedConfig.map(([prop, { headerLabel }]) => (
       <th key={`header-${String(prop)}`}>{headerLabel}</th>
     ));
-  }, [sortedConfig]);
+
+    if (isEditMode && allowRowReordering)
+      result.push(
+        <th key={`header-reorder`} className={myClasses.reorder}>
+          <Text align="center">Reorder</Text>
+        </th>
+      );
+
+    if (isEditMode)
+      result.push(
+        <th key={`header-remove`} className={myClasses.remove}>
+          <Text align="center">Remove</Text>
+        </th>
+      );
+
+    return result;
+  }, [
+    allowRowReordering,
+    isEditMode,
+    myClasses.remove,
+    myClasses.reorder,
+    sortedConfig,
+  ]);
 
   const myRowObjs = useMemo(() => rowObjs.filter((r) => !!r), [rowObjs]);
 
@@ -135,6 +180,20 @@ export function DataTable<T extends {}>({
         onConfirm: async () => await remove?.(log),
       }),
     [remove]
+  );
+
+  const sendReorderEvent = useCallback(
+    async (rowObj: T, isUpwards: boolean) => {
+      const newIndex = Math.max(
+        0,
+        Math.min(
+          rowObjs.length - 1,
+          rowObjs.indexOf(rowObj) + (isUpwards ? -1 : 1)
+        )
+      );
+      await onRowReorder?.(rowObj, newIndex);
+    },
+    [onRowReorder, rowObjs]
   );
 
   const tableStyles = useTableStyles({
@@ -186,28 +245,36 @@ export function DataTable<T extends {}>({
           boxShadow: "inset 0px -1px #555",
         }}
       >
-        <tr>
-          {headers}
-          {isEditMode && (
-            <th key={`header-remove`} className={myClasses.remove}>
-              <Text align="center">Remove</Text>
-            </th>
-          )}
-        </tr>
+        <tr>{headers}</tr>
       </thead>
       <tbody className={tableStyles.classes.tableBody}>
-        {pageRowObjs.map((row) => (
-          <DataTableRow
-            key={`data-table-row-${rowObjToId(row)}`}
-            id={rowObjToId(row)}
-            rowObj={row}
-            sortedConfig={sortedConfig}
-            classes={myClasses}
-            edit={edit}
-            editMode={isEditMode}
-            onDelete={openDeleteConfirm}
-          />
-        ))}
+        {pageRowObjs.map((row) => {
+          const index = rowObjs.indexOf(row);
+          let reorderFlags = ReorderFlags.NONE;
+          if (allowRowReordering) {
+            if (index > 0) {
+              reorderFlags |= ReorderFlags.UP;
+            }
+            if (index < rowObjs.length - 1) {
+              reorderFlags |= ReorderFlags.DOWN;
+            }
+          }
+          return (
+            <DataTableRow
+              key={`data-table-row-${rowObjToId(row)}`}
+              id={rowObjToId(row)}
+              rowObj={row}
+              sortedConfig={sortedConfig}
+              classes={myClasses}
+              edit={edit}
+              editMode={isEditMode}
+              onDelete={openDeleteConfirm}
+              reorderingAllowed={allowRowReordering}
+              reorderFlags={reorderFlags}
+              onReorder={sendReorderEvent}
+            />
+          );
+        })}
         {fillerRows}
       </tbody>
       <tfoot
@@ -236,7 +303,7 @@ export function DataTable<T extends {}>({
               </Button>
             </th>
           )}
-          <th colSpan={headers.length}>
+          <th colSpan={headers.length - (isEditMode ? 1 : 0)}>
             <Pagination
               position="right"
               size="sm"
@@ -252,23 +319,36 @@ export function DataTable<T extends {}>({
   );
 }
 
+const enum ReorderFlags {
+  NONE = 0b00,
+  UP = 0b01,
+  DOWN = 0b10,
+}
+
 type DataTableRowProps<T extends {}> = {
   id: string | number;
   rowObj: T;
   sortedConfig: [keyof T, PropConfigEntry<T, keyof T>][];
-  classes: Record<keyof T, string> & Record<"remove", string>;
+  classes: Record<keyof T, string> & Record<"remove" | "reorder", string>;
   edit?: DataTableCallbacks<T>["edit"];
   editMode: boolean;
   onDelete?: (rowObj: T) => void;
+  reorderingAllowed: boolean;
+  reorderFlags: ReorderFlags;
+  onReorder?: (rowObj: T, isUpwards: boolean) => Promise<void>;
 };
+
 function DataTableRow<T extends {}>({
   id,
   rowObj,
   sortedConfig,
+  classes,
   edit,
   editMode,
   onDelete,
-  classes,
+  reorderingAllowed,
+  reorderFlags,
+  onReorder,
 }: DataTableRowProps<T>) {
   return (
     <tr key={`row-${id}`}>
@@ -285,6 +365,26 @@ function DataTableRow<T extends {}>({
           </div>
         </td>
       ))}
+      {editMode && reorderingAllowed && (
+        <td key={`row-${id}-reorder`} className={classes.reorder}>
+          <span>
+            <ActionIcon
+              variant="filled"
+              onClick={() => onReorder?.(rowObj, true)}
+              disabled={!(reorderFlags & ReorderFlags.UP)}
+            >
+              <TbArrowUp />
+            </ActionIcon>
+            <ActionIcon
+              variant="filled"
+              onClick={() => onReorder?.(rowObj, false)}
+              disabled={!(reorderFlags & ReorderFlags.DOWN)}
+            >
+              <TbArrowDown />
+            </ActionIcon>
+          </span>
+        </td>
+      )}
       {editMode && (
         <td key={`row-${id}-remove`} className={classes.remove}>
           <ActionIcon

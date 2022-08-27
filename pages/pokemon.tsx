@@ -356,6 +356,7 @@ const PokemonPage: NextPage = () => {
           ),
         } as PropConfig<LevelUpMove>,
         propsToMantineClasses: modalTableStyles.classes,
+        allowRowReordering: true,
       }),
       [modalTableStyles.classes, selected]
     );
@@ -386,6 +387,7 @@ const PokemonPage: NextPage = () => {
           move: createStringPropConfig("move", "Move", 0),
         } as PropConfig<T>,
         propsToMantineClasses: modalTableStyles.classes,
+        allowRowReordering: true,
       };
     },
     [modalTableStyles.classes, selected]
@@ -401,7 +403,7 @@ const PokemonPage: NextPage = () => {
     [makeMoveModalProps]
   );
 
-  const specialStatuesProps: InputDataTableModalProps<PokemonSpecialStatus>["modalProps"] =
+  const specialStatusesProps: InputDataTableModalProps<PokemonSpecialStatus>["modalProps"] =
     useMemo(
       () => ({
         dataTableType: "normal",
@@ -421,6 +423,7 @@ const PokemonPage: NextPage = () => {
           statusColor: createStringPropConfig("statusColor", "Color", 2),
         } as PropConfig<PokemonSpecialStatus>,
         propsToMantineClasses: modalTableStyles.classes,
+        allowRowReordering: true,
       }),
       [modalTableStyles.classes, selected]
     );
@@ -814,7 +817,7 @@ const PokemonPage: NextPage = () => {
                     )
                   }
                   {...inputPropMap.specialStatuses}
-                  modalProps={specialStatuesProps}
+                  modalProps={specialStatusesProps}
                 />
               </Box>
             )}
@@ -905,7 +908,9 @@ function DisplayLevelUpMoves({ pokemon }: { pokemon: Pokemon }) {
             <Text underline={learned} key={`${i}-${m.move}-name`}>
               {m.move}
             </Text>
-            <Text key={`${i}-${m.move}-level`}>{`${m.level}`}</Text>
+            <Text key={`${i}-${m.move}-level`}>{`${
+              m.level === "evolve" ? "Evolve" : m.level
+            }`}</Text>
           </Group>
         );
       })}
