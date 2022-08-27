@@ -106,6 +106,7 @@ interface DataTableModalContentProps<T> {
     startingPage?: number;
   };
   rowObjToId: DataTableProps<T>["rowObjToId"];
+  allowRowReordering?: boolean;
   createRowObj: (rowsObjsCount: number) => T;
   rowObjFilter?: (rowObj: T) => boolean;
   prepareForSaveCallback: (rowObjs: T[]) => Promise<T[] | undefined | null>;
@@ -117,6 +118,7 @@ interface DataTableModalContentProps<T> {
 function DataTableModalContent<T>({
   state = {},
   rowObjToId,
+  allowRowReordering = false,
   createRowObj,
   prepareForSaveCallback,
   rowObjFilter = () => true,
@@ -147,6 +149,8 @@ function DataTableModalContent<T>({
     | "remove"
     | "rowsPerPage"
     | "propConfig"
+    | "allowRowReordering"
+    | "onRowReorder"
   > = useMemo(
     () => ({
       isEditMode: true,
@@ -170,8 +174,21 @@ function DataTableModalContent<T>({
       },
       rowsPerPage: 7,
       propConfig,
+      allowRowReordering,
+      onRowReorder: (rowObj, newPosition) => {
+        const currentIndex = rowObjs.indexOf(rowObj);
+        rowObjsHandler.reorder({ from: currentIndex, to: newPosition });
+      },
     }),
-    [rowObjToId, propConfig, createRowObj, rowObjs, rowObjsHandler, state]
+    [
+      rowObjToId,
+      propConfig,
+      allowRowReordering,
+      createRowObj,
+      rowObjs,
+      rowObjsHandler,
+      state,
+    ]
   );
 
   return (

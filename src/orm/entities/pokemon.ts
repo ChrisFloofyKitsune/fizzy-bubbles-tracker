@@ -315,7 +315,7 @@ export class Pokemon {
           .map(
             (m) =>
               `${includeUnlearnedMoves && m.learned ? "[u]" : ""}${m.move} (${
-                m.level
+                m.level === "evolve" ? "Evolve" : m.level
               })${includeUnlearnedMoves && m.learned ? "[/u]" : ""}`
           )
           .join(", ");
