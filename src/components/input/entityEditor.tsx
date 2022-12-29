@@ -56,6 +56,7 @@ export type EditorWrapperProps<T extends ObjectLiteral> = {
   onConfirmedDelete?: EntityCallback<T>;
   confirmDeletePlaceholder?: string;
 
+  extraHeaderElement?: JSX.Element;
   children: (inputPropMap: InputPropMap<T>) => ReactNode;
 };
 
@@ -71,6 +72,7 @@ export function EntityEditor<T extends ObjectLiteral>({
   onConfirmedDelete,
   confirmDeletePlaceholder = "DELETE",
 
+  extraHeaderElement = <></>,
   children,
 }: EditorWrapperProps<T>) {
   const targetKeys = useMemo(() => Object.keys(targetEntity), [targetEntity]);
@@ -247,6 +249,7 @@ export function EntityEditor<T extends ObjectLiteral>({
         <Button color="green" leftIcon={<AddIcon />} onClick={addNew}>
           {`Create New ${entityRepo.metadata.name}`}
         </Button>
+        {extraHeaderElement}
         <Button
           ml="auto"
           color="red"
