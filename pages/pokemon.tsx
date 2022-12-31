@@ -297,6 +297,7 @@ const PokemonPage: NextPage = () => {
           const newLog = new ContestStatLog();
           newLog.id = -(rowsObjsCount + 1);
           newLog.stat = PokemonContestStat.ALL;
+          newLog.statChange = 0;
           return newLog;
         },
         prepareForSaveCallback: async (logs: ContestStatLog[]) => {
@@ -305,7 +306,6 @@ const PokemonPage: NextPage = () => {
             (l.id as any) = l.id > 0 ? l.id : undefined;
             l.pokemon = selectedPokemon;
           });
-          console.log(logs);
           return logs;
         },
         propConfig: {
@@ -474,7 +474,7 @@ const PokemonPage: NextPage = () => {
             ? Object.assign(new Pokemon(), selectedPokemon)
             : createNewPokemon();
 
-        console.log(importData);
+        console.debug("Importing the following from FizzyDex", importData);
 
         if (importData.species) pokemon.species = importData.species;
         if (importData.dexNum) pokemon.dexNum = importData.dexNum;
