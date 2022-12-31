@@ -97,9 +97,13 @@ export function FindFizzyDexPokemon(
   if (!FizzyDexService.FizzyDex || !pokemonInfo?.dexNum) {
     return null;
   }
-  const fizzyDexPokemon = FizzyDexService.FizzyDex.GetPokemon(
-    pokemonInfo.dexNum
-  );
+  let fizzyDexPokemon: Pokemon;
+  try {
+    fizzyDexPokemon = FizzyDexService.FizzyDex.GetPokemon(pokemonInfo.dexNum);
+  } catch {
+    return null;
+  }
+
   const speciesEntry = pokemonInfo.species?.toLowerCase();
   const fizzyDexForm = !speciesEntry
     ? null
