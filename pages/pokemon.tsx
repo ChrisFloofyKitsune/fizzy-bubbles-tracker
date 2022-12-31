@@ -6,6 +6,7 @@ import {
   Group,
   Select,
   SelectItem,
+  SimpleGrid,
   Stack,
   Text,
   Textarea,
@@ -32,7 +33,7 @@ import {
   TutorMoveLog,
 } from "~/orm/entities";
 import { BBCodeArea, EditModeToggle, EntityEditor } from "~/components";
-import { AddIcon, PokeDexIcon } from "~/appIcons";
+import { AddIcon } from "~/appIcons";
 import {
   PokemonContestStat,
   PokemonGenderOptions,
@@ -54,9 +55,6 @@ import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
 import { useListState } from "@mantine/hooks";
 import { AccordionSpoiler } from "~/components/AccordionSpoiler";
-import { MovesTextStack } from "~/pageComponents/pokemon/MovesTextStack";
-import { LevelUpMovesDisplay } from "~/pageComponents/pokemon/LevelUpMovesDisplay";
-import { ContestStatsDisplay } from "~/pageComponents/pokemon/ContestStatsDisplay";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
@@ -173,7 +171,7 @@ const PokemonPage: NextPage = () => {
     Repository<Trainer> | undefined
   ];
   const [entityList, entityListHandler] = useListState<Pokemon>([]);
-  const [selectedPokemon, setSelectedPokemon] = useState<Pokemon>();
+  const [selected, setSelected] = useState<Pokemon>();
 
   const [trainerList, setTrainerList] = useState<Trainer[]>();
 
@@ -186,7 +184,7 @@ const PokemonPage: NextPage = () => {
       loadEagerRelations: true,
     });
     entityListHandler.setState(list);
-    setSelectedPokemon(selectedPokemon ?? list[0] ?? undefined);
+    setSelected(selected ?? list[0] ?? undefined);
   }, [repo]);
 
   useAsyncEffect(async () => {
@@ -241,10 +239,10 @@ const PokemonPage: NextPage = () => {
           return newLog;
         },
         prepareForSaveCallback: async (logs: LevelLog[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
           logs.forEach((l) => {
             (l.id as any) = l.id > 0 ? l.id : undefined;
-            l.pokemon = selectedPokemon;
+            l.pokemon = selected;
           });
           return logs;
         },
@@ -253,7 +251,7 @@ const PokemonPage: NextPage = () => {
         } as PropConfig<LevelLog>,
         propsToMantineClasses: modalTableStyles.classes,
       }),
-      [modalTableStyles.classes, selectedPokemon]
+      [modalTableStyles.classes, selected]
     );
 
   const bondModalProps: InputDataTableModalProps<BondLog>["modalProps"] =
@@ -268,10 +266,10 @@ const PokemonPage: NextPage = () => {
           return newLog;
         },
         prepareForSaveCallback: async (logs: BondLog[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
           logs.forEach((l) => {
             (l.id as any) = l.id > 0 ? l.id : undefined;
-            l.pokemon = selectedPokemon;
+            l.pokemon = selected;
           });
           return logs;
         },
@@ -280,7 +278,7 @@ const PokemonPage: NextPage = () => {
         } as PropConfig<BondLog>,
         propsToMantineClasses: modalTableStyles.classes,
       }),
-      [modalTableStyles.classes, selectedPokemon]
+      [modalTableStyles.classes, selected]
     );
 
   const contestStatsModalProps: InputDataTableModalProps<ContestStatLog>["modalProps"] =
@@ -295,10 +293,10 @@ const PokemonPage: NextPage = () => {
           return newLog;
         },
         prepareForSaveCallback: async (logs: ContestStatLog[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
           logs.forEach((l) => {
             (l.id as any) = l.id > 0 ? l.id : undefined;
-            l.pokemon = selectedPokemon;
+            l.pokemon = selected;
           });
           console.log(logs);
           return logs;
@@ -321,7 +319,7 @@ const PokemonPage: NextPage = () => {
         } as PropConfig<ContestStatLog>,
         propsToMantineClasses: modalTableStyles.classes,
       }),
-      [modalTableStyles.classes, selectedPokemon]
+      [modalTableStyles.classes, selected]
     );
 
   const levelMoveModalProps: InputDataTableModalProps<LevelUpMove>["modalProps"] =
@@ -338,7 +336,7 @@ const PokemonPage: NextPage = () => {
           return newMove;
         },
         prepareForSaveCallback: async (logs: LevelUpMove[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
           return logs;
         },
         propConfig: {
@@ -360,7 +358,7 @@ const PokemonPage: NextPage = () => {
         propsToMantineClasses: modalTableStyles.classes,
         allowRowReordering: true,
       }),
-      [modalTableStyles.classes, selectedPokemon]
+      [modalTableStyles.classes, selected]
     );
 
   const makeMoveModalProps = useCallback(
@@ -376,11 +374,11 @@ const PokemonPage: NextPage = () => {
           return newMove;
         },
         prepareForSaveCallback: async (logs: T[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
 
           logs.forEach((l) => {
             (l.id as any) = l.id > 0 ? l.id : undefined;
-            l.pokemon = selectedPokemon;
+            l.pokemon = selected;
           });
 
           return logs;
@@ -392,7 +390,7 @@ const PokemonPage: NextPage = () => {
         allowRowReordering: true,
       };
     },
-    [modalTableStyles.classes, selectedPokemon]
+    [modalTableStyles.classes, selected]
   );
 
   const moveModalProps = useMemo(
@@ -416,7 +414,7 @@ const PokemonPage: NextPage = () => {
           return newStatus;
         },
         prepareForSaveCallback: async (logs: PokemonSpecialStatus[]) => {
-          if (!selectedPokemon) return;
+          if (!selected) return;
           return logs;
         },
         propConfig: {
@@ -427,7 +425,7 @@ const PokemonPage: NextPage = () => {
         propsToMantineClasses: modalTableStyles.classes,
         allowRowReordering: true,
       }),
-      [modalTableStyles.classes, selectedPokemon]
+      [modalTableStyles.classes, selected]
     );
 
   const applyBBCodeTemplate = usePokemonBBCodeTemplate();
@@ -438,10 +436,10 @@ const PokemonPage: NextPage = () => {
   const [trainerIdState, setTrainerIdState] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!selectedPokemon) return;
-    setGenderState(selectedPokemon.gender);
-    setTrainerIdState(selectedPokemon.trainerId);
-  }, [selectedPokemon]);
+    if (!selected) return;
+    setGenderState(selected.gender);
+    setTrainerIdState(selected.trainerId);
+  }, [selected]);
 
   if (!repo) {
     return <>Loading...?</>;
@@ -459,9 +457,9 @@ const PokemonPage: NextPage = () => {
               label: `${t.name || "Unnamed"} (${t.species || "New Pokemon"})`,
               value: t.uuid,
             }))}
-            value={selectedPokemon?.uuid ?? "Loading..."}
+            value={selected?.uuid ?? "Loading..."}
             onChange={(uuid) =>
-              setSelectedPokemon(entityList.find((t) => t.uuid === uuid))
+              setSelected(entityList.find((t) => t.uuid === uuid))
             }
           />
           <Title order={2} sx={{ flexGrow: 1, textAlign: "center" }}>
@@ -475,9 +473,9 @@ const PokemonPage: NextPage = () => {
         </Group>
         <Divider size="lg" />
         <Title order={3} sx={{ textAlign: "center" }}>{`${
-          selectedPokemon?.name || selectedPokemon?.species || "A Pokemon"
+          selected?.name || selected?.species || "A Pokemon"
         }'s Profile`}</Title>
-        {!!selectedPokemon ? (
+        {!!selected ? (
           <></>
         ) : (
           <Button
@@ -487,35 +485,35 @@ const PokemonPage: NextPage = () => {
               await waitForTransactions(repo);
               const pokemon = await repo!.save(createNewPokemon());
               entityListHandler.append(pokemon);
-              setSelectedPokemon(pokemon);
+              setSelected(pokemon);
               setEditModeOn(true);
             }}
           >
             <Title order={5}>Create a Pokemon to get started!</Title>
           </Button>
         )}
-        {!editModeOn || !selectedPokemon || !repo ? (
+        {!editModeOn || !selected || !repo ? (
           <></>
         ) : (
           <EntityEditor
-            entityId={selectedPokemon.uuid}
-            targetEntity={selectedPokemon}
+            entityId={selected.uuid}
+            targetEntity={selected}
             entityRepo={repo}
             confirmDeletePlaceholder={`${
-              selectedPokemon.name || selectedPokemon.species || "(New Pokemon)"
+              selected.name || selected.species || "(New Pokemon)"
             } has fainted!`}
             createNewEntity={createNewPokemon}
             onAdd={(pokemon: Pokemon) => {
               entityListHandler.append(pokemon);
-              setSelectedPokemon(pokemon);
+              setSelected(pokemon);
             }}
             onUpdate={(updatedPokemon: Pokemon[]) => {
               for (const pokemon of updatedPokemon) {
                 const index = entityList.findIndex(
                   (t) => t.uuid === pokemon.uuid
                 );
-                if (pokemon.uuid === selectedPokemon?.uuid) {
-                  setSelectedPokemon(pokemon);
+                if (pokemon.uuid === selected?.uuid) {
+                  setSelected(pokemon);
                 }
                 entityListHandler.setItem(index, pokemon);
               }
@@ -525,17 +523,12 @@ const PokemonPage: NextPage = () => {
                 (p) => p.uuid === pokemon.uuid
               );
               entityListHandler.filter((p) => p.uuid !== pokemon.uuid);
-              setSelectedPokemon(
+              setSelected(
                 entityList.length - 1 === 0
                   ? undefined
                   : entityList[Math.max(0, index - 1)]
               );
             }}
-            extraHeaderElement={
-              <Button color="blue" leftIcon={<PokeDexIcon />}>
-                {`Import from FizzyDex`}
-              </Button>
-            }
           >
             {(inputPropMap) => (
               <Box className={editorStyle.classes.editor}>
@@ -745,7 +738,7 @@ const PokemonPage: NextPage = () => {
                   className="input-contest-stats"
                   modalTitle={<Title>Edit Contest Stat Logs</Title>}
                   valueToDisplayElement={() => (
-                    <ContestStatsDisplay pokemon={selectedPokemon!} />
+                    <ContestStatsDisplay pokemon={selected!} />
                   )}
                   {...inputPropMap.contestStatsLogs}
                   modalProps={contestStatsModalProps}
@@ -756,7 +749,7 @@ const PokemonPage: NextPage = () => {
                   className="input-level-moves"
                   modalTitle={<Title>Edit Level Up Moves</Title>}
                   valueToDisplayElement={() => (
-                    <LevelUpMovesDisplay pokemon={selectedPokemon!} />
+                    <DisplayLevelUpMoves pokemon={selected!} />
                   )}
                   {...inputPropMap.levelUpMoves}
                   modalProps={levelMoveModalProps}
@@ -767,7 +760,7 @@ const PokemonPage: NextPage = () => {
                   className="input-egg-moves"
                   modalTitle={<Title>Edit Egg Moves</Title>}
                   valueToDisplayElement={(moves) => (
-                    <MovesTextStack moves={moves} />
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.eggMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.EGG]}
@@ -778,7 +771,7 @@ const PokemonPage: NextPage = () => {
                   className="input-machine-moves"
                   modalTitle={<Title>Edit Machine Moves</Title>}
                   valueToDisplayElement={(moves) => (
-                    <MovesTextStack moves={moves} />
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.machineMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.MACHINE]}
@@ -789,7 +782,7 @@ const PokemonPage: NextPage = () => {
                   className="input-tutor-moves"
                   modalTitle={<Title>Edit Tutor Moves</Title>}
                   valueToDisplayElement={(moves) => (
-                    <MovesTextStack moves={moves} />
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.tutorMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.TUTOR]}
@@ -800,7 +793,7 @@ const PokemonPage: NextPage = () => {
                   className="input-other-moves"
                   modalTitle={<Title>Edit Other Moves</Title>}
                   valueToDisplayElement={(moves) => (
-                    <MovesTextStack moves={moves} />
+                    <MovesToTextStack moves={moves} />
                   )}
                   {...inputPropMap.otherMoveLogs}
                   modalProps={moveModalProps[PokemonMoveSourceCategory.OTHER]}
@@ -830,10 +823,10 @@ const PokemonPage: NextPage = () => {
             )}
           </EntityEditor>
         )}
-        {selectedPokemon && (
+        {selected && (
           <BBCodeArea
-            label={`Pokemon ${selectedPokemon?.name || ""}`}
-            bbCode={applyBBCodeTemplate(selectedPokemon)}
+            label={`Pokemon ${selected?.name || ""}`}
+            bbCode={applyBBCodeTemplate(selected)}
           />
         )}
         <AccordionSpoiler
@@ -852,3 +845,83 @@ const PokemonPage: NextPage = () => {
 };
 
 export default PokemonPage;
+
+type ContestStatesDisplayProps = {
+  pokemon: Pokemon | undefined;
+};
+function ContestStatsDisplay({ pokemon }: ContestStatesDisplayProps) {
+  return (
+    <SimpleGrid cols={5}>
+      <Text>
+        <span>
+          {`Cute: `}
+          {pokemon?.compileContestStat(PokemonContestStat.CUTE).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Beautiful: `}
+          {pokemon?.compileContestStat(PokemonContestStat.BEAUTIFUL).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Tough: `}
+          {pokemon?.compileContestStat(PokemonContestStat.TOUGH).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Smart: `}
+          {pokemon?.compileContestStat(PokemonContestStat.CLEVER).total}
+        </span>
+      </Text>
+      <Text>
+        <span>
+          {`Cool: `}
+          {pokemon?.compileContestStat(PokemonContestStat.COOL).total}
+        </span>
+      </Text>
+    </SimpleGrid>
+  );
+}
+
+function DisplayLevelUpMoves({ pokemon }: { pokemon: Pokemon }) {
+  const level = useMemo(
+    () =>
+      pokemon.levelLogs.reduce((prev, curr) => Math.max(prev, curr.value), 1),
+    [pokemon]
+  );
+
+  if (!pokemon.levelUpMoves) {
+    return <></>;
+  }
+
+  return (
+    <Stack spacing={0}>
+      {pokemon.levelUpMoves.map((m, i) => {
+        const levelNum = parseInt(m.level);
+        const learned = isNaN(levelNum) || levelNum <= level;
+
+        return (
+          <Group key={`${i}-${m.move}`} position="apart" noWrap>
+            <Text underline={learned} key={`${i}-${m.move}-name`}>
+              {m.move}
+            </Text>
+            <Text key={`${i}-${m.move}-level`}>{`${
+              m.level === "evolve" ? "Evolve" : m.level
+            }`}</Text>
+          </Group>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function MovesToTextStack({ moves }: { moves: MoveLog[] | undefined }) {
+  return (
+    <Stack spacing={0}>
+      {moves?.map((l) => <Text key={l.move}>{l.move}</Text>) ?? ""}
+    </Stack>
+  );
+}
