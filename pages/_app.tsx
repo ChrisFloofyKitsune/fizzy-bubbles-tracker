@@ -55,6 +55,7 @@ import { Prism } from "prism-react-renderer";
 import { Modals } from "~/modalsList";
 import { emotionCache } from "../emotion-cache";
 import { useRouter } from "next/router";
+import { FizzyDexProvider } from "~/services/FizzyDexService";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
@@ -125,75 +126,74 @@ function MyApp({ Component, pageProps }: AppProps) {
     // <GoogleOAuthProvider clientId='39206396503-heot00318gquae6rrc7diepb5uj4pa4i.apps.googleusercontent.com'>
     //   <GoogleSessionProvider requestAuth={googleSyncEnabled} loginCredentials={typeof loginCredentials === 'object' ? loginCredentials : null}>
     <DataSourceProvider options={DataSourceOpts}>
-      {/*<GoogleDriveCommunicator autoSaveOn={googleSyncEnabled} />*/}
-      <DataSourceContext.Consumer>
-        {(ds) => (
-          <MantineProvider
-            withGlobalStyles
-            withNormalizeCSS
-            emotionCache={emotionCache}
-            theme={{
-              colorScheme: "dark",
-              components: {
-                Button: {
-                  styles: {
-                    root: { transitionDuration: "0.25s" },
+      <FizzyDexProvider>
+        {/*<GoogleDriveCommunicator autoSaveOn={googleSyncEnabled} />*/}
+        <DataSourceContext.Consumer>
+          {(ds) => (
+            <MantineProvider
+              withGlobalStyles
+              withNormalizeCSS
+              emotionCache={emotionCache}
+              theme={{
+                colorScheme: "dark",
+                components: {
+                  Button: {
+                    styles: {
+                      root: { transitionDuration: "0.25s" },
+                    },
                   },
                 },
-              },
-            }}
-          >
-            <ModalsProvider modals={Modals}>
-              <LoadingOverlay
-                visible={!ds || changingPage}
-                sx={(theme) => ({
-                  svg: {
-                    width: "50%",
-                    height: "50%",
-                    stroke: theme.colors.teal[9],
-                  },
-                })}
-              />
-              <AppShell
-                navbarOffsetBreakpoint="sm"
-                asideOffsetBreakpoint="sm"
-                fixed
-                navbar={
-                  <Navbar
-                    p="md"
-                    hiddenBreakpoint="sm"
-                    hidden={!opened}
-                    width={{ sm: 200, lg: 300 }}
-                  >
-                    <AppNavbar />
-                  </Navbar>
-                }
-                // footer={
-                //   <Footer height={60} p="md">
-                //     Application footer
-                //   </Footer>
-                // }
-                header={
-                  <Header ref={headerRef} height={64}>
-                    <Box
+              }}
+            >
+              <ModalsProvider modals={Modals}>
+                <LoadingOverlay
+                  visible={!ds || changingPage}
+                  sx={(theme) => ({
+                    svg: {
+                      width: "50%",
+                      height: "50%",
+                      stroke: theme.colors.teal[9],
+                    },
+                  })}
+                />
+                <AppShell
+                  navbarOffsetBreakpoint="sm"
+                  asideOffsetBreakpoint="sm"
+                  fixed
+                  navbar={
+                    <Navbar
                       p="md"
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        height: "100%",
-                      }}
+                      hiddenBreakpoint="sm"
+                      hidden={!opened}
+                      width={{ sm: 200, lg: 300 }}
                     >
-                      <MediaQuery largerThan="sm" styles={{ display: "none" }}>
-                        <Burger
-                          opened={opened}
-                          onClick={() => setOpened((o) => !o)}
-                          size="sm"
-                          color={theme.colors.gray[6]}
-                          mr="xl"
-                        />
-                      </MediaQuery>
-                      <Title>Fizzy Tracker App</Title>
-                      {/* <Box ml='auto'>
+                      <AppNavbar />
+                    </Navbar>
+                  }
+                  header={
+                    <Header ref={headerRef} height={64}>
+                      <Box
+                        p="md"
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          height: "100%",
+                        }}
+                      >
+                        <MediaQuery
+                          largerThan="sm"
+                          styles={{ display: "none" }}
+                        >
+                          <Burger
+                            opened={opened}
+                            onClick={() => setOpened((o) => !o)}
+                            size="sm"
+                            color={theme.colors.gray[6]}
+                            mr="xl"
+                          />
+                        </MediaQuery>
+                        <Title>Fizzy Tracker App</Title>
+                        {/* <Box ml='auto'>
                             {
                               (!loginCredentials) ?
                                 <GoogleLogin
@@ -225,53 +225,59 @@ function MyApp({ Component, pageProps }: AppProps) {
                                 </Group>
                             }
                           </Box> */}
-                    </Box>
-                  </Header>
-                }
-                padding="0"
-              >
-                <Box
-                  sx={{
-                    // paddingTop: headerRect.height,
-                    width: "100%",
-                    height: `100%`,
-                    backgroundColor: "black",
-                  }}
+                      </Box>
+                    </Header>
+                  }
+                  padding="0"
                 >
-                  <ScrollArea
-                    type="auto"
-                    styles={{
-                      viewport: {
-                        height: `calc(100vh - ${headerBoxRect.bottom + 1}px)`,
-                        "& > div": {
-                          display: "block!important",
-                        },
-                      },
+                  <Box
+                    sx={{
+                      width: "100%",
+                      height: `100%`,
+                      backgroundColor: "black",
                     }}
                   >
-                    <Paper m="sm" p="sm">
-                      {!!ds ? (
-                        <Component {...pageProps} />
-                      ) : (
-                        <>
-                          <Skeleton height={50} circle mb="xl" />
-                          <Skeleton height={8} radius="xl" />
-                          <Skeleton height={8} mt={6} radius="xl" />
-                          <Skeleton height={8} mt={6} width="70%" radius="xl" />
-                        </>
-                      )}
-                    </Paper>
-                  </ScrollArea>
-                </Box>
-              </AppShell>
-            </ModalsProvider>
-          </MantineProvider>
-        )}
-      </DataSourceContext.Consumer>
+                    <ScrollArea
+                      type="auto"
+                      styles={{
+                        viewport: {
+                          height: `calc(100vh - ${headerBoxRect.bottom + 1}px)`,
+                          "& > div": {
+                            display: "block!important",
+                          },
+                        },
+                      }}
+                    >
+                      <Paper m="sm" p="sm">
+                        {!!ds ? (
+                          <Component {...pageProps} />
+                        ) : (
+                          <>
+                            <Skeleton height={50} circle mb="xl" />
+                            <Skeleton height={8} radius="xl" />
+                            <Skeleton height={8} mt={6} radius="xl" />
+                            <Skeleton
+                              height={8}
+                              mt={6}
+                              width="70%"
+                              radius="xl"
+                            />
+                          </>
+                        )}
+                      </Paper>
+                    </ScrollArea>
+                  </Box>
+                </AppShell>
+              </ModalsProvider>
+            </MantineProvider>
+          )}
+        </DataSourceContext.Consumer>
+      </FizzyDexProvider>
     </DataSourceProvider>
     //   </GoogleSessionProvider>
     // </GoogleOAuthProvider>
   );
 }
 
+// noinspection JSUnusedGlobalSymbols
 export default MyApp;

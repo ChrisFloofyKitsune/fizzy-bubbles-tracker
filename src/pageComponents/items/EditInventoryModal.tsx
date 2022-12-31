@@ -27,11 +27,12 @@ import {
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
 import {
-  createNumberPropConfig,
   createDayjsPropConfig,
+  createNumberPropConfig,
 } from "~/components/dataTable/configCreators";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+
 dayjs.extend(utc);
 
 export type EditInventoryModalContext = {
@@ -48,6 +49,7 @@ export type EditInventoryModalContext = {
     itemLogs: ItemLog[]
   ) => Promise<void>;
 };
+
 export function EditInventoryModal({
   context,
   id: modalId,
@@ -91,8 +93,8 @@ export function EditInventoryModal({
 
         return null;
       },
-      category: (value: string) =>
-        value.length === 0 ? "Must enter an item category" : null,
+      category: (value: string | null) =>
+        !value || value.length === 0 ? "Must enter an item category" : null,
     },
     validateInputOnChange: ["name", "category"],
   });

@@ -3,7 +3,7 @@ import DataGrid, {
   Column,
   RowsChangeData,
   SelectColumn,
-  TextEditor,
+  textEditor,
 } from "react-data-grid";
 import { DataSource, EntityMetadata, TypeORMError } from "typeorm";
 import { toHeaderCase } from "js-convert-case";
@@ -142,7 +142,7 @@ export function SqlTable({
       if (propType === PropType.TEXT) {
         Object.assign(columnOpts, {
           editable: true,
-          editor: TextEditor,
+          editor: textEditor,
         } as typeof columnOpts);
       }
 
@@ -311,7 +311,7 @@ export function SqlTable({
           columns={columns}
           rows={rows}
           rowKeyGetter={(row: SqlRow) => row.tempId}
-          summaryRows={[{}]}
+          bottomSummaryRows={[{}]}
           rowClass={(row: SqlRow) =>
             (row && row.state ? tableStyles.classes[row.state] : "") +
             ` state-${row.state}`
