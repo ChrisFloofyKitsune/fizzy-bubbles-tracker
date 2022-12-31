@@ -7,20 +7,24 @@ const isProd = process.env.NODE_ENV === "production";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  swcMinify: true,
+  swcMinify: false,
 
-  experimental: {
-    swcMinifyDebugOptions: {
-      mangle: {
-        keep_classnames: true,
-        keep_fnames: true,
-      },
-      compress: {
-        defaults: false,
-        side_effects: false,
+  experimental:
+    //   !isProd
+    // ? {}
+    // :
+    {
+      swcMinifyDebugOptions: {
+        mangle: {
+          keep_classnames: true,
+          keep_fnames: true,
+        },
+        compress: {
+          defaults: false,
+          side_effects: false,
+        },
       },
     },
-  },
 
   /**
    * @param {WebpackConfig} config
