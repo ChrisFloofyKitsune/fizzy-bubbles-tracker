@@ -91,21 +91,19 @@ export function formatFormName(form?: Form) {
   return result;
 }
 
-export function FindFizzyDexPokemon(
-  pokemonInfo: Pick<PokemonEntity, "dexNum" | "species">
+export function PokemonEntityToFizzyDexPokemon(
+  pokemonEntity: PokemonEntity
 ): { pokemon: Pokemon; form: Form } | null {
-  if (!FizzyDexService.FizzyDex || !pokemonInfo?.dexNum) {
+  if (!FizzyDexService.FizzyDex || !pokemonEntity?.dexNum) {
     return null;
   }
   const fizzyDexPokemon = FizzyDexService.FizzyDex.GetPokemon(
-    pokemonInfo.dexNum
+    pokemonEntity.dexNum
   );
-  const speciesEntry = pokemonInfo.species?.toLowerCase();
-  const fizzyDexForm = !speciesEntry
-    ? null
-    : fizzyDexPokemon.Forms.find((f) =>
-        speciesEntry?.includes(f.FormName.toLowerCase())
-      );
+  const speciesEntry = pokemonEntity.species?.toLowerCase();
+  const fizzyDexForm = fizzyDexPokemon.Forms.find((f) =>
+    speciesEntry?.includes(f.FormName.toLowerCase())
+  );
   return {
     pokemon: fizzyDexPokemon,
     form: fizzyDexForm ?? fizzyDexPokemon.GetForm()!,
