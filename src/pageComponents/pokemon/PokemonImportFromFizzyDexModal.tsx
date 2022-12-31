@@ -1,11 +1,10 @@
 import { ContextModalProps, openContextModal } from "@mantine/modals";
-import { LevelUpMove, Pokemon as PokemonEntity } from "~/orm/entities";
+import { LevelUpMove } from "~/orm/entities";
 import {
   ForwardedRef,
   forwardRef,
   ReactNode,
   useCallback,
-  useMemo,
   useState,
 } from "react";
 import { FizzyDex, Form, Pokemon } from "fizzydex.js";
@@ -19,33 +18,38 @@ import { FizzyDexPokemonSelect } from "~/components/FizzyDexPokemonSelect";
 import { AddIcon, PokeDexIcon, SaveIcon, WarningIcon } from "~/appIcons";
 import { ModalName } from "~/modalsList";
 
-const ImportOpts: (
-  | keyof Pick<
-      PokemonEntity,
-      "species" | "dexNum" | "type" | "ability" | "imageLink" | "levelUpMoves"
-    >
-  | "evolutionChain"
-)[] = [
-  "species",
-  "dexNum",
-  "type",
-  "ability",
-  "imageLink",
-  "evolutionChain",
-  "levelUpMoves",
-];
+export type FizzyDexImportData = {
+  species: string | null;
+  dexNum: string | null;
+  type: string | null;
+  ability: string | null;
+  levelUpMoves: LevelUpMove[] | null;
+  evolutionChain: {
+    stageOne: string | null;
+    stageTwoMethod: string | null;
+    stageTwo: string | null;
+    stageThreeMethod: string | null;
+    stageThree: string | null;
+  } | null;
+  imageLink: string | null;
+};
 
-interface FizzyDexImportOption<T> {
+export type ImportFieldExistsMap = Record<keyof FizzyDexImportData, boolean>;
+
+interface FizzyDexImportOption<
+  T extends FizzyDexImportData[keyof FizzyDexImportData]
+> {
   label: string;
   enabled: boolean;
   setEnabled: (value: ((prevState: boolean) => boolean) | boolean) => void;
-  getValue: (pokemon: Pokemon | null, form: Form | null) => T;
-  showWarning: boolean;
+  getValue: (form: Form | null) => T;
 }
 
-function useFizzyDexImportOption<T = string>(
+function useFizzyDexImportOption<
+  T extends FizzyDexImportData[keyof FizzyDexImportData]
+>(
   label: string,
-  getNewValue: FizzyDexImportOption<T>["getValue"],
+  getValue: FizzyDexImportOption<T>["getValue"],
   startEnabled: boolean = false
 ): FizzyDexImportOption<T> {
   const [enabled, setEnabled] = useState(startEnabled);
@@ -53,63 +57,85 @@ function useFizzyDexImportOption<T = string>(
     label,
     enabled,
     setEnabled,
-    getValue: getNewValue,
-    showWarning: !startEnabled,
+    getValue,
   };
 }
 
 function useFizzyDexImportOptionMap(
   fizzyDex: typeof FizzyDex | null,
-  existingPokemon?: PokemonEntity
+  importFieldExistsMap: ImportFieldExistsMap | null
 ) {
   return {
-    species: useFizzyDexImportOption(
+    species: useFizzyDexImportOption<FizzyDexImportData["species"]>(
       "Species",
-      (pokemon, form) => {
-        return form ? formatFormName(form) : pokemon?.Name ?? "";
+      (form) => {
+        return form ? formatFormName(form) : null;
       },
-      !existingPokemon?.species
+      !importFieldExistsMap?.species
     ),
-    dexNum: useFizzyDexImportOption(
+    dexNum: useFizzyDexImportOption<FizzyDexImportData["dexNum"]>(
       "Dex No.",
-      (pokemon) => {
-        return pokemon?.DexNum.toString() ?? "";
+      (form) => {
+        return form?.Pokemon.DexNum.toString() ?? null;
       },
-      !existingPokemon?.dexNum
+      !importFieldExistsMap?.dexNum
     ),
-    ability: useFizzyDexImportOption(
+    ability: useFizzyDexImportOption<FizzyDexImportData["ability"]>(
       "Ability",
-      (pokemon, form) => {
+      (form) => {
         const opts = form
           ? [form.Ability1, form.Ability2, form.HiddenAbility].filter(
               (a) => !!a
             )
           : [];
-        return opts.join(" / ");
+        return opts.join(" OR ") || null;
       },
-      !existingPokemon?.ability
+      !importFieldExistsMap?.ability
     ),
-    type: useFizzyDexImportOption(
+    type: useFizzyDexImportOption<FizzyDexImportData["type"]>(
       "Type",
-      (pokemon, form) => {
+      (form) => {
         return form
           ? `${form.PrimaryType}${
               form.SecondaryType ? ` / ${form.SecondaryType}` : ""
             }`
-          : "";
+          : null;
       },
-      !existingPokemon?.type
+      !importFieldExistsMap?.type
     ),
-    evolutionChain: useFizzyDexImportOption<{
-      stageOne: string;
-      stageTwoMethod: string;
-      stageTwo: string;
-      stageThreeMethod: string;
-      stageThree: string;
-    }>(
+    levelUpMoves: useFizzyDexImportOption<FizzyDexImportData["levelUpMoves"]>(
+      "Level Up Moves",
+      (form) => {
+        return form
+          ? form.GetMoves().LevelUpMoves.map((m) => {
+              const move = new LevelUpMove();
+              move.move = m.Name;
+              move.level = dexMoveLevelToString(m.Level);
+              return move;
+            })
+          : null;
+      },
+      !importFieldExistsMap?.levelUpMoves
+    ),
+    evolutionChain: useFizzyDexImportOption<
+      FizzyDexImportData["evolutionChain"]
+    >(
       "Evolution Chain",
-      (pokemon, form) => {
-        const result = {
+      (form) => {
+        if (!fizzyDex || !form) {
+          return null;
+        }
+
+        const formName = form.FormName;
+        const evoChains =
+          form.Pokemon.EvolutionChains.filter(
+            (ec) =>
+              ec.Stage1Form === formName ||
+              ec.Stage2Form === formName ||
+              ec.Stage3Form === formName
+          ) ?? [];
+
+        const result: FizzyDexImportData["evolutionChain"] = {
           stageOne: "",
           stageTwoMethod: "",
           stageTwo: "",
@@ -117,74 +143,109 @@ function useFizzyDexImportOptionMap(
           stageThree: "",
         };
 
-        if (!fizzyDex) {
+        if (evoChains.length === 0) {
           return result;
         }
 
-        const formName = form?.FormName ?? pokemon?.DefaultFormName;
-        const evoChains =
-          pokemon?.EvolutionChains.filter(
-            (ec) =>
-              ec.Stage1Form === formName ||
-              ec.Stage2Form === formName ||
-              ec.Stage3Form === formName
-          ) ?? [];
+        result.stageOne = formatFormName(
+          fizzyDex
+            .GetPokemon(evoChains[0].Stage1DexNum)
+            .GetForm(evoChains[0].Stage1Form)
+        );
 
-        if (evoChains.length > 0) {
-          result.stageOne = formatFormName(
-            fizzyDex
-              .GetPokemon(evoChains[0].Stage1DexNum)
-              .GetForm(evoChains[0].Stage1Form)
-          );
+        result.stageTwoMethod = evoChains
+          .filter((ec) => !!ec.Stage2Method)
+          .map((ec) => ec.Stage2Method)
+          .join(" / ");
 
-          result.stageTwoMethod = evoChains
-            .map((ec) => ec.Stage2Method)
-            .join(" / ");
-          result.stageTwo = evoChains
-            .map((ec) =>
-              formatFormName(
-                fizzyDex.GetPokemon(ec.Stage2DexNum).GetForm(ec.Stage2Form)
-              )
+        result.stageTwo = evoChains
+          .filter((ec) => !!ec.Stage2DexNum)
+          .map((ec) =>
+            formatFormName(
+              fizzyDex.GetPokemon(ec.Stage2DexNum).GetForm(ec.Stage2Form)
             )
-            .join(" / ");
+          )
+          .join(" / ");
 
-          result.stageThreeMethod = evoChains
-            .filter((ec) => !!ec.Stage3Method)
-            .map((ec) => ec.Stage3Method)
-            .join(" / ");
-          result.stageThree = evoChains
-            .filter((ec) => !!ec.Stage3DexNum)
-            .map((ec) =>
-              formatFormName(
-                fizzyDex.GetPokemon(ec.Stage3DexNum!).GetForm(ec.Stage3Form!)
-              )
+        result.stageThreeMethod = evoChains
+          .filter((ec) => !!ec.Stage3Method)
+          .map((ec) => ec.Stage3Method)
+          .join(" / ");
+
+        result.stageThree = evoChains
+          .filter((ec) => !!ec.Stage3DexNum)
+          .map((ec) =>
+            formatFormName(
+              fizzyDex.GetPokemon(ec.Stage3DexNum!).GetForm(ec.Stage3Form!)
             )
-            .join(" / ");
-        }
+          )
+          .join(" / ");
 
         return result;
       },
-      !existingPokemon?.evolutionStageOne
+      !importFieldExistsMap?.evolutionChain
     ),
-    levelUpMoves: useFizzyDexImportOption<LevelUpMove[]>(
-      "Level Up Moves",
-      (pokemon, form) => {
-        return !form
-          ? []
-          : form.GetMoves().LevelUpMoves.map((m) => ({
-              move: m.Name,
-              level: dexMoveLevelToString(m.Level),
-            }));
-      },
-      !existingPokemon?.levelUpMoves
+    imageLink: useFizzyDexImportOption<FizzyDexImportData["imageLink"]>(
+      "Image Link",
+      (form) => form?.ArtworkURL || null,
+      !importFieldExistsMap?.imageLink
     ),
   };
 }
 
+export type DisplayImportOptionProps<
+  T extends FizzyDexImportData[keyof FizzyDexImportData]
+> = {
+  importOption: FizzyDexImportOption<T>;
+  showWarning: boolean;
+  children: ReactNode;
+};
+
+function DisplayImportOption<
+  T extends FizzyDexImportData[keyof FizzyDexImportData]
+>({
+  importOption,
+  showWarning,
+  children,
+}: DisplayImportOptionProps<T>): JSX.Element {
+  if (children === null) {
+    return <></>;
+  }
+
+  return (
+    <Group
+      sx={{
+        alignItems: "baseline",
+        verticalAlign: "middle",
+      }}
+    >
+      {showWarning && (
+        <Tooltip label="A value already exists for this option">
+          <div>
+            <WarningIcon
+              size="24px"
+              color="yellow"
+              style={{ verticalAlign: "middle" }}
+            />
+          </div>
+        </Tooltip>
+      )}
+      <Switch
+        label={<Title order={4}>{importOption.label}</Title>}
+        checked={importOption.enabled}
+        onChange={(event) =>
+          importOption.setEnabled(event.currentTarget.checked)
+        }
+      />
+      {children}
+    </Group>
+  );
+}
+
 export type PokemonImportFromFizzyDexModalProps = {
-  existingPokemonEntity: PokemonEntity;
+  importFieldExistsMap: ImportFieldExistsMap | null;
   onImportSubmit: (
-    pokemon: PokemonEntity,
+    importData: FizzyDexImportData,
     saveToExisting: boolean
   ) => Promise<any>;
 };
@@ -195,101 +256,33 @@ export function PokemonImportFromFizzyDexModal({
   innerProps: props,
 }: ContextModalProps<PokemonImportFromFizzyDexModalProps>) {
   const fizzyDex = useFizzyDex();
-  const importOptionMap = useFizzyDexImportOptionMap(fizzyDex);
+  const importOptionMap = useFizzyDexImportOptionMap(
+    fizzyDex,
+    props.importFieldExistsMap
+  );
 
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
 
-  const hasEvoChain: boolean = useMemo(
-    () => (selectedPokemon?.EvolutionChains?.length ?? 0) > 0,
-    [selectedPokemon]
-  );
-
   const [loading, setLoading] = useState(false);
-
-  const displayOption = useCallback(
-    (
-      option: FizzyDexImportOption<any>,
-      displayMode: "label" | "move list" | "evo chains" = "label"
-    ) => {
-      if (!selectedPokemon || !selectedForm) {
-        return <></>;
-      }
-
-      const value = option.getValue(selectedPokemon, selectedForm);
-      let displayElement: ReactNode = "";
-
-      switch (displayMode) {
-        case "label":
-          displayElement = value;
-          break;
-        case "move list":
-          displayElement = (value as LevelUpMove[])
-            .map((m) => `(${m.level}) ${m.move}`)
-            .join(", ");
-          break;
-        case "evo chains":
-          if (!hasEvoChain) {
-            displayElement = "(Does not evolve)";
-            break;
-          }
-
-          let evoChain = value as ReturnType<
-            typeof importOptionMap["evolutionChain"]["getValue"]
-          >;
-          displayElement = `${evoChain.stageOne}`;
-          if (!!evoChain.stageTwo) {
-            displayElement += ` -(${evoChain.stageTwoMethod})> ${evoChain.stageTwo}`;
-          }
-          if (!!evoChain.stageThree) {
-            displayElement += ` -(${evoChain.stageThreeMethod})> ${evoChain.stageThree}`;
-          }
-          break;
-      }
-
-      return (
-        <Group
-          sx={{
-            alignItems: "baseline",
-            verticalAlign: "middle",
-          }}
-        >
-          {option.showWarning && (
-            <Tooltip label="A value already exists for this option">
-              <div>
-                <WarningIcon
-                  size="24px"
-                  color="yellow"
-                  style={{ verticalAlign: "middle" }}
-                />
-              </div>
-            </Tooltip>
-          )}
-          {!!props.existingPokemonEntity ? (
-            <Switch
-              label={<Title order={4}>{option.label}</Title>}
-              checked={option.enabled}
-              onChange={(event) =>
-                option.setEnabled(event.currentTarget.checked)
-              }
-            />
-          ) : (
-            <Title order={4}>{option.label}</Title>
-          )}
-          {displayElement}
-        </Group>
-      );
-    },
-    [hasEvoChain, props.existingPokemonEntity, selectedForm, selectedPokemon]
-  );
 
   const onImportClick = useCallback(
     async (saveToExisting: boolean) => {
       setLoading(true);
-      await props.onImportSubmit(new PokemonEntity(), saveToExisting);
+      const data: FizzyDexImportData = Object.entries(importOptionMap).reduce(
+        (result, [key, opt]) => {
+          result[key as keyof FizzyDexImportData] =
+            opt.enabled || !saveToExisting
+              ? (opt.getValue(selectedForm) as any)
+              : null;
+          return result;
+        },
+        {} as FizzyDexImportData
+      );
+      await props.onImportSubmit(data, saveToExisting);
       context.closeModal(modalId);
     },
-    [context, modalId, props]
+    [context, modalId, props, importOptionMap, selectedForm]
   );
 
   return (
@@ -304,28 +297,68 @@ export function PokemonImportFromFizzyDexModal({
       {!selectedPokemon && <Title pt="lg">Select a Pokemon</Title>}
       {selectedPokemon && (
         <Stack spacing="xs" pt="lg">
-          {displayOption(importOptionMap.species)}
-          {displayOption(importOptionMap.dexNum)}
-          {displayOption(importOptionMap.type)}
-          {displayOption(importOptionMap.ability)}
-          {displayOption(importOptionMap.levelUpMoves, "move list")}
-          {displayOption(importOptionMap.evolutionChain, "evo chains")}
+          <DisplayImportOption
+            importOption={importOptionMap.species}
+            showWarning={!!props.importFieldExistsMap?.species}
+          >
+            {importOptionMap.species.getValue(selectedForm)}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.dexNum}
+            showWarning={!!props.importFieldExistsMap?.dexNum}
+          >
+            {importOptionMap.dexNum.getValue(selectedForm)}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.type}
+            showWarning={!!props.importFieldExistsMap?.type}
+          >
+            {importOptionMap.type.getValue(selectedForm)}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.ability}
+            showWarning={!!props.importFieldExistsMap?.ability}
+          >
+            {importOptionMap.ability.getValue(selectedForm)}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.levelUpMoves}
+            showWarning={!!props.importFieldExistsMap?.levelUpMoves}
+          >
+            {importOptionMap.levelUpMoves
+              .getValue(selectedForm)
+              ?.map((m) => `(${m.level}) ${m.move}`)
+              .join(", ")}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.evolutionChain}
+            showWarning={!!props.importFieldExistsMap?.evolutionChain}
+          >
+            {(() => {
+              const evoChain =
+                importOptionMap.evolutionChain.getValue(selectedForm);
+              if (!evoChain) return null;
+              return (
+                evoChain.stageOne +
+                (evoChain.stageTwo
+                  ? ` -(${evoChain.stageTwoMethod})> ${evoChain.stageTwo}` +
+                    (evoChain.stageThree
+                      ? ` -(${evoChain.stageTwoMethod})> ${evoChain.stageTwo}`
+                      : "")
+                  : "")
+              );
+            })()}
+          </DisplayImportOption>
+          <DisplayImportOption
+            importOption={importOptionMap.imageLink}
+            showWarning={!!props.importFieldExistsMap?.imageLink}
+          >
+            {importOptionMap.imageLink.getValue(selectedForm)}
+          </DisplayImportOption>
         </Stack>
       )}
       <Group pt="lg">
-        <Button
-          loading={loading}
-          disabled={
-            !selectedPokemon ||
-            !Object.values(importOptionMap).some((opt) => opt.enabled)
-          }
-          leftIcon={<AddIcon />}
-          color="green"
-          onClick={async () => await onImportClick(false)}
-        >
-          Save as New Pokemon
-        </Button>
-        {!!props.existingPokemonEntity && (
+        {!!props.importFieldExistsMap && (
           <Button
             loading={loading}
             disabled={
@@ -338,17 +371,22 @@ export function PokemonImportFromFizzyDexModal({
             Save to Current Pokemon
           </Button>
         )}
+        <Button
+          loading={loading}
+          disabled={!selectedPokemon}
+          leftIcon={<AddIcon />}
+          color="green"
+          onClick={async () => await onImportClick(false)}
+        >
+          Save as New Pokemon
+        </Button>
       </Group>
     </>
   );
 }
 
-export type ButtonOpenFizzyDexImportModalProps = {
-  existingPokemon: PokemonEntity;
-};
-
 function Inner_ButtonOpenFizzyDexImportModal(
-  props: ButtonOpenFizzyDexImportModalProps,
+  props: PokemonImportFromFizzyDexModalProps,
   ref: ForwardedRef<HTMLButtonElement>
 ) {
   return (
@@ -360,7 +398,7 @@ function Inner_ButtonOpenFizzyDexImportModal(
           modal: ModalName.PokemonImportFromFizzyDex,
           title: <Title order={2}>Import from FizzyDex</Title>,
           size: "lg",
-          innerProps: { existingPokemonEntity: props.existingPokemon },
+          innerProps: props,
         })
       }
     >
@@ -371,5 +409,5 @@ function Inner_ButtonOpenFizzyDexImportModal(
 
 export const ButtonOpenFizzyDexImportModal = forwardRef<
   HTMLButtonElement,
-  ButtonOpenFizzyDexImportModalProps
+  PokemonImportFromFizzyDexModalProps
 >(Inner_ButtonOpenFizzyDexImportModal);

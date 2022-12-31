@@ -44,4 +44,5 @@ const TestPage: NextPage = () => {
   );
 };
 
+// noinspection JSUnusedGlobalSymbols
 export default TestPage;

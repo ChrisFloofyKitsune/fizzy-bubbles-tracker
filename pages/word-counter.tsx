@@ -79,4 +79,5 @@ const WordCounterPage: NextPage = () => {
   );
 };
 
+// noinspection JSUnusedGlobalSymbols
 export default WordCounterPage;

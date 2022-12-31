@@ -382,7 +382,7 @@ const ItemsPage: NextPage = () => {
       await waitForTransactions(defRepo);
       await defRepo.delete({ id: itemDefId });
     },
-    [logRepo, defRepo]
+    [logRepo, defRepo, itemLogsHandler, itemDefsHandler]
   );
 
   const currentInventoryComp = useMemo(
