@@ -96,7 +96,6 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
           <></>
         ) : (
           <EntityEditor
-            entityId={selected.uuid}
             targetEntity={selected}
             entityRepo={repo}
             confirmDeletePlaceholder={`${selected.name} has blacked out!`}
@@ -161,4 +160,5 @@ Background: Once upon a time {{name}} set out to be the best like no one ever wa
   );
 };
 
+// noinspection JSUnusedGlobalSymbols
 export default TrainersPage;

@@ -95,7 +95,7 @@ const BondPage: NextPage = () => {
       bondConfigsHandler.setItemProp(index, prop, value);
       saveBondConfig(config, { [prop]: value });
     },
-    [saveBondConfig, bondConfigs]
+    [bondConfigs, bondConfigsHandler, saveBondConfig]
   );
 
   const dataTablePropConfig: PropConfig<BondLog> = useMemo(
@@ -143,7 +143,14 @@ const BondPage: NextPage = () => {
         await bondRepo.remove(log);
       },
     }),
-    [bondLogs, bondRepo, dataTablePropConfig, pokemonList, saveBondLog]
+    [
+      bondLogs,
+      bondLogsHandler,
+      bondRepo,
+      dataTablePropConfig,
+      pokemonList,
+      saveBondLog,
+    ]
   );
 
   const dataTableStyles = useDataTableStyles();

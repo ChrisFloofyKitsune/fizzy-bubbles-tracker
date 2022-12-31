@@ -91,4 +91,5 @@ export const DataPage: NextPage = () => {
   );
 };
 
+// noinspection JSUnusedGlobalSymbols
 export default DataPage;
