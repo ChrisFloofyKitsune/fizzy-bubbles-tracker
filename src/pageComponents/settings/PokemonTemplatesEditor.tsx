@@ -101,93 +101,95 @@ export function PokemonTemplatesEditor() {
 
   const { ref, height } = useElementSize<HTMLTextAreaElement>();
 
-  return <>
-    <Paper withBorder p="1em">
-      <Group>
-        <Tabs
-          value={tab}
-          onTabChange={setTab}
-          orientation="vertical"
-          variant="pills"
-        >
-          <Tabs.List>
-            {configs.map((c) => (
-              <Tabs.Tab key={c.specifier} value={c.specifier}>
-                {c.specifier.replace(/Pokemon\.?/, "") || "(Base)"}
-              </Tabs.Tab>
-            ))}
-          </Tabs.List>
-        </Tabs>
-        <Divider orientation="vertical" />
-        <Textarea
-          label={
-            <Title order={4}>
-              Delete everything to reset template to default
-            </Title>
-          }
-          ref={ref}
-          autosize
-          minRows={30}
-          value={templateText}
-          onChange={(event) => {
-            const value = event.currentTarget.value;
-            const config = configs.find((c) => c.specifier === tab);
-            if (!config) return;
-            setTemplateText(value);
-            const index = configs.indexOf(config);
-            configsHandler.setItemProp(index, "customTemplate", value);
-            saveChanges(config, { customTemplate: value });
-          }}
-          sx={{
-            flexGrow: 1,
-          }}
-          styles={{
-            input: {
-              fontFamily: "monospace",
-              whiteSpace: "nowrap",
-              overflowX: "scroll",
-            },
-          }}
-        />
-        <Divider orientation="vertical" />
-        <Stack
-          sx={{
-            height: "100%",
-            width: "18em",
-          }}
-        >
-          <Text>
-            <Title order={4}>Possible Placeholders</Title>
-            (Each can only be used for replacement once)
-          </Text>
-          <ScrollArea
-            offsetScrollbars
+  return (
+    <>
+      <Paper withBorder p="1em">
+        <Group>
+          <Tabs
+            value={tab}
+            onTabChange={setTab}
+            orientation="vertical"
+            variant="pills"
+          >
+            <Tabs.List>
+              {configs.map((c) => (
+                <Tabs.Tab key={c.specifier} value={c.specifier}>
+                  {c.specifier.replace(/Pokemon\.?/, "") || "(Base)"}
+                </Tabs.Tab>
+              ))}
+            </Tabs.List>
+          </Tabs>
+          <Divider orientation="vertical" />
+          <Textarea
+            label={
+              <Title order={4}>
+                Delete everything to reset template to default
+              </Title>
+            }
+            ref={ref}
+            autosize
+            minRows={30}
+            value={templateText}
+            onChange={(event) => {
+              const value = event.currentTarget.value;
+              const config = configs.find((c) => c.specifier === tab);
+              if (!config) return;
+              setTemplateText(value);
+              const index = configs.indexOf(config);
+              configsHandler.setItemProp(index, "customTemplate", value);
+              saveChanges(config, { customTemplate: value });
+            }}
             sx={{
-              height: `${height}px`,
+              flexGrow: 1,
+            }}
+            styles={{
+              input: {
+                fontFamily: "monospace",
+                whiteSpace: "nowrap",
+                overflowX: "scroll",
+              },
+            }}
+          />
+          <Divider orientation="vertical" />
+          <Stack
+            sx={{
+              height: "100%",
+              width: "18em",
             }}
           >
-            <Title order={5} mt="md">
-              Pokemon Properties
-            </Title>
-            <List>{props}</List>
-            <Title order={5} mt="md">
-              Calculated BBCode
-            </Title>
-            <Text pl="sm">
-              Most just auto-wrap with the appropriate bbcode
-              <br />
-              (Such as [url] if the corresponding link exists.)
-              <br />
-              Or it converts a list into bbcode.
+            <Text>
+              <Title order={4}>Possible Placeholders</Title>
+              (Each can only be used for replacement once)
             </Text>
-            <List>{methods}</List>
-            <Title order={5} mt="md">
-              Sub Templates
-            </Title>
-            <List>{subTemplates}</List>
-          </ScrollArea>
-        </Stack>
-      </Group>
-    </Paper>
-  </>;
+            <ScrollArea
+              offsetScrollbars
+              sx={{
+                height: `${height}px`,
+              }}
+            >
+              <Title order={5} mt="md">
+                Pokemon Properties
+              </Title>
+              <List>{props}</List>
+              <Title order={5} mt="md">
+                Calculated BBCode
+              </Title>
+              <Text pl="sm">
+                Most just auto-wrap with the appropriate bbcode
+                <br />
+                (Such as [url] if the corresponding link exists.)
+                <br />
+                Or it converts a list into bbcode.
+              </Text>
+              <List>{methods}</List>
+              <Title order={5} mt="md">
+                Sub Templates
+              </Title>
+              <List>{subTemplates}</List>
+            </ScrollArea>
+          </Stack>
+        </Group>
+      </Paper>
+    </>
+  );
 }

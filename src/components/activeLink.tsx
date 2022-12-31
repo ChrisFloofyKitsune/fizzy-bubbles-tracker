@@ -52,7 +52,7 @@ export const ActiveLink = ({
     ]);
 
     return (
-        <Link {...props} legacyBehavior>
+        <Link {...props}>
             {cloneElement(child, {
                 className: className || null,
             })}

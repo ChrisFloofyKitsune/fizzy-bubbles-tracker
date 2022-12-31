@@ -146,5 +146,4 @@ const Home: NextPage = () => {
   );
 };
 
-// noinspection JSUnusedGlobalSymbols
 export default Home;

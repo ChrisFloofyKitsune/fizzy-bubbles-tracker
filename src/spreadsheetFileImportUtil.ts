@@ -394,33 +394,35 @@ export function extractBondConfigs(workBook: WorkBook):
     })[]
   | null {
   const rows = extractRange(workBook, "Bond Tracker", "A3:D100");
-  return rows?.map((row) => {
-    let preHeaderBBCode = (row[1] as string | undefined) ?? null;
-    let postHeaderBBCode = (row[2] as string | undefined) ?? null;
-    let postFooterBBCode = (row[3] as string | undefined) ?? null;
+  return (
+    rows?.map((row) => {
+      let preHeaderBBCode = (row[1] as string | undefined) ?? null;
+      let postHeaderBBCode = (row[2] as string | undefined) ?? null;
+      let postFooterBBCode = (row[3] as string | undefined) ?? null;
 
-    const color = preHeaderBBCode?.match(/\[color=(#?\w+?)]/i)?.[1] ?? null;
-    if (color !== null) {
-      preHeaderBBCode =
-        preHeaderBBCode?.replace(/\[color=(#?\w+?)]/i, "") || null;
-      postFooterBBCode = postFooterBBCode?.replace(/\[\/color]/i, "") || null;
-    }
+      const color = preHeaderBBCode?.match(/\[color=(#?\w+?)]/i)?.[1] ?? null;
+      if (color !== null) {
+        preHeaderBBCode =
+          preHeaderBBCode?.replace(/\[color=(#?\w+?)]/i, "") || null;
+        postFooterBBCode = postFooterBBCode?.replace(/\[\/color]/i, "") || null;
+      }
 
-    const imageLink =
-      postHeaderBBCode?.match(/\[img]([^\[\]]+?)\[\/img]/i)?.[1] ?? null;
-    if (imageLink !== null) {
-      postHeaderBBCode =
-        postHeaderBBCode?.replace(/\[img][^\[\]]+?\[\/img]/i, "") || null;
-    }
+      const imageLink =
+        postHeaderBBCode?.match(/\[img]([^\[\]]+?)\[\/img]/i)?.[1] ?? null;
+      if (imageLink !== null) {
+        postHeaderBBCode =
+          postHeaderBBCode?.replace(/\[img][^\[\]]+?\[\/img]/i, "") || null;
+      }
 
-    return {
-      pokemonLabel: (row[0] as string | undefined)?.toLowerCase() ?? null,
-      colorCode: color,
-      iconImageLink: imageLink,
-      preHeaderBBCode,
-      postHeaderBBCode,
-      preFooterBBCode: null,
-      postFooterBBCode,
-    };
-  }) ?? null;
+      return {
+        pokemonLabel: (row[0] as string | undefined)?.toLowerCase() ?? null,
+        colorCode: color,
+        iconImageLink: imageLink,
+        preHeaderBBCode,
+        postHeaderBBCode,
+        preFooterBBCode: null,
+        postFooterBBCode,
+      };
+    }) ?? null
+  );
 }

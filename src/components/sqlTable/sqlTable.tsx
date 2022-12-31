@@ -290,94 +290,96 @@ export function SqlTable({
     return <>{placeholder}</>;
   }
 
-  return <>
-    <Box
-      sx={
-        !saveError
-          ? {}
-          : {
-              [`.state-${RowState.NEW}, .state-${RowState.CHANGED}`]: {
-                [`& .${
-                  saveError.message.match(/\.(?<prop>\w+)$/)?.groups?.prop
-                }-cell`]: {
-                  boxShadow: "inset 0 0 0 3px red",
+  return (
+    <>
+      <Box
+        sx={
+          !saveError
+            ? {}
+            : {
+                [`.state-${RowState.NEW}, .state-${RowState.CHANGED}`]: {
+                  [`& .${
+                    saveError.message.match(/\.(?<prop>\w+)$/)?.groups?.prop
+                  }-cell`]: {
+                    boxShadow: "inset 0 0 0 3px red",
+                  },
                 },
-              },
-            }
-      }
-    >
-      <DataGrid
-        columns={columns}
-        rows={rows}
-        rowKeyGetter={(row: SqlRow) => row.tempId}
-        summaryRows={[{}]}
-        rowClass={(row: SqlRow) =>
-          (row && row.state ? tableStyles.classes[row.state] : "") +
-          ` state-${row.state}`
+              }
         }
-        onRowsChange={onRowsChange}
-        selectedRows={selectedRows}
-        onSelectedRowsChange={setSelectedRows}
-      ></DataGrid>
-    </Box>
-    <Group mt="xs">
-      <Button
-        leftIcon={<AddIcon />}
-        color="green"
-        onClick={async () => await addRowFunc()}
       >
-        Add Row
-      </Button>
-      <Button
-        disabled={!selectedRows || selectedRows.size === 0}
-        leftIcon={<DeleteIcon />}
-        color="red"
-        sx={{ marginRight: "auto" }}
-        onClick={deleteRowFunc}
-      >
-        Remove Row(s)
-      </Button>
-      <Button
-        disabled={!changesPending}
-        leftIcon={<CancelIcon />}
-        color="yellow"
-        onClick={() => {
-          setRefresher(!refresher);
-        }}
-      >
-        Cancel Changes
-      </Button>
-      <Button
-        disabled={!changesPending}
-        leftIcon={<SaveIcon />}
-        color="blue"
-        onClick={async () => await saveTableFunc()}
-      >
-        Save Changes
-      </Button>
-    </Group>
-    {!saveError ? (
-      ""
-    ) : (
-      <Paper
-        withBorder
-        mt="xl"
-        sx={(theme) => ({
-          backgroundColor: theme.fn.darken(theme.colors.red[9], 0.5),
-        })}
-      >
-        <Blockquote
-          color="red"
-          cite={
-            <Text weight="bolder" sx={{ color: "white" }}>
-              {saveError.name}
-            </Text>
+        <DataGrid
+          columns={columns}
+          rows={rows}
+          rowKeyGetter={(row: SqlRow) => row.tempId}
+          summaryRows={[{}]}
+          rowClass={(row: SqlRow) =>
+            (row && row.state ? tableStyles.classes[row.state] : "") +
+            ` state-${row.state}`
           }
-          icon={<MdReportGmailerrorred size={32} />}
+          onRowsChange={onRowsChange}
+          selectedRows={selectedRows}
+          onSelectedRowsChange={setSelectedRows}
+        ></DataGrid>
+      </Box>
+      <Group mt="xs">
+        <Button
+          leftIcon={<AddIcon />}
+          color="green"
+          onClick={async () => await addRowFunc()}
         >
-          <Code color="red">{saveError.message}</Code>
-        </Blockquote>
-      </Paper>
-    )}
-  </>;
+          Add Row
+        </Button>
+        <Button
+          disabled={!selectedRows || selectedRows.size === 0}
+          leftIcon={<DeleteIcon />}
+          color="red"
+          sx={{ marginRight: "auto" }}
+          onClick={deleteRowFunc}
+        >
+          Remove Row(s)
+        </Button>
+        <Button
+          disabled={!changesPending}
+          leftIcon={<CancelIcon />}
+          color="yellow"
+          onClick={() => {
+            setRefresher(!refresher);
+          }}
+        >
+          Cancel Changes
+        </Button>
+        <Button
+          disabled={!changesPending}
+          leftIcon={<SaveIcon />}
+          color="blue"
+          onClick={async () => await saveTableFunc()}
+        >
+          Save Changes
+        </Button>
+      </Group>
+      {!saveError ? (
+        ""
+      ) : (
+        <Paper
+          withBorder
+          mt="xl"
+          sx={(theme) => ({
+            backgroundColor: theme.fn.darken(theme.colors.red[9], 0.5),
+          })}
+        >
+          <Blockquote
+            color="red"
+            cite={
+              <Text weight="bolder" sx={{ color: "white" }}>
+                {saveError.name}
+              </Text>
+            }
+            icon={<MdReportGmailerrorred size={32} />}
+          >
+            <Code color="red">{saveError.message}</Code>
+          </Blockquote>
+        </Paper>
+      )}
+    </>
+  );
 }

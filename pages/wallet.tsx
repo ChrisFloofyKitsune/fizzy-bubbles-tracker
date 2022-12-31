@@ -293,5 +293,4 @@ const WalletPage: NextPage = () => {
   );
 };
 
-// noinspection JSUnusedGlobalSymbols
 export default WalletPage;

@@ -209,5 +209,4 @@ function GroupSettings({
   );
 }
 
-// noinspection JSUnusedGlobalSymbols
 export default SettingsPage;

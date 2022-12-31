@@ -4,7 +4,6 @@ import { emotionCache } from "../emotion-cache";
 
 const stylesServer = createStylesServer(emotionCache);
 
-// noinspection JSUnusedGlobalSymbols
 export default class _Document extends Document {
   static async getInitialProps(ctx: DocumentContext) {
     const initialProps = await Document.getInitialProps(ctx);

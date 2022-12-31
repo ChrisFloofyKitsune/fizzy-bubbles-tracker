@@ -32,7 +32,7 @@ import {
   TutorMoveLog,
 } from "~/orm/entities";
 import { BBCodeArea, EditModeToggle, EntityEditor } from "~/components";
-import { AddIcon } from "~/appIcons";
+import { AddIcon, PokeDexIcon } from "~/appIcons";
 import {
   PokemonContestStat,
   PokemonGenderOptions,
@@ -57,11 +57,6 @@ import { AccordionSpoiler } from "~/components/AccordionSpoiler";
 import { MovesTextStack } from "~/pageComponents/pokemon/MovesTextStack";
 import { LevelUpMovesDisplay } from "~/pageComponents/pokemon/LevelUpMovesDisplay";
 import { ContestStatsDisplay } from "~/pageComponents/pokemon/ContestStatsDisplay";
-import {
-  ButtonOpenFizzyDexImportModal,
-  ImportFieldExistsMap,
-  PokemonImportFromFizzyDexModalProps,
-} from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
@@ -210,7 +205,7 @@ const PokemonPage: NextPage = () => {
     return repo?.create({
       name: "",
       species: "",
-      dexNum: "",
+      dexNum: "???",
       levelLogs: [],
       bondLogs: [],
       levelUpMoves: [],
@@ -448,65 +443,6 @@ const PokemonPage: NextPage = () => {
     setTrainerIdState(selectedPokemon.trainerId);
   }, [selectedPokemon]);
 
-  const importFieldExistsMap = useMemo(
-    (): ImportFieldExistsMap | null =>
-      !selectedPokemon
-        ? null
-        : {
-            species: !!selectedPokemon.species,
-            dexNum: !!selectedPokemon.dexNum,
-            ability: !!selectedPokemon.species,
-            type: !!selectedPokemon.type,
-            evolutionChain: !!selectedPokemon.evolutionStageOne,
-            levelUpMoves: !!selectedPokemon.levelUpMoves?.length,
-            imageLink: !!selectedPokemon.imageLink,
-          },
-    [selectedPokemon]
-  );
-
-  const saveFizzyDexImportData: PokemonImportFromFizzyDexModalProps["onImportSubmit"] =
-    useCallback(
-      async (importData, saveToExisting) => {
-        if (!repo) return;
-
-        let pokemon =
-          saveToExisting && selectedPokemon
-            ? Object.assign(new Pokemon(), selectedPokemon)
-            : createNewPokemon();
-
-        console.log(importData);
-
-        if (importData.species) pokemon.species = importData.species;
-        if (importData.dexNum) pokemon.dexNum = importData.dexNum;
-        if (importData.type) pokemon.type = importData.type;
-        if (importData.ability) pokemon.ability = importData.ability;
-        if (importData.levelUpMoves)
-          pokemon.levelUpMoves = importData.levelUpMoves;
-        if (importData.evolutionChain) {
-          let evoChain = importData.evolutionChain;
-          pokemon.evolutionStageOne = evoChain.stageOne;
-          pokemon.evolutionStageTwoMethod = evoChain.stageTwoMethod;
-          pokemon.evolutionStageTwo = evoChain.stageTwo;
-          pokemon.evolutionStageThreeMethod = evoChain.stageThreeMethod;
-          pokemon.evolutionStageThree = evoChain.stageThreeMethod;
-        }
-        if (importData.imageLink) pokemon.imageLink = importData.imageLink;
-
-        await waitForTransactions(repo);
-        pokemon = await repo.save(pokemon);
-        if (saveToExisting) {
-          const index = entityList.findIndex((t) => t.uuid === pokemon.uuid);
-          entityListHandler.setItem(index, pokemon);
-          setSelectedPokemon(undefined);
-          setSelectedPokemon(pokemon);
-        } else {
-          entityListHandler.append(pokemon);
-          setSelectedPokemon(pokemon);
-        }
-      },
-      [createNewPokemon, entityList, entityListHandler, repo, selectedPokemon]
-    );
-
   if (!repo) {
     return <>Loading...?</>;
   }
@@ -517,7 +453,7 @@ const PokemonPage: NextPage = () => {
         <Group>
           <Select
             sx={{
-              width: "12em",
+              width: "11em",
             }}
             data={entityList.map((t) => ({
               label: `${t.name || "Unnamed"} (${t.species || "New Pokemon"})`,
@@ -562,6 +498,7 @@ const PokemonPage: NextPage = () => {
           <></>
         ) : (
           <EntityEditor
+            entityId={selectedPokemon.uuid}
             targetEntity={selectedPokemon}
             entityRepo={repo}
             confirmDeletePlaceholder={`${
@@ -595,10 +532,9 @@ const PokemonPage: NextPage = () => {
               );
             }}
             extraHeaderElement={
-              <ButtonOpenFizzyDexImportModal
-                importFieldExistsMap={importFieldExistsMap}
-                onImportSubmit={saveFizzyDexImportData}
-              />
+              <Button color="blue" leftIcon={<PokeDexIcon />}>
+                {`Import from FizzyDex`}
+              </Button>
             }
           >
             {(inputPropMap) => (
@@ -915,5 +851,4 @@ const PokemonPage: NextPage = () => {
   );
 };
 
-// noinspection JSUnusedGlobalSymbols
 export default PokemonPage;

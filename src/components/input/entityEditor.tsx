@@ -45,6 +45,7 @@ type InputPropMap<T extends Required<ObjectLiteral>> = {
 };
 
 export type EditorWrapperProps<T extends ObjectLiteral> = {
+  entityId: any;
   targetEntity: T;
   entityRepo: Repository<T>;
   resolveValueHelper?: (entity: T, key: keyof T) => string | number | void;
@@ -60,6 +61,7 @@ export type EditorWrapperProps<T extends ObjectLiteral> = {
 };
 
 export function EntityEditor<T extends ObjectLiteral>({
+  entityId,
   targetEntity,
   entityRepo,
   resolveValueHelper,
@@ -87,7 +89,8 @@ export function EntityEditor<T extends ObjectLiteral>({
 
   const inputPropMap = useMemo(
     () =>
-      Object.assign(
+      Object.assign.call(
+        Object,
         {},
         ...targetKeys.map((k) => {
           let ref = refMap.current[k];
@@ -128,15 +131,18 @@ export function EntityEditor<T extends ObjectLiteral>({
     [targetKeys, saveChange, targetEntity]
   );
 
+  const [lastEntityId, setLastEntityId] = useState<any>(null);
+
   useEffect(() => {
-    if (!targetEntity) return;
+    if (!targetEntity || lastEntityId === entityId) return;
     for (const [key, { ref }] of Object.entries(inputPropMap)) {
       if (ref.current) {
         ref.current.value =
           resolveValueHelper?.(targetEntity, key) ?? targetEntity[key];
       }
     }
-  }, [inputPropMap, targetEntity, resolveValueHelper]);
+    setLastEntityId(entityId);
+  }, [inputPropMap, targetEntity, entityId, resolveValueHelper, lastEntityId]);
 
   const addNew = useCallback(async () => {
     let newEntity = createNewEntity?.() ?? entityRepo.create();

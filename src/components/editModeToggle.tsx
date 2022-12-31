@@ -30,7 +30,7 @@ export function EditModeToggle({ onToggle, ...props }: EditModeToggleProps) {
     <Switch
       styles={{
         root: {
-          width: "12em",
+          width: "11em",
         },
       }}
       sx={{
