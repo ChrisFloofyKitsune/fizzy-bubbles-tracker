@@ -1,15 +1,17 @@
 import { ContextModalProps, openContextModal } from "@mantine/modals";
-import { LevelUpMove } from "~/orm/entities";
+import { LevelUpMove, Pokemon as PokemonEntity } from "~/orm/entities";
 import {
   ForwardedRef,
   forwardRef,
   ReactNode,
   useCallback,
+  useEffect,
   useState,
 } from "react";
 import { FizzyDex, Form, Pokemon } from "fizzydex.js";
 import {
   dexMoveLevelToString,
+  FindFizzyDexPokemon,
   formatFormName,
   useFizzyDex,
 } from "~/services/FizzyDexService";
@@ -248,6 +250,7 @@ export type PokemonImportFromFizzyDexModalProps = {
     importData: FizzyDexImportData,
     saveToExisting: boolean
   ) => Promise<any>;
+  existingData?: Pick<PokemonEntity, "dexNum" | "species">;
 };
 
 export function PokemonImportFromFizzyDexModal({
@@ -263,6 +266,15 @@ export function PokemonImportFromFizzyDexModal({
 
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
   const [selectedForm, setSelectedForm] = useState<Form | null>(null);
+
+  useEffect(() => {
+    if (!props.existingData) return;
+
+    const result = FindFizzyDexPokemon(props.existingData);
+    if (!result) return;
+    setSelectedPokemon(result.pokemon);
+    setSelectedForm(result.form);
+  }, [props.existingData]);
 
   const [loading, setLoading] = useState(false);
 

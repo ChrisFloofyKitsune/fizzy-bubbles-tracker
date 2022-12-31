@@ -598,6 +598,7 @@ const PokemonPage: NextPage = () => {
               <ButtonOpenFizzyDexImportModal
                 importFieldExistsMap={importFieldExistsMap}
                 onImportSubmit={saveFizzyDexImportData}
+                existingData={selectedPokemon}
               />
             }
           >
