@@ -9,22 +9,20 @@ const nextConfig = {
   reactStrictMode: false,
   swcMinify: false,
 
-  experimental:
-    //   !isProd
-    // ? {}
-    // :
-    {
-      swcMinifyDebugOptions: {
-        mangle: {
-          keep_classnames: true,
-          keep_fnames: true,
-        },
-        compress: {
-          defaults: false,
-          side_effects: false,
+  experimental: !isProd
+    ? {}
+    : {
+        swcMinifyDebugOptions: {
+          mangle: {
+            keep_classnames: true,
+            keep_fnames: true,
+          },
+          compress: {
+            defaults: false,
+            side_effects: false,
+          },
         },
       },
-    },
 
   /**
    * @param {WebpackConfig} config
