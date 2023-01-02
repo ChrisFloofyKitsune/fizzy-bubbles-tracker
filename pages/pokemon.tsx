@@ -488,7 +488,7 @@ const PokemonPage: NextPage = () => {
           pokemon.evolutionStageTwoMethod = evoChain.stageTwoMethod;
           pokemon.evolutionStageTwo = evoChain.stageTwo;
           pokemon.evolutionStageThreeMethod = evoChain.stageThreeMethod;
-          pokemon.evolutionStageThree = evoChain.stageThreeMethod;
+          pokemon.evolutionStageThree = evoChain.stageThree;
         }
         if (importData.imageLink) pokemon.imageLink = importData.imageLink;
 
