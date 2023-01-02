@@ -228,7 +228,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                       </Box>
                     </Header>
                   }
-                  padding="0"
+                  padding={0}
                 >
                   <Box
                     sx={{

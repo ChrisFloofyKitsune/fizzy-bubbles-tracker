@@ -12,7 +12,7 @@ export function useBBCodeTemplate<T extends ObjectLiteral>(
   templateIdentifier: string,
   templateConfigs?: BBCodeReplacementConfig[]
 ): ApplyBBCodeTemplateFunc<T> {
-  const repo = useRepository(templateConfigs ? null : BBCodeReplacementConfig);
+  const repo = useRepository(BBCodeReplacementConfig);
   const [baseTemplate, setBaseTemplate] =
     useState<BBCodeReplacementConfig | null>();
   const [templateData, setTemplateData] =
