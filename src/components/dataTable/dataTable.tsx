@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AddIcon, DeleteIcon } from "~/appIcons";
 import { openConfirmModal } from "@mantine/modals";
-import { CSSLengthPercentage } from "../../../typefixes.global";
+import { CSSLengthPercentage } from "mantine-number-size-fix";
 import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 export type PropConfigEntry<T, P extends keyof T> = {

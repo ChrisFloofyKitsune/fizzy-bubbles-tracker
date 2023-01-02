@@ -72,7 +72,7 @@ function BondConfigEditorRow({
 
   return (
     <Stack spacing={0}>
-      <Group spacing="0.5em">
+      <Group spacing="sm">
         {propList.map(([prop, label], i) => (
           <>
             <TextInput

@@ -196,7 +196,7 @@ export function EntityEditor<T extends ObjectLiteral>({
             <ActionIcon
               variant="filled"
               color="orange"
-              size="54px"
+              size={54}
               radius="xl"
               onClick={() => setModalOpened(false)}
             >

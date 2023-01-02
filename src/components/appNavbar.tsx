@@ -98,7 +98,7 @@ export const AppNavbar = () => {
                 className={cx(classes.Link, navOptClasses[opt.pageName])}
               >
                 <Group>
-                  <ThemeIcon size="3em">
+                  <ThemeIcon>
                     <opt.icon size="3em" />
                   </ThemeIcon>
                   <Text>{opt.pageName}</Text>

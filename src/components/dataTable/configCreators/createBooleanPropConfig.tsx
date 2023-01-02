@@ -27,7 +27,7 @@ export function createBooleanPropConfig<T extends {}, P extends keyof T>(
           key={"bool-prop-action-icon"}
           variant="filled"
           color={value ? "green" : "red"}
-          size="26px"
+          size={26}
           onClick={async () => await onChange(!value)}
         >
           {value ? <TbCheck key={"check"} /> : <TbX key={"x"} />}
