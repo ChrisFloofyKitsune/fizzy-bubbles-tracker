@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -9,21 +13,36 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "sourceMap": true,
     "paths": {
-      "/public/*": ["./public/*"],
-      "~/*": ["./src/*", "./pages/*"],
-      "typeorm": ["node_modules/typeorm/browser"]
+      "/public/*": [
+        "./public/*"
+      ],
+      "~/*": [
+        "./src/*",
+        "./pages/*"
+      ],
+      "typeorm": [
+        "node_modules/typeorm/browser"
+      ]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "strictPropertyInitialization": false
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "typefixes.global.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

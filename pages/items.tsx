@@ -280,7 +280,7 @@ const ItemsPage: NextPage = () => {
       viewComponent: (value) => {
         const def = value ? itemDefsIndex?.[value] ?? null : null;
         return (
-          <Group noWrap position="left" spacing="0.25em">
+          <Group noWrap position="left" spacing={0}>
             {def && def.imageLink && (
               <AvatarIconImage imageLink={def.imageLink} />
             )}

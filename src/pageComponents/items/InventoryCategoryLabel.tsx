@@ -12,7 +12,7 @@ export function InventoryCategoryLabel({
   return (
     <Group noWrap spacing="xs">
       {categoryIcons[category]?.({ size: 30 }) ?? null}
-      <Text size="1.125em" weight={500}>
+      <Text size="md" weight={500}>
         {category}
       </Text>
     </Group>

@@ -6,14 +6,14 @@ import {
 } from "@mantine/core";
 
 import BBCodeParser from "~/BBCodeUpn";
-import { useMemo } from "react";
+import { ReactNode, useMemo } from "react";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { Prism } from "@mantine/prism";
 import { CopyIcon } from "~/components/CopyIcon";
 import { TbCode, TbCodeOff } from "react-icons/tb";
 
 export type BBCodeAreaProps = {
-  label?: string;
+  label?: ReactNode;
   bbCode: string;
   stickyLabel?: boolean;
 };

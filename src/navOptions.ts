@@ -1,5 +1,5 @@
 import { createStyles, CSSObject, MantineTheme } from "@mantine/core";
-import { IconType } from "react-icons/lib";
+import { IconType } from "react-icons";
 import { GiPokecog } from "react-icons/gi";
 import { BiIdCard } from "react-icons/bi";
 import {

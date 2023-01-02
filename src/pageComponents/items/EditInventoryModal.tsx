@@ -212,7 +212,7 @@ export function EditInventoryModal({
 
   return (
     <Stack>
-      <Stack spacing="0.5em">
+      <Stack spacing="sm">
         <SimpleGrid cols={2}>
           <Select
             required

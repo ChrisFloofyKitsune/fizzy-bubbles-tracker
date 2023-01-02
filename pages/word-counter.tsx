@@ -1,4 +1,4 @@
-import { SimpleGrid, Stack, Textarea, Title } from "@mantine/core";
+import { Group, SimpleGrid, Stack, Text, Textarea, Title } from "@mantine/core";
 import { NextPage } from "next";
 import { BBCodeArea } from "~/components";
 import { useDataSource } from "~/services";
@@ -8,6 +8,7 @@ import { MiscValue } from "~/orm/entities/miscValue";
 import { debounce } from "~/util";
 import { Repository } from "typeorm";
 import { countWordsInBBCode } from "~/wordCountUtil";
+import { PokeDollarIcon } from "~/appIcons";
 
 const WordCounterPage: NextPage = () => {
   const ds = useDataSource();
@@ -34,13 +35,15 @@ const WordCounterPage: NextPage = () => {
   const onTextChange = useCallback(
     debounce((newText: string) => {
       setText(newText);
-      setWordCount(countWordsInBBCode(newText.trim()));
-
       if (!repo) return;
       repo.save({ key: "word counter", value: newText }).then();
     }, 250),
     [repo]
   );
+
+  useEffect(() => {
+    setWordCount(text ? countWordsInBBCode(text.trim()) : 0);
+  }, [text]);
 
   return (
     <Stack>
@@ -70,7 +73,25 @@ const WordCounterPage: NextPage = () => {
           }}
         />
         <BBCodeArea
-          label={`${wordCount} Words`}
+          label={
+            <Group sx={{ fontSize: "150%" }}>
+              <Text>{`${wordCount} Words`}</Text>
+              <Text>
+                <PokeDollarIcon
+                  size="1em"
+                  style={{ verticalAlign: "text-bottom" }}
+                />
+                {`${
+                  wordCount < 150
+                    ? 0
+                    : Math.min(
+                        500,
+                        150 + Math.floor((wordCount - 150) / 25) * 25
+                      )
+                }`}
+              </Text>
+            </Group>
+          }
           bbCode={text ?? ""}
           stickyLabel={true}
         />

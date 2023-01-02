@@ -91,7 +91,7 @@ export function InventoryCurrent({
         })}
       >
         <Stack
-          spacing="0"
+          spacing={0}
           sx={(theme) => ({
             ">.mantine-Group-root": {
               padding: "0.1em 0.5em",

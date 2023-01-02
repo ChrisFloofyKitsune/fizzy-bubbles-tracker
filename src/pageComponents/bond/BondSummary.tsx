@@ -78,7 +78,7 @@ function BondSummaryRow({
   bondLink,
 }: BondSummaryRowProps) {
   return (
-    <Group key={`${label}-group`} spacing="0.25em" noWrap>
+    <Group key={`${label}-group`} spacing="sm" noWrap>
       {iconImageLink && (
         <AvatarIconImage
           key={`${label}-icon-image`}

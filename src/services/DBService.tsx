@@ -223,7 +223,9 @@ export function useDataSource() {
   return useContext(DataSourceContext);
 }
 
-export function useRepository<T>(entityTarget: EntityTarget<T> | null) {
+export function useRepository<T extends ObjectLiteral>(
+  entityTarget: EntityTarget<T> | null
+) {
   const ds = useDataSource();
   const repo = useMemo(() => {
     if (!ds || !entityTarget) return null;

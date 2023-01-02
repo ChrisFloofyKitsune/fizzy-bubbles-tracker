@@ -11,7 +11,7 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AddIcon, DeleteIcon } from "~/appIcons";
 import { openConfirmModal } from "@mantine/modals";
-import { CSSLengthPercentage } from "../../../typefixes.global";
+import { CSSLengthPercentage } from "mantine-number-size-fix";
 import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 export type PropConfigEntry<T, P extends keyof T> = {
@@ -235,7 +235,7 @@ export function DataTable<T extends {}>({
   }, [pageRowObjs.length, rowsPerPage, tableStyles.classes.fillerRow]);
 
   return (
-    <Table striped highlightOnHover={isEditMode}>
+    <Table striped highlightOnHover={isEditMode} sx={{ tableLayout: "fixed" }}>
       <thead
         style={{
           position: "sticky",

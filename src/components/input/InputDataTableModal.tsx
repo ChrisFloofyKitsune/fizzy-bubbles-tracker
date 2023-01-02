@@ -19,7 +19,7 @@ import { useListState } from "@mantine/hooks";
 import { LogDataTable } from "~/components/dataTable/logDataTable";
 import { CancelIcon, SaveIcon } from "~/appIcons";
 
-export interface InputDataTableModalProps<T>
+export interface InputDataTableModalProps<T extends {}>
   extends Omit<InputBaseProps, "component"> {
   id?: string;
   valueToDisplayElement: (value: T[]) => ReactNode;
@@ -32,7 +32,7 @@ export interface InputDataTableModalProps<T>
 type ForwardedButtonRef<T> = ForwardedRef<
   Omit<HTMLButtonElement, "value"> & { value: T[] }
 >;
-function Inner_InputDataTableModel<T>(
+function Inner_InputDataTableModel<T extends {}>(
   {
     valueToDisplayElement,
     sortFunction,
@@ -96,11 +96,13 @@ function Inner_InputDataTableModel<T>(
   );
 }
 
-export const InputDataTableModal = forwardRef(Inner_InputDataTableModel) as <T>(
+export const InputDataTableModal = forwardRef(Inner_InputDataTableModel) as <
+  T extends {}
+>(
   props: InputDataTableModalProps<T> & { ref?: ForwardedButtonRef<T> }
 ) => ReturnType<typeof Inner_InputDataTableModel<T>>;
 
-interface DataTableModalContentProps<T> {
+interface DataTableModalContentProps<T extends {}> {
   state: {
     startingRowObjs?: T[];
     startingPage?: number;
@@ -115,7 +117,7 @@ interface DataTableModalContentProps<T> {
   propConfig: PropConfig<T>;
   propsToMantineClasses?: DataTableProps<T>["propsToMantineClasses"];
 }
-function DataTableModalContent<T>({
+function DataTableModalContent<T extends {}>({
   state = {},
   rowObjToId,
   allowRowReordering = false,
