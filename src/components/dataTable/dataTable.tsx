@@ -235,7 +235,7 @@ export function DataTable<T extends {}>({
   }, [pageRowObjs.length, rowsPerPage, tableStyles.classes.fillerRow]);
 
   return (
-    <Table striped highlightOnHover={isEditMode}>
+    <Table striped highlightOnHover={isEditMode} sx={{ tableLayout: "fixed" }}>
       <thead
         style={{
           position: "sticky",
