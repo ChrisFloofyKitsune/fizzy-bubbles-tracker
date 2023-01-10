@@ -305,18 +305,31 @@ export function useDebouncedRepoSave<T extends ObjectLiteral>(
     [entityRepo, options?.beforeSavedToRepo, options?.afterSavedToRepo]
   );
 
-  useDebugValue("useDebounced_List_Save");
+  useDebugValue("useDebouncedRepoSave");
 
   return useCallback(
-    function submitChanges(entity: T, updatePayload: Partial<T>) {
+    function submitChanges(
+      entityOrArray: T | T[],
+      updatePayload: Partial<T> | Partial<T>[] = []
+    ) {
       if (!entityRepo) return;
-      const id = entityRepo.getId(entity);
-      const current =
-        pendingChanges.current.get(id) ?? Object.create(blankEntity);
-      pendingChanges.current.set(
-        id,
-        Object.assign(current, entity, updatePayload)
-      );
+      if (!Array.isArray(entityOrArray)) {
+        entityOrArray = [entityOrArray];
+      }
+      if (!Array.isArray(updatePayload)) {
+        updatePayload = [updatePayload];
+      }
+
+      for (let i = 0; i < entityOrArray.length; i++) {
+        const currentEntity = entityOrArray[i];
+        const id = entityRepo.getId(currentEntity);
+        const current =
+          pendingChanges.current.get(id) ?? Object.create(blankEntity);
+        pendingChanges.current.set(
+          id,
+          Object.assign(current, currentEntity, updatePayload[i] ?? {})
+        );
+      }
       debouncedSaveChanges(Array.from(pendingChanges.current.values()));
     },
     [blankEntity, debouncedSaveChanges, entityRepo]

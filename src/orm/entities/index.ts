@@ -9,3 +9,4 @@ export * from "./trainer";
 export * from "./walletLog";
 export * from "./setting";
 export * from "./bondStylingConfig";
+export * from "./urlNote";

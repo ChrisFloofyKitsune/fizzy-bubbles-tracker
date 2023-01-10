@@ -8,7 +8,7 @@ import { ShopTrackedChangeLog } from "./changeLogBase";
   },
 })
 export class WalletLog extends ShopTrackedChangeLog {
-  @Column("text")
+  @Column("text", { default: CurrencyType.POKE_DOLLAR })
   currencyType: CurrencyType;
 
   @Column("integer", {

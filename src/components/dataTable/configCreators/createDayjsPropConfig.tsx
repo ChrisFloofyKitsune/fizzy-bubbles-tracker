@@ -1,9 +1,7 @@
 import dayjs, { Dayjs } from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text } from "@mantine/core";
 import { DatePicker } from "@mantine/dates";
-dayjs.extend(utc);
 
 export function createDayjsPropConfig<T extends {}, P extends keyof T>(
   prop: P,

@@ -1,117 +1,87 @@
 import { NextPage } from "next";
-import {
-  mergeAttributes,
-  NodeViewContent,
-  NodeViewWrapper,
-  ReactNodeViewRenderer,
-  useEditor,
-} from "@tiptap/react";
-import { RichTextEditor } from "@mantine/tiptap";
-import { Text } from "@tiptap/extension-text";
-import { Node, NodeViewProps } from "@tiptap/core";
-import { ActionIcon, createStyles, Group } from "@mantine/core";
-import { VerticalDropCursor } from "~/tiptapExtensions/verticalDropCursor";
-import { IconTrashX } from "@tabler/icons";
-
-const useTemplateStyles = createStyles(() => ({
-  templateRowContent: {
-    "& > div": {
-      display: "flex",
-      flexDirection: "row",
-      padding: "0.5em, 0",
-    },
-  },
-  templateCell: {
-    margin: "0 0.5em",
-  },
-}));
-
-const TemplateDocument = Node.create({
-  name: "templateDoc",
-  topNode: true,
-  content: "templateRow+",
-});
-
-const TemplateRow = Node.create({
-  name: "templateRow",
-  content: "templateCell+",
-  verticalDropCursor: true,
-  parseHTML() {
-    return [{ tag: "template-row" }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ["template-row", mergeAttributes(HTMLAttributes), 0];
-  },
-  addNodeView() {
-    return ReactNodeViewRenderer(TemplateRowComponent);
-  },
-});
-
-function TemplateRowComponent() {
-  const { classes } = useTemplateStyles();
-  return (
-    <NodeViewWrapper>
-      <div contentEditable="false">ROW</div>
-      <NodeViewContent as={"span"} className={classes.templateRowContent} />
-    </NodeViewWrapper>
-  );
-}
-
-const TemplateCell = Node.create({
-  name: "templateCell",
-  content: "inline*",
-  defining: true,
-  // isolating: true,
-  draggable: true,
-  parseHTML() {
-    return [{ tag: "template-cell" }];
-  },
-  renderHTML({ HTMLAttributes }) {
-    return ["template-cell", mergeAttributes(HTMLAttributes), 0];
-  },
-  addNodeView() {
-    return ReactNodeViewRenderer(TemplateCellComponent);
-  },
-});
-
-function TemplateCellComponent(props: NodeViewProps) {
-  const { classes } = useTemplateStyles();
-  return (
-    <NodeViewWrapper className={classes.templateCell}>
-      <Group>
-        <div data-drag-handle="" draggable="true" contentEditable="false">
-          CELL
-        </div>
-        <ActionIcon
-          onClick={() => props.deleteNode()}
-          color="red"
-          variant="filled"
-          size="sm"
-        >
-          <IconTrashX />
-        </ActionIcon>
-      </Group>
-      <NodeViewContent />
-    </NodeViewWrapper>
-  );
-}
+import { useEditor } from "@tiptap/react";
+import { Link, RichTextEditor } from "@mantine/tiptap";
+import { StarterKit } from "@tiptap/starter-kit";
+import Highlight from "@tiptap/extension-highlight";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import Superscript from "@tiptap/extension-superscript";
+import SubScript from "@tiptap/extension-subscript";
+import { TemplateNode } from "~/rich-text-editor/TemplateNode";
+import { HardBreak } from "@tiptap/extension-hard-break";
 
 const TestPage: NextPage = () => {
   const editor = useEditor({
     extensions: [
-      TemplateDocument,
-      TemplateRow,
-      TemplateCell,
-      Text,
-      VerticalDropCursor,
+      StarterKit.configure({ hardBreak: false }),
+      HardBreak.extend({
+        addKeyboardShortcuts() {
+          return {
+            Enter: () => {
+              if (
+                this.editor.isActive("orderedList") ||
+                this.editor.isActive("bulletList")
+              ) {
+                return this.editor.chain().createParagraphNear().run();
+              }
+              return this.editor.commands.setHardBreak();
+            },
+          };
+        },
+      }),
+      Underline,
+      Link,
+      Superscript,
+      SubScript,
+      Highlight,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+      TemplateNode,
     ],
+    content:
+      "<p>Example Label text stuff: <template-node>content</template-node></p>",
   });
-
-  console.log(editor?.commands);
 
   return (
     <>
       <RichTextEditor editor={editor}>
+        <RichTextEditor.Toolbar sticky stickyOffset={30}>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Bold />
+            <RichTextEditor.Italic />
+            <RichTextEditor.Underline />
+            <RichTextEditor.Strikethrough />
+            <RichTextEditor.ClearFormatting />
+            <RichTextEditor.Highlight />
+            <RichTextEditor.Code />
+          </RichTextEditor.ControlsGroup>
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.H1 />
+            <RichTextEditor.H2 />
+            <RichTextEditor.H3 />
+            <RichTextEditor.H4 />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Blockquote />
+            <RichTextEditor.Hr />
+            <RichTextEditor.BulletList />
+            <RichTextEditor.OrderedList />
+            <RichTextEditor.Subscript />
+            <RichTextEditor.Superscript />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.Link />
+            <RichTextEditor.Unlink />
+          </RichTextEditor.ControlsGroup>
+
+          <RichTextEditor.ControlsGroup>
+            <RichTextEditor.AlignLeft />
+            <RichTextEditor.AlignCenter />
+            <RichTextEditor.AlignJustify />
+            <RichTextEditor.AlignRight />
+          </RichTextEditor.ControlsGroup>
+        </RichTextEditor.Toolbar>
         <RichTextEditor.Content />
       </RichTextEditor>
     </>

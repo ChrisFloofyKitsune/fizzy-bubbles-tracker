@@ -15,7 +15,7 @@ import {
   useRepository,
   waitForTransactions,
 } from "~/services";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { WalletLog } from "~/orm/entities";
 import { useAsyncEffect } from "use-async-effect";
 import { BBCodeArea, EditModeToggle } from "~/components";
@@ -29,6 +29,7 @@ import {
   LogDataTable,
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
+import { css } from "@emotion/react";
 
 type Balances = { [p in CurrencyType]: number };
 
@@ -113,21 +114,23 @@ const WalletPage: NextPage = () => {
     <>
       <Stack>
         <Group
+          pos="relative"
+          position="center"
           sx={{
             alignContent: "center",
           }}
         >
-          <Title
-            order={2}
-            sx={{
-              width: "50%",
-              textAlign: "right",
-              marginRight: "auto",
-            }}
-          >
+          <Title order={2} align="center">
             Wallet
           </Title>
-          <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          <div
+            css={css`
+              position: absolute;
+              right: 0;
+            `}
+          >
+            <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          </div>
         </Group>
         <Title order={3}>Summary</Title>
         <Box

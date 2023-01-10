@@ -1,3 +1,5 @@
+import { SelectItem } from "@mantine/core";
+
 export enum PokemonGenderOptions {
   MALE = "Male",
   FEMALE = "Female",
@@ -34,3 +36,18 @@ export const CurrencyTypeDisplayName = {
 } as {
   [value in CurrencyType]: [singular: string, plural: string];
 };
+
+export const CurrencyTypeSelectItems: SelectItem[] = [
+  {
+    label: CurrencyTypeDisplayName[CurrencyType.POKE_DOLLAR][1],
+    value: CurrencyType.POKE_DOLLAR,
+  },
+  {
+    label: CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1],
+    value: CurrencyType.RARE_CANDY,
+  },
+  {
+    label: CurrencyTypeDisplayName[CurrencyType.WATTS][1],
+    value: CurrencyType.WATTS,
+  },
+];

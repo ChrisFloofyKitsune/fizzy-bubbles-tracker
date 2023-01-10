@@ -37,8 +37,10 @@ export declare type CSSLength = CSSRelativeLength | CSSAbsoluteLength;
 export declare type CSSPercentage = `${number}%`;
 export declare type CSSLengthPercentage = CSSLength | CSSPercentage;
 
-export declare type MantineNumberSize =
-  | MantineSize
-  | number
-  | CSSLengthPercentage
-  | `${number}`;
+export declare module "@mantine/styles" {
+  export declare type MantineNumberSize =
+    | MantineSize
+    | number
+    | CSSLengthPercentage
+    | `${number}`;
+}

@@ -33,6 +33,7 @@ type Change =
   | ChangeEvent<{ value: any }>
   | ChangeEvent<{ checked: boolean }>
   | object[]
+  | object
   | string
   | boolean
   | number
@@ -49,14 +50,16 @@ export type EditorWrapperProps<T extends ObjectLiteral> = {
   entityRepo: Repository<T>;
   resolveValueHelper?: (entity: T, key: keyof T) => string | number | void;
 
-  createNewEntity?: () => T;
+  createNewEntity?: () => T | null;
   onAdd?: EntityCallback<T>;
   onUpdate?: EntityCallback<T[]>;
+  allowDelete?: boolean;
   onConfirmedDelete?: EntityCallback<T>;
   confirmDeletePlaceholder?: string;
 
   extraHeaderElement?: JSX.Element;
   children: (inputPropMap: InputPropMap<T>) => ReactNode;
+  entityLabel?: string;
 };
 
 export function EntityEditor<T extends ObjectLiteral>({
@@ -67,10 +70,12 @@ export function EntityEditor<T extends ObjectLiteral>({
   createNewEntity,
   onAdd,
   onUpdate,
+  allowDelete = true,
   onConfirmedDelete,
   confirmDeletePlaceholder = "DELETE",
 
   extraHeaderElement = <></>,
+  entityLabel,
   children,
 }: EditorWrapperProps<T>) {
   const targetKeys = useMemo(() => Object.keys(targetEntity), [targetEntity]);
@@ -100,11 +105,7 @@ export function EntityEditor<T extends ObjectLiteral>({
               ref,
               onChange: (eventOrValue: Change) => {
                 // unpack ChangeEvent<value | checked> objects.
-                if (
-                  !Array.isArray(eventOrValue) &&
-                  typeof eventOrValue === "object" &&
-                  eventOrValue?.currentTarget
-                ) {
+                if (isChangeEvent(eventOrValue)) {
                   if (
                     typeof (eventOrValue.currentTarget as { value: any })
                       .value !== "undefined"
@@ -139,7 +140,12 @@ export function EntityEditor<T extends ObjectLiteral>({
   }, [inputPropMap, targetEntity, resolveValueHelper]);
 
   const addNew = useCallback(async () => {
-    let newEntity = createNewEntity?.() ?? entityRepo.create();
+    let newEntity =
+      typeof createNewEntity !== "undefined"
+        ? createNewEntity()
+        : entityRepo.create();
+    if (newEntity === null) return;
+
     newEntity = await entityRepo.save(newEntity);
     onAdd?.(newEntity);
   }, [entityRepo, createNewEntity, onAdd]);
@@ -239,15 +245,16 @@ export function EntityEditor<T extends ObjectLiteral>({
         </Stack>
       </Modal>
 
-      <Group>
+      <Group noWrap>
         <Button color="green" leftIcon={<AddIcon />} onClick={addNew}>
-          {`Create New ${entityRepo.metadata.name}`}
+          {`Create New ${entityLabel ?? entityRepo.metadata.name}`}
         </Button>
         {extraHeaderElement}
         <Button
           ml="auto"
           color="red"
           leftIcon={<DeleteIcon />}
+          disabled={!allowDelete}
           onClick={() => setModalOpened(true)}
         >
           {`Delete${targetEntity.name ? ` ${targetEntity.name}` : ""}`}
@@ -256,5 +263,16 @@ export function EntityEditor<T extends ObjectLiteral>({
       <Divider size="sm" />
       {children(inputPropMap)}
     </>
+  );
+}
+
+function isChangeEvent(
+  value: any
+): value is ChangeEvent<{ value: any } | { checked: boolean }> {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    Object.hasOwn(value, "currentTarget")
   );
 }

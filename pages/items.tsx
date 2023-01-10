@@ -16,29 +16,13 @@ import {
   useRepositories,
   waitForTransactions,
 } from "~/services";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ItemDefinition, ItemLog } from "~/orm/entities";
 import { Repository } from "typeorm";
 import { useListState } from "@mantine/hooks";
 import { useAsyncEffect } from "use-async-effect";
 import { EditModeToggle } from "~/components";
-import { filterUnique } from "~/util";
-import {
-  TbApple,
-  TbBallon,
-  TbCandy,
-  TbCircleDotted,
-  TbDiamond,
-  TbDisc,
-  TbKey,
-  TbMedicineSyrup,
-  TbPaw,
-  TbPokeball,
-  TbSoup,
-  TbSwords,
-  TbTriangleSquareCircle,
-} from "react-icons/tb";
-import { IconType } from "react-icons";
+
 import {
   DataTable,
   DataTableProps,
@@ -51,7 +35,6 @@ import {
   InventoryCurrent,
   InventoryCurrentProps,
 } from "~/pageComponents/items/InventoryCurrent";
-import { HiOutlineQuestionMarkCircle } from "react-icons/hi";
 import { InventoryEditItemDefModalContext } from "~/pageComponents/items/InventoryEditItemDefModal";
 import {
   LogDataTable,
@@ -69,27 +52,15 @@ import {
   createStringPropConfig,
   createTextAreaPropConfig,
 } from "~/components/dataTable/configCreators";
-
-const CategoryIconPatterns = {
-  "^depleted$": TbCircleDotted,
-  "^uncategorized$": HiOutlineQuestionMarkCircle,
-  "key|unique": TbKey,
-  ball: TbPokeball,
-  medic: TbMedicineSyrup,
-  held: TbBallon,
-  "battle|combat": TbSwords,
-  "stuffed animal|doll|plush": TbPaw,
-  "ingredient|cook": TbSoup,
-  berr: TbApple,
-  "treasure|valuable": TbDiamond,
-  "tm|tr|hm|move": TbDisc,
-  item: TbCandy,
-  ".": TbTriangleSquareCircle,
-};
+import {
+  CategoryIconPatterns,
+  useItemCategoryMap,
+} from "~/categoryIconPatterns";
+import { css } from "@emotion/react";
 
 const useDataTableStyles = createStyles({
   quantityChange: {
-    width: "5em",
+    width: "7em",
   },
   itemDefinitionId: {
     minWidth: "10em",
@@ -136,26 +107,7 @@ const ItemsPage: NextPage = () => {
     itemDefsHandler.setState(await defRepo.find());
   }, [defRepo]);
 
-  const categories: string[] | null = useMemo(() => {
-    if (itemDefs.length === 0) return ["Depleted", "Uncategorized"];
-    return itemDefs
-      .filter((d) => !!d.category)
-      .map((d) => d.category)
-      .filter(filterUnique)
-      .concat("Depleted", "Uncategorized") as string[];
-  }, [itemDefs]);
-
-  const categoryIcons: Record<string, IconType> = useMemo(() => {
-    if (!categories) return {};
-
-    const results = categories.map((c) => ({
-      [c]: Object.entries(CategoryIconPatterns).find(
-        (entry) => !!c.match(new RegExp(entry[0], "i"))
-      )?.[1],
-    }));
-
-    return Object.assign({}, ...results);
-  }, [categories]);
+  const [categories, categoryIcons] = useItemCategoryMap(itemDefs);
 
   const itemDefsIndex: Record<ItemDefinition["id"], ItemDefinition> | null =
     useMemo(() => {
@@ -498,21 +450,23 @@ const ItemsPage: NextPage = () => {
     <>
       <Stack>
         <Group
+          pos="relative"
+          position="center"
           sx={{
             alignContent: "center",
           }}
         >
-          <Title
-            order={2}
-            sx={{
-              width: "50%",
-              textAlign: "right",
-              marginRight: "auto",
-            }}
-          >
+          <Title order={2} align="center">
             Items
           </Title>
-          <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          <div
+            css={css`
+              position: absolute;
+              right: 0;
+            `}
+          >
+            <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          </div>
         </Group>
         <Group position="apart">
           <Title order={3}>Inventory Summary</Title>
