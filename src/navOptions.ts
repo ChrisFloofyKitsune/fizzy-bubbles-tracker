@@ -10,6 +10,7 @@ import {
   TbDatabase,
   TbWriting,
   TbHeartHandshake,
+  TbClipboardList,
 } from "react-icons/tb";
 
 export class NavOption {
@@ -47,6 +48,7 @@ export const NavOptionList = [
   new NavOption("Wallet", "/wallet", TbWallet),
   new NavOption("Bond", "/bond", TbHeartHandshake),
   new NavOption("Word Counter", "/word-counter", TbWriting),
+  new NavOption("Post Summaries", "/post-summaries", TbClipboardList),
   new NavOption("Settings", "/settings", GiPokecog, () => ({
     marginTop: "auto",
     "&:hover": {

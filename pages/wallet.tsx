@@ -1,9 +1,9 @@
 import {
-  Accordion,
   Box,
   createStyles,
   CSSObject,
   Group,
+  Paper,
   ScrollArea,
   Stack,
   Text,
@@ -15,10 +15,10 @@ import {
   useRepository,
   waitForTransactions,
 } from "~/services";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { WalletLog } from "~/orm/entities";
 import { useAsyncEffect } from "use-async-effect";
-import { BBCodeArea, EditModeToggle } from "~/components";
+import { AccordionSpoiler, BBCodeArea, EditModeToggle } from "~/components";
 import { useListState } from "@mantine/hooks";
 import { CurrencyType, CurrencyTypeDisplayName } from "~/orm/enums";
 import { PokeDollarIcon } from "~/appIcons";
@@ -29,6 +29,7 @@ import {
   LogDataTable,
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
+import { css } from "@emotion/react";
 
 type Balances = { [p in CurrencyType]: number };
 
@@ -113,21 +114,23 @@ const WalletPage: NextPage = () => {
     <>
       <Stack>
         <Group
+          pos="relative"
+          position="center"
           sx={{
             alignContent: "center",
           }}
         >
-          <Title
-            order={2}
-            sx={{
-              width: "50%",
-              textAlign: "right",
-              marginRight: "auto",
-            }}
-          >
+          <Title order={2} align="center">
             Wallet
           </Title>
-          <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          <div
+            css={css`
+              position: absolute;
+              right: 0;
+            `}
+          >
+            <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          </div>
         </Group>
         <Title order={3}>Summary</Title>
         <Box
@@ -198,86 +201,111 @@ const WalletPage: NextPage = () => {
         </Box>
 
         <Title order={3}>Detail</Title>
-        <Accordion
-          variant="separated"
-          multiple={true}
-          sx={(theme) => ({
-            ".mantine-Accordion-panel": {
-              margin: "0.5em",
-              borderRadius: "0.5em",
-              border: "1px solid " + theme.colors.gray[7],
-              backgroundColor: theme.fn.darken(theme.colors.gray[9], 0.2),
-            },
-            ".mantine-Accordion-content": {
-              borderRadius: "0.5em",
-              overflow: "clip",
-              padding: "2px",
-            },
-          })}
+        <AccordionSpoiler
+          label={
+            <Title order={4}>
+              {CurrencyTypeDisplayName[CurrencyType.POKE_DOLLAR][1]}
+            </Title>
+          }
         >
-          <Accordion.Item
-            key={CurrencyType.POKE_DOLLAR}
-            value={CurrencyType.POKE_DOLLAR}
+          <Paper
+            m={-10}
+            sx={{
+              overflow: "clip",
+              clipPath: "border-box",
+              borderRadius: "0.5em",
+              border: "solid 1px dimgray",
+            }}
           >
-            <Accordion.Control>
-              <Title order={4}>
-                {CurrencyTypeDisplayName[CurrencyType.POKE_DOLLAR][1]}
-              </Title>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <ScrollArea.Autosize maxHeight="40vh">
-                <LogDataTable
-                  key={`log-data-table-${CurrencyType.POKE_DOLLAR}`}
-                  {...staticDataTableProps}
-                  {...currencyTypeOptions[CurrencyType.POKE_DOLLAR]}
-                  isEditMode={editModeOn}
-                  propsToMantineClasses={walletLogPropStyles.classes}
-                />
-              </ScrollArea.Autosize>
-            </Accordion.Panel>
-          </Accordion.Item>
+            <ScrollArea.Autosize
+              maxHeight="40vh"
+              styles={{
+                scrollbar: {
+                  zIndex: 10,
+                },
+              }}
+            >
+              <LogDataTable
+                key={`log-data-table-${CurrencyType.POKE_DOLLAR}`}
+                {...staticDataTableProps}
+                {...currencyTypeOptions[CurrencyType.POKE_DOLLAR]}
+                isEditMode={editModeOn}
+                propsToMantineClasses={walletLogPropStyles.classes}
+              />
+            </ScrollArea.Autosize>
+          </Paper>
+        </AccordionSpoiler>
 
-          <Accordion.Item key={CurrencyType.WATTS} value={CurrencyType.WATTS}>
-            <Accordion.Control>
-              <Title order={4}>
-                {CurrencyTypeDisplayName[CurrencyType.WATTS][1]}
-              </Title>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <ScrollArea.Autosize maxHeight="40vh">
-                <LogDataTable
-                  key={`log-data-table-${CurrencyType.WATTS}`}
-                  {...staticDataTableProps}
-                  {...currencyTypeOptions[CurrencyType.WATTS]}
-                  isEditMode={editModeOn}
-                  propsToMantineClasses={walletLogPropStyles.classes}
-                />
-              </ScrollArea.Autosize>
-            </Accordion.Panel>
-          </Accordion.Item>
-
-          <Accordion.Item
-            key={CurrencyType.RARE_CANDY}
-            value={CurrencyType.RARE_CANDY}
+        <AccordionSpoiler
+          label={
+            <Title order={4}>
+              {CurrencyTypeDisplayName[CurrencyType.WATTS][1]}
+            </Title>
+          }
+        >
+          <Paper
+            m={-10}
+            sx={{
+              overflow: "clip",
+              clipPath: "border-box",
+              borderRadius: "0.5em",
+              border: "solid 1px dimgray",
+            }}
           >
-            <Accordion.Control>
-              <Title order={4}>
-                {CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1]}
-              </Title>
-            </Accordion.Control>
-            <Accordion.Panel>
-              <ScrollArea.Autosize maxHeight="40vh">
-                <LogDataTable
-                  key={`log-data-table-${CurrencyType.RARE_CANDY}`}
-                  {...staticDataTableProps}
-                  {...currencyTypeOptions[CurrencyType.RARE_CANDY]}
-                  isEditMode={editModeOn}
-                  propsToMantineClasses={walletLogPropStyles.classes}
-                />
-              </ScrollArea.Autosize>
-            </Accordion.Panel>
-          </Accordion.Item>
-        </Accordion>
+            <ScrollArea.Autosize
+              maxHeight="40vh"
+              styles={{
+                scrollbar: {
+                  zIndex: 10,
+                },
+              }}
+            >
+              <LogDataTable
+                key={`log-data-table-${CurrencyType.WATTS}`}
+                {...staticDataTableProps}
+                {...currencyTypeOptions[CurrencyType.WATTS]}
+                isEditMode={editModeOn}
+                propsToMantineClasses={walletLogPropStyles.classes}
+              />
+            </ScrollArea.Autosize>
+          </Paper>
+        </AccordionSpoiler>
+
+        <AccordionSpoiler
+          label={
+            <Title order={4}>
+              {CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1]}
+            </Title>
+          }
+        >
+          <Paper
+            m={-10}
+            sx={{
+              overflow: "clip",
+              clipPath: "border-box",
+              borderRadius: "0.5em",
+              border: "solid 1px dimgray",
+            }}
+          >
+            <ScrollArea.Autosize
+              maxHeight="40vh"
+              styles={{
+                scrollbar: {
+                  zIndex: 10,
+                },
+              }}
+            >
+              <LogDataTable
+                key={`log-data-table-${CurrencyType.RARE_CANDY}`}
+                {...staticDataTableProps}
+                {...currencyTypeOptions[CurrencyType.RARE_CANDY]}
+                isEditMode={editModeOn}
+                propsToMantineClasses={walletLogPropStyles.classes}
+              />
+            </ScrollArea.Autosize>
+          </Paper>
+        </AccordionSpoiler>
+
         <Title order={3}>Output</Title>
         <Stack>
           {Object.values(CurrencyType).map((ct) => (

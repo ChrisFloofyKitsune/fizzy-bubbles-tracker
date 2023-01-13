@@ -31,7 +31,8 @@ import {
   Trainer,
   TutorMoveLog,
 } from "~/orm/entities";
-import { BBCodeArea, EditModeToggle, EntityEditor } from "~/components";
+import { BBCodeArea, EditModeToggle } from "~/components";
+import { EntityEditor } from "~/components/input";
 import { AddIcon } from "~/appIcons";
 import {
   PokemonContestStat,
