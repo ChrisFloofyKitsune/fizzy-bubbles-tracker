@@ -19,7 +19,7 @@ import {
   TextInput,
   Title,
 } from "@mantine/core";
-import { AddIcon, CancelIcon } from "~/appIcons";
+import { AddIcon, CancelIcon, PokeDollarIcon } from "~/appIcons";
 import { PostSummary } from "~/pageComponents/post-summaries/PostSummary";
 import { EditModeToggle } from "~/components";
 import { css } from "@emotion/react";
@@ -209,15 +209,17 @@ const PostSummariesPage: NextPage = () => {
   }, [modalForm]);
 
   const [wordCount, pokedollarReward] = useMemo(() => {
-    const count = countWordsInBBCode(modalForm.values.postText);
+    const count = modalForm.values.postText
+      ? countWordsInBBCode(modalForm.values.postText.trim())
+      : 0;
     let reward = 0;
     if (count >= 150) {
       switch (modalForm.values.rpRewards) {
         case "full":
-          reward = Math.min(500, 150 + Math.floor((wordCount - 150) / 25) * 25);
+          reward = Math.min(500, 150 + Math.floor((count - 150) / 25) * 25);
           break;
         case "half":
-          reward = Math.min(250, 75 + Math.floor((wordCount - 75) / 50) * 50);
+          reward = Math.min(250, 75 + Math.floor((count - 150) / 50) * 25);
           break;
         default:
           reward = 0;
@@ -242,14 +244,20 @@ const PostSummariesPage: NextPage = () => {
             verifiedInShopUpdate: false,
           })
         );
-
-        const urlNoteRepo = ds.getRepository(UrlNote);
-        const newUrlNote = await urlNoteRepo.save(urlNoteRepo.create(values));
-        urlNotesHandler.setState(await urlNoteRepo.find());
-        setSelectedUrl(newUrlNote);
       }
+
+      const urlNoteRepo = ds.getRepository(UrlNote);
+      const newUrlNote = await urlNoteRepo.save(
+        urlNoteRepo.create({
+          ...values,
+          date: dayjs(values.date).utc(),
+        })
+      );
+      urlNotesHandler.setState(await urlNoteRepo.find());
+      setSelectedUrl(newUrlNote);
+      cancelModal();
     },
-    [modalForm, wordCount, pokedollarReward, ds]
+    [modalForm, ds, pokedollarReward, cancelModal, wordCount]
   );
 
   return (
@@ -307,6 +315,18 @@ const PostSummariesPage: NextPage = () => {
                 value="half"
               />
             </Radio.Group>
+            {modalForm.values.rpRewards !== "none" && (
+              <Group>
+                <Text>{wordCount} Words</Text>
+                <Text>
+                  <PokeDollarIcon
+                    size="1em"
+                    style={{ verticalAlign: "text-bottom" }}
+                  />
+                  {pokedollarReward}
+                </Text>
+              </Group>
+            )}
             <Textarea
               autosize
               minRows={3}
@@ -320,17 +340,16 @@ const PostSummariesPage: NextPage = () => {
                 color="green"
                 type="submit"
                 disabled={!modalForm.isValid()}
+                leftIcon={<AddIcon />}
               >
-                <Group spacing="xs">
-                  <AddIcon />
-                  Create Post Summary
-                </Group>
+                Create Post Summary
               </Button>
-              <Button px="xs" color="orange" onClick={cancelModal}>
-                <Group spacing="xs">
-                  <CancelIcon />
-                  Cancel
-                </Group>
+              <Button
+                leftIcon={<CancelIcon />}
+                color="orange"
+                onClick={cancelModal}
+              >
+                Cancel
               </Button>
             </Group>
           </Stack>
@@ -367,7 +386,7 @@ const PostSummariesPage: NextPage = () => {
           itemComponent={UrlNoteSelectItem}
           data={urlNotes.map((n) => ({
             label: `${n.label!} (${
-              n.date?.format("YYYY-MMM-DD") ?? "Not Dated"
+              n.date?.format("DD-MMM-YYYY") ?? "Not Dated"
             })`,
             value: n.url,
           }))}
@@ -381,6 +400,7 @@ const PostSummariesPage: NextPage = () => {
       {selectedUrl && (
         <PostSummary
           urlNote={selectedUrl}
+          isEditMode={editModeOn}
           openCreateModal={() => {
             setCreateModelOpened(true);
           }}
@@ -392,14 +412,19 @@ const PostSummariesPage: NextPage = () => {
             setSelectedUrl(newValue);
           }}
           onDelete={(deletedValue) => {
-            let newSelection: UrlNote | null;
+            let newSelection: UrlNote | undefined = undefined;
             urlNotesHandler.setState((prevState) => {
+              let oldIndex = prevState.findIndex(
+                (note) => note.id === deletedValue.id
+              );
               const newState = prevState.filter(
                 (note) => note.id !== deletedValue.id
               );
-              newSelection = newState[newState.length - 1] ?? null;
+              newSelection =
+                newState[Math.min(oldIndex, newState.length - 1)] ?? null;
               return newState;
             });
+            setSelectedUrl(newSelection);
           }}
         />
       )}

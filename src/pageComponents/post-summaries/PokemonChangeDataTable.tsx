@@ -1,6 +1,6 @@
 import { ChangeLogBase, Pokemon } from "~/orm/entities";
 import dayjs from "dayjs";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 import { useListState } from "@mantine/hooks";
 import {
   ChangeOptionPropsMap,
@@ -8,39 +8,69 @@ import {
   PokemonChangeOption,
 } from "~/pageComponents/post-summaries/PokemonChangeLog";
 import {
-  Group,
-  Stack,
-  Title,
-  Image,
-  Text,
   Box,
-  TextInput,
+  createStyles,
+  Group,
+  Image,
   NumberInput,
-  Select,
   ScrollArea,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+  Title,
 } from "@mantine/core";
 import { IconQuestionCircle } from "@tabler/icons";
-import { DataTable, PropConfigEntry } from "~/components/dataTable/dataTable";
+import {
+  DataTable,
+  DataTableCallbacks,
+  PropConfigEntry,
+} from "~/components/dataTable/dataTable";
 import { PokemonContestStat } from "~/orm/enums";
 import { toHeaderCase } from "js-convert-case";
 import { css } from "@emotion/react";
-import { decodeHTML } from "entities";
+import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
+import { useRepository } from "~/services";
+
+const useDataTableStyles = createStyles<
+  keyof Pick<
+    PokemonChangeLog,
+    "changeOption" | "dataValue" | "noteValue" | "contestStat"
+  >,
+  { hasContestStat: boolean }
+>((theme, params) => ({
+  changeOption: {
+    width: "8em",
+  },
+  dataValue: {},
+  noteValue: {},
+  contestStat: {
+    width: !params.hasContestStat ? "0" : "9em",
+  },
+}));
 
 export interface PokemonChangeDataTableProps {
   pokemon: Pokemon;
+  isEditMode: boolean;
   url: string;
   urlLabel: string;
   date: dayjs.Dayjs | null;
+  onNoLogs: () => void;
 }
 
 export function PokemonChangeDataTable({
   pokemon,
+  isEditMode,
   url,
   urlLabel,
   date,
+  onNoLogs,
 }: PokemonChangeDataTableProps): JSX.Element {
+  const pokemonRepo = useRepository(Pokemon);
   const [changeLogs, changeLogsHandler] = useListState<PokemonChangeLog>([]);
   const infoRef = useRef({ url, urlLabel, date });
+  const pokemonRef = useRef<Pokemon>(pokemon);
+
   // If URL or date change, then push changes into change log list
   if (
     url !== infoRef.current.url ||
@@ -48,14 +78,83 @@ export function PokemonChangeDataTable({
     date?.valueOf() !== infoRef.current.date?.valueOf()
   ) {
     infoRef.current = { url, urlLabel, date };
-    console.debug(`info props are now: `, infoRef.current);
     changeLogsHandler.apply((log) => log.updateInfo(url, date, urlLabel));
   }
 
   // If pokemon changes, throw everything out
   useEffect(() => {
     changeLogsHandler.setState(generateLogs(pokemon, infoRef.current));
+    pokemonRef.current = pokemon;
   }, [pokemon]);
+
+  const dataTableCallbacks: DataTableCallbacks<PokemonChangeLog> = useMemo(
+    () => ({
+      async add() {
+        OpenAddPokemonChangeModal({
+          existingPokemon: pokemonRef.current,
+          existingOptions: changeLogs.map((log) => log.changeOption),
+          async onSelect(option) {
+            const newLog = new PokemonChangeLog(
+              option,
+              pokemonRef.current,
+              null,
+              url,
+              date,
+              urlLabel
+            );
+            newLog.applyChanges(pokemonRef.current);
+            pokemonRef.current = await pokemonRepo!.save(pokemonRef.current);
+            changeLogsHandler.append(newLog);
+          },
+        });
+      },
+      async edit(log, key, value) {
+        if (key !== "dataValue" && key !== "noteValue" && key !== "contestStat")
+          return;
+
+        const needToUpdateLogId =
+          log.idInArray === null &&
+          ChangeOptionPropsMap[log.changeOption].allowMultiple;
+
+        changeLogsHandler.setState((prev) =>
+          prev.map((l) =>
+            l.uuid === log.uuid ? Object.assign(l, { [key]: value }) : l
+          )
+        );
+
+        (log[key] as any) = value;
+        log.applyChanges(pokemonRef.current);
+        pokemonRef.current = await pokemonRepo!.save(pokemonRef.current);
+        if (needToUpdateLogId) {
+          log.updateIdInArray(pokemonRef.current);
+        }
+      },
+      async remove(log) {
+        log.deleteChanges(pokemonRef.current);
+        pokemonRef.current = await pokemonRepo!.save(pokemonRef.current);
+        let newLength: number = changeLogs.length;
+        changeLogsHandler.setState((prev) => {
+          let newState = prev.filter((l) => l.uuid !== log.uuid);
+          newLength = newState.length;
+          return newState;
+        });
+        if (newLength === 0) {
+          onNoLogs();
+        }
+      },
+    }),
+    [changeLogs, url, date, urlLabel, pokemonRepo, onNoLogs]
+  );
+
+  const dataTableStyles = useDataTableStyles({
+    hasContestStat: changeLogs.some(
+      (l) => l.changeOption === PokemonChangeOption.ContestStat
+    ),
+  });
+
+  if (!pokemonRepo || !pokemonRef.current) {
+    return <>Loading...</>;
+  }
 
   return (
     <ScrollArea
@@ -93,20 +192,22 @@ export function PokemonChangeDataTable({
           </Stack>
           <Box sx={{ flex: "0 1 100%" }}>
             <DataTable
-              isEditMode
+              isEditMode={isEditMode}
               rowsPerPage={4}
               rowObjs={changeLogs}
               rowObjToId={(l) => `${l.changeOption}_${l.idInArray}`}
               propConfig={{
                 changeOption: {
                   headerLabel: "Change",
-                  viewComponent: (value) => <Text>{decodeHTML(value)}</Text>,
-                  editorComponent: (value) => <Text>{decodeHTML(value)}</Text>,
+                  viewComponent: (value) => <Text>{value}</Text>,
+                  editorComponent: (value) => <Text>{value}</Text>,
                 },
                 dataValue: dataPropConfig,
                 noteValue: notePropConfig,
                 contestStat: contestStatPropConfig,
               }}
+              {...dataTableCallbacks}
+              propsToMantineClasses={dataTableStyles.classes}
             />
           </Box>
         </Group>
@@ -178,7 +279,7 @@ function generateLogs(
 
 const dataPropConfig: PropConfigEntry<PokemonChangeLog, "dataValue"> = {
   order: 1,
-  headerLabel: "",
+  headerLabel: "Data",
   viewComponent(value, log) {
     const { dataLabel } = ChangeOptionPropsMap[log.changeOption];
     return (
@@ -203,6 +304,12 @@ const dataPropConfig: PropConfigEntry<PokemonChangeLog, "dataValue"> = {
           onChange={async (change) =>
             await onChange(change.currentTarget.value)
           }
+          styles={{
+            input: {
+              minHeight: "unset",
+              height: "2em",
+            },
+          }}
         />
       );
     } else {
@@ -213,6 +320,12 @@ const dataPropConfig: PropConfigEntry<PokemonChangeLog, "dataValue"> = {
           onChange={async (change) => {
             await onChange(change ?? null);
           }}
+          styles={{
+            input: {
+              minHeight: "unset",
+              height: "2em",
+            },
+          }}
         />
       );
     }
@@ -221,7 +334,7 @@ const dataPropConfig: PropConfigEntry<PokemonChangeLog, "dataValue"> = {
 
 const notePropConfig: PropConfigEntry<PokemonChangeLog, "noteValue"> = {
   order: 2,
-  headerLabel: "",
+  headerLabel: "Note",
   viewComponent(value, log) {
     const { noteLabel } = ChangeOptionPropsMap[log.changeOption];
     return !noteLabel ? (
@@ -245,6 +358,12 @@ const notePropConfig: PropConfigEntry<PokemonChangeLog, "noteValue"> = {
         label={noteLabel}
         value={value ?? ""}
         onChange={async (change) => await onChange(change.currentTarget.value)}
+        styles={{
+          input: {
+            minHeight: "unset",
+            height: "2em",
+          },
+        }}
       />
     );
   },
@@ -273,38 +392,29 @@ const contestStatPropConfig: PropConfigEntry<PokemonChangeLog, "contestStat"> =
       return !contestStatLabel ? (
         <></>
       ) : (
-        <Box
-          key={"select-prop-edit"}
-          sx={(theme) => ({
-            boxShadow: "inset 0px 0px 1px 1px" + theme.colors.gray[7],
-            borderRadius: "0.25em",
-            height: "2em",
-            padding: "0 0.25em",
-          })}
-        >
-          <Select
-            key={"select-prop-input"}
-            data={[
-              { label: "All", value: PokemonContestStat.ALL },
-              { label: "Cute", value: PokemonContestStat.CUTE },
-              { label: "Beautiful", value: PokemonContestStat.BEAUTIFUL },
-              { label: "Tough", value: PokemonContestStat.TOUGH },
-              { label: "Smart", value: PokemonContestStat.CLEVER },
-              { label: "Cool", value: PokemonContestStat.COOL },
-            ]}
-            variant="unstyled"
-            searchable
-            sx={{
-              ".mantine-Select-input": {
-                height: "2em",
-              },
-            }}
-            value={(value as string) ?? ""}
-            onChange={async (value) =>
-              await onChange(value as PokemonContestStat | null)
-            }
-          />
-        </Box>
+        <Select
+          key={"select-prop-input"}
+          label={contestStatLabel}
+          data={[
+            { label: "All", value: PokemonContestStat.ALL },
+            { label: "Cute", value: PokemonContestStat.CUTE },
+            { label: "Beautiful", value: PokemonContestStat.BEAUTIFUL },
+            { label: "Tough", value: PokemonContestStat.TOUGH },
+            { label: "Smart", value: PokemonContestStat.CLEVER },
+            { label: "Cool", value: PokemonContestStat.COOL },
+          ]}
+          searchable
+          value={(value as string) ?? ""}
+          onChange={async (value) =>
+            await onChange(value as PokemonContestStat | null)
+          }
+          styles={{
+            input: {
+              minHeight: "unset",
+              height: "2em",
+            },
+          }}
+        />
       );
     },
   };

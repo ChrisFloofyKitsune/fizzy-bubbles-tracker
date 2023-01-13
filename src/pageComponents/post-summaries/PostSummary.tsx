@@ -1,5 +1,6 @@
 import {
   ChangeLogBase,
+  ItemDefinition,
   ItemLog,
   Pokemon,
   UrlNote,
@@ -21,8 +22,10 @@ import {
   Divider,
   Flex,
   Group,
+  Image,
   LoadingOverlay,
   Paper,
+  Popover,
   ScrollArea,
   Stack,
   Text,
@@ -36,23 +39,33 @@ import {
   PropConfig,
 } from "~/components/dataTable/dataTable";
 import {
+  createDayjsPropConfig,
   createNumberPropConfig,
   createSelectPropConfig,
   createStringPropConfig,
 } from "~/components/dataTable/configCreators";
 import { CurrencyTypeSelectItems } from "~/orm/enums";
-import { EntityEditor } from "~/components";
+import { EntityEditor } from "~/components/input";
 import { DatePicker } from "@mantine/dates";
 import dayjs from "dayjs";
 import { PokemonChangeDataTable } from "~/pageComponents/post-summaries/PokemonChangeDataTable";
 import { AddIcon } from "~/appIcons";
 import { css } from "@emotion/react";
-import { useListState, UseListStateHandlers } from "@mantine/hooks";
-import { IconPencilPlus } from "@tabler/icons";
+import {
+  useDisclosure,
+  useListState,
+  UseListStateHandlers,
+} from "@mantine/hooks";
+import { IconPencilPlus, IconQuestionCircle } from "@tabler/icons";
 import { debounce } from "~/util";
+import { createItemDefinitionSelectConfig } from "~/components/dataTable/configCreators/createItemDefinitionSelectConfig";
+import { TbSearch } from "react-icons/tb";
+import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
+import { PokemonChangeLog } from "~/pageComponents/post-summaries/PokemonChangeLog";
 
 interface PostSummaryProps {
   urlNote: UrlNote;
+  isEditMode: boolean;
   openCreateModal?: () => void;
   onUpdate?: (newValue: UrlNote) => void;
   onDelete?: (deletedValue: UrlNote) => void;
@@ -60,13 +73,13 @@ interface PostSummaryProps {
 
 const useDataTableStyles = createStyles({
   quantityChange: {
-    width: "10em",
+    width: "8em",
   },
   currencyType: {
-    width: "20%",
+    width: "min-content",
   },
   itemDefinition: {
-    width: "20%",
+    width: "min-content",
   },
   note: {
     width: "60%",
@@ -124,6 +137,7 @@ function useRelevantPokemon(
 
 export function PostSummary({
   urlNote,
+  isEditMode,
   openCreateModal,
   onUpdate,
   onDelete,
@@ -143,6 +157,13 @@ export function PostSummary({
   const [itemLogs, itemLogsHandler] = useListState<ItemLog>([]);
   useEffect(() => itemLogsHandler.setState(dbItemLogs), [dbItemLogs]);
   const saveItemLogs = useDebouncedRepoSave(itemRepo);
+
+  const itemDefRepo = useRepository(ItemDefinition);
+  const [itemDefs, itemDefsHandler] = useListState<ItemDefinition>([]);
+  useAsyncEffect(async () => {
+    if (!itemDefRepo) return;
+    itemDefsHandler.setState(await itemDefRepo.find());
+  }, [itemDefRepo]);
 
   const [initialPokemonList, pokemonRepo] = useRelevantPokemon(urlNote);
   const [pokemonList, pokemonListHandler] = useListState<Pokemon>([]);
@@ -215,10 +236,10 @@ export function PostSummary({
     }
   }
 
-  const dateVal = date?.valueOf() ?? null;
   useEffect(() => {
     setDateValue(date);
-  }, [dateVal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date?.valueOf()]);
 
   const makeLogCallbacks = useCallback(
     <T extends WalletLog | ItemLog>(
@@ -238,6 +259,15 @@ export function PostSummary({
       },
       async edit(log, key, value) {
         if (!repo) return;
+        if (
+          key === "itemDefinition" &&
+          !itemDefs.find(
+            (def) =>
+              def.id.toString() === (value as ItemDefinition).id.toString()
+          )
+        ) {
+          itemDefsHandler.append(value as ItemDefinition);
+        }
         log[key] = value;
         log = await repo.save(log);
         logsHandler.setState((prev) =>
@@ -250,7 +280,7 @@ export function PostSummary({
         await repo.remove(log);
       },
     }),
-    []
+    [itemDefs]
   );
 
   const itemLogCallbacks = useMemo(
@@ -263,12 +293,60 @@ export function PostSummary({
     [makeLogCallbacks, walletRepo]
   );
 
+  const itemLogPropConfig = useMemo(
+    () => makeItemLogPropConfig(itemDefs),
+    [itemDefs]
+  );
+
+  ////////////////////////////////
+  // POKEMON CHANGES DATA TABLE //
+  ////////////////////////////////
+
+  const [existingPokemon, existingPokemonHandler] = useListState<Pokemon>([]);
+  useAsyncEffect(async () => {
+    if (!pokemonRepo) return;
+    existingPokemonHandler.setState(await pokemonRepo.find());
+  }, [pokemonRepo]);
+
+  const selectablePokemon = useMemo(
+    () =>
+      existingPokemon.filter(
+        (ep) => !pokemonList.some((p) => p.uuid === ep.uuid)
+      ),
+    [existingPokemon, pokemonList]
+  );
+
+  const onSelectPokemon = useCallback(
+    (pokemon: Pokemon) => {
+      OpenAddPokemonChangeModal({
+        existingPokemon: pokemon,
+        onSelect(option) {
+          if (!pokemonRepo) return;
+          const { url, date, label } = infoRef.current;
+          const tempLog = new PokemonChangeLog(
+            option,
+            pokemon,
+            null,
+            url,
+            date,
+            label ?? ""
+          );
+          tempLog.applyChanges();
+          pokemonRepo.save(pokemon).then(() => {
+            pokemonListHandler.append(pokemon);
+          });
+        },
+      });
+    },
+    [pokemonRepo]
+  );
+
   if (!urlNoteRepo) {
     return <>Loading...</>;
   }
 
   const deleteAllowed =
-    dbWalletLogs.length + dbItemLogs.length + initialPokemonList.length === 0;
+    walletLogs.length + itemLogs.length + pokemonList.length === 0;
 
   return (
     <Stack>
@@ -286,6 +364,7 @@ export function PostSummary({
         }}
         onUpdate={(entities) => onUpdate?.(entities[0])}
         onConfirmedDelete={(entity) => onDelete?.(entity)}
+        allowAdd={isEditMode}
         allowDelete={deleteAllowed}
         extraHeaderElement={
           deleteAllowed ? undefined : (
@@ -309,11 +388,20 @@ export function PostSummary({
           <>
             <Group>
               <DatePicker
-                sx={{ width: "7em" }}
+                sx={{
+                  width: "7em",
+                  ".mantine-Input-disabled": {
+                    border: "1px solid dimgray",
+                    borderRadius: "4px",
+                    color: "inherit",
+                    opacity: 1,
+                  },
+                }}
                 label="Date"
                 clearable={false}
                 inputFormat="DD-MMM-YYYY"
                 firstDayOfWeek="sunday"
+                disabled={!isEditMode}
                 value={dateValue?.toDate()}
                 onChange={(date) => {
                   const dayjsVal = date ? dayjs(date).utc(false) : null;
@@ -323,17 +411,60 @@ export function PostSummary({
                 styles={{
                   input: { textAlign: "center" },
                 }}
+                variant={isEditMode ? "default" : "unstyled"}
               />
               <TextInput
-                sx={{ flexGrow: 1 }}
+                sx={{
+                  flexGrow: 1,
+                  ".mantine-Input-disabled": {
+                    border: "1px solid dimgray",
+                    borderRadius: "4px",
+                    color: "inherit",
+                    padding: "0px 12px",
+                    cursor: "text",
+                    opacity: 1,
+                  },
+                }}
                 label="Label"
+                disabled={!isEditMode}
                 {...inputPropMap.label}
+                variant={isEditMode ? "default" : "unstyled"}
               />
             </Group>
-            <TextInput label="URL" {...inputPropMap.url} />
+            <TextInput
+              label="URL"
+              disabled={!isEditMode}
+              {...inputPropMap.url}
+              variant={isEditMode ? "default" : "unstyled"}
+              sx={{
+                ".mantine-Input-disabled": {
+                  border: "1px solid dimgray",
+                  borderRadius: "4px",
+                  color: "inherit",
+                  padding: "0px 12px",
+                  cursor: "text",
+                  opacity: 1,
+                },
+              }}
+            />
             <Textarea
+              autosize
+              minRows={3}
+              maxRows={10}
               label="Post Text / Misc Notes"
+              disabled={!isEditMode}
+              variant={isEditMode ? "default" : "unstyled"}
               {...inputPropMap.postText}
+              sx={{
+                ".mantine-Input-disabled": {
+                  border: "1px solid dimgray",
+                  borderRadius: "4px",
+                  color: "inherit",
+                  padding: "10px 12px",
+                  cursor: "text",
+                  opacity: 1,
+                },
+              }}
             />
           </>
         )}
@@ -353,7 +484,7 @@ export function PostSummary({
               `}
             >
               <DataTable
-                isEditMode={true}
+                isEditMode={isEditMode}
                 rowsPerPage={Math.min(walletLogs.length, 5)}
                 rowObjs={walletLogs}
                 rowObjToId={(wl) => wl.id}
@@ -366,11 +497,13 @@ export function PostSummary({
         </Paper>
       ) : (
         <Box>
-          <Button px="sm" color="green" onClick={walletLogCallbacks.add}>
-            <Group spacing="xs">
-              <AddIcon />
-              <Text>Record Wallet Change</Text>
-            </Group>
+          <Button
+            color="green"
+            leftIcon={<AddIcon />}
+            onClick={walletLogCallbacks.add}
+            disabled={!isEditMode}
+          >
+            <Text>Record Wallet Change</Text>
           </Button>
         </Box>
       )}
@@ -389,7 +522,7 @@ export function PostSummary({
               `}
             >
               <DataTable
-                isEditMode={true}
+                isEditMode={isEditMode}
                 rowsPerPage={Math.min(itemLogs.length, 5)}
                 rowObjs={itemLogs}
                 rowObjToId={(il) => il.id}
@@ -402,41 +535,40 @@ export function PostSummary({
         </Paper>
       ) : (
         <Box>
-          <Button px="sm" color="green" onClick={itemLogCallbacks.add}>
-            <Group spacing="xs">
-              <AddIcon />
-              <Text>Record Item Change</Text>
-            </Group>
+          <Button
+            leftIcon={<AddIcon />}
+            onClick={itemLogCallbacks.add}
+            disabled={!isEditMode}
+          >
+            <Text>Record Item Change</Text>
           </Button>
         </Box>
       )}
       <Title order={2}>Pokemon Changes</Title>
-      <Flex gap="xl">
-        <Button px="xs" color="indigo">
-          <Group spacing="xs">
-            <IconPencilPlus />
-            Record Changes to Existing Pokemon
-          </Group>
-        </Button>
-        <Button px="xs" color="green">
-          <Group spacing="xs">
-            <AddIcon />
-            Record New Pokemon
-          </Group>
+      <Flex gap="xl" wrap={"wrap"}>
+        <SelectExistingPokemonButton
+          isEditMode={isEditMode}
+          pokemonList={selectablePokemon}
+          onSelectPokemon={onSelectPokemon}
+        />
+        <Button leftIcon={<AddIcon />} color="green" disabled={!isEditMode}>
+          Record New Pokemon
         </Button>
       </Flex>
-      {pokemonList.map((p) => (
+      {pokemonList.map((p, index) => (
         <Paper
           id={p.uuid + "_changeData"}
           key={p.uuid + "_changeDataContainer"}
           withBorder
         >
           <PokemonChangeDataTable
+            isEditMode={isEditMode}
             key={p.uuid + "_changeDataTable"}
             pokemon={p}
             url={urlNote!.url}
             urlLabel={urlNote!.label ?? ""}
             date={urlNote!.date}
+            onNoLogs={() => pokemonListHandler.remove(index)}
           />
         </Paper>
       ))}
@@ -452,16 +584,145 @@ const walletLogPropConfig: PropConfig<WalletLog> = {
     "Currency Type"
   ),
   sourceNote: createStringPropConfig("sourceNote", "Note"),
+  date: createDayjsPropConfig("date", "Date"),
 };
 
-const itemLogPropConfig: PropConfig<ItemLog> = {
-  quantityChange: createNumberPropConfig("quantityChange", "Change"),
-  itemDefinition: {
-    headerLabel: "Item",
-    viewComponent: (value) => <Text>{value?.name ?? "Missing Item Def"}</Text>,
-    editorComponent: (value) => (
-      <Text>{value?.name ?? "Missing Item Def"}</Text>
-    ),
-  },
-  sourceNote: createStringPropConfig("sourceNote", "Note"),
-};
+function makeItemLogPropConfig(
+  availableItemDefs: ItemDefinition[]
+): PropConfig<ItemLog> {
+  return {
+    quantityChange: createNumberPropConfig("quantityChange", "Change"),
+    itemDefinition: createItemDefinitionSelectConfig(availableItemDefs, "Item"),
+    sourceNote: createStringPropConfig("sourceNote", "Note"),
+    date: createDayjsPropConfig("date", "Date"),
+  };
+}
+
+function SelectExistingPokemonButton({
+  isEditMode,
+  pokemonList,
+  onSelectPokemon,
+}: {
+  isEditMode: boolean;
+  pokemonList: Pokemon[];
+  onSelectPokemon?: (pokemon: Pokemon) => void;
+}) {
+  const [popoverOpened, { open, close }] = useDisclosure(false);
+  const [filterText, setFilterText] = useState<string>();
+
+  const filteredPokemon = useMemo(() => {
+    if (!filterText?.trim()) return pokemonList;
+    return pokemonList.filter((p) => {
+      const name = (p.name || "(Unnamed)").toLowerCase();
+      const species = (p.species || "(New Pokemon)").toLowerCase();
+      const filter = filterText?.trim().toLowerCase();
+      return (
+        name.includes(filter) ||
+        filter.includes(name) ||
+        species.includes(filter) ||
+        filter.includes(species)
+      );
+    });
+  }, [pokemonList, filterText]);
+
+  const onPokemonClick = useCallback(
+    (pokemon: Pokemon) => {
+      close();
+      onSelectPokemon?.(pokemon);
+    },
+    [close, onSelectPokemon]
+  );
+
+  return (
+    <Popover
+      withArrow
+      arrowPosition="center"
+      arrowSize={18}
+      shadow="md"
+      position="bottom-start"
+      opened={popoverOpened}
+      onClose={close}
+      withinPortal
+    >
+      <Popover.Target refProp={"ref"}>
+        <Button
+          leftIcon={<IconPencilPlus />}
+          color="indigo"
+          onClick={open}
+          disabled={!isEditMode}
+        >
+          Record Changes to Existing Pokemon
+        </Button>
+      </Popover.Target>
+      <Popover.Dropdown w="max(50vw, 200px)!important">
+        <TextInput
+          autoFocus
+          placeholder={"Search"}
+          value={filterText}
+          onChange={(event) => setFilterText(event.currentTarget.value)}
+          icon={<TbSearch />}
+          pb="xs"
+        />
+        <ScrollArea
+          h="40vh"
+          offsetScrollbars
+          sx={(theme) => ({
+            border: "1px solid " + theme.colors.dark[4],
+            borderRadius: "8px",
+          })}
+        >
+          <Box
+            p="0.25em"
+            sx={{
+              display: "grid",
+              gap: "0.25em",
+              gridTemplateColumns: "repeat(auto-fit, minmax(125px, 1fr))",
+            }}
+          >
+            {filteredPokemon.map((p) => (
+              <Button
+                color="gray"
+                key={`pokemon_${p.uuid}`}
+                variant="filled"
+                p="0.5em"
+                sx={{ height: "unset" }}
+                onClick={() => onPokemonClick(p)}
+              >
+                <Flex
+                  w="100%"
+                  h="100%"
+                  direction="column"
+                  gap="1em"
+                  justify="space-between"
+                >
+                  <Title
+                    order={6}
+                    align="center"
+                    sx={{ whiteSpace: "normal", lineHeight: "1.25em" }}
+                  >
+                    {p.name || "(Unnamed)"}
+                    <br />
+                    {p.species}
+                  </Title>
+                  <Image
+                    key={`pokemon_image_${p.uuid}`}
+                    src={p.imageLink}
+                    alt="pokemon_image"
+                    withPlaceholder
+                    fit="scale-down"
+                    styles={{
+                      image: {
+                        aspectRatio: "1/1",
+                      },
+                    }}
+                    placeholder={<IconQuestionCircle size={"100%"} />}
+                  />
+                </Flex>
+              </Button>
+            ))}
+          </Box>
+        </ScrollArea>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}

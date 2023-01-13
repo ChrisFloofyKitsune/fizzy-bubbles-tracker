@@ -1,5 +1,10 @@
 import { ValueTransformer } from "typeorm";
 import dayjs, { Dayjs } from "dayjs";
+import utc from "dayjs/plugin/utc";
+import forceUtc from "~/dayJsForceUtcPlugin";
+
+dayjs.extend(utc);
+dayjs.extend(forceUtc);
 
 export const UTCTransformer: ValueTransformer = {
   to: (value: Dayjs | string): number => {

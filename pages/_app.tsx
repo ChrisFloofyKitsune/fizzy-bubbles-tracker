@@ -47,6 +47,7 @@ console.log("Starting app...");
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import forceUtc from "~/dayJsForceUtcPlugin";
+import { appScrollSubject } from "~/useAppScroll";
 dayjs.extend(utc);
 dayjs.extend(forceUtc);
 
@@ -237,6 +238,9 @@ function MyApp({ Component, pageProps }: AppProps) {
                     }}
                   >
                     <ScrollArea
+                      onScrollPositionChange={(pos) =>
+                        appScrollSubject.next(pos.y)
+                      }
                       type="auto"
                       styles={{
                         viewport: {

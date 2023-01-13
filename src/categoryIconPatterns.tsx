@@ -36,13 +36,20 @@ export const CategoryIconPatterns = {
   ".": TbTriangleSquareCircle,
 };
 
+export function getIconForCategory(category: string) {
+  return Object.entries(CategoryIconPatterns).find(
+    (entry) => !!category.match(new RegExp(entry[0], "i"))
+  )?.[1];
+}
+
 export function useItemCategoryMap(
   itemDefs?: ItemDefinition[]
 ): [categories: string[], categoryIcons: Record<string, IconType>] {
   itemDefs ||= [];
 
   const categories: string[] | null = useMemo(() => {
-    if (itemDefs.length === 0) return ["Depleted", "Uncategorized"];
+    if (!itemDefs || itemDefs.length === 0)
+      return ["Depleted", "Uncategorized"];
     return itemDefs
       .filter((d) => !!d.category)
       .map((d) => d.category)
@@ -53,11 +60,7 @@ export function useItemCategoryMap(
   const categoryIcons: Record<string, IconType> = useMemo(() => {
     if (!categories) return {};
 
-    const results = categories.map((c) => ({
-      [c]: Object.entries(CategoryIconPatterns).find(
-        (entry) => !!c.match(new RegExp(entry[0], "i"))
-      )?.[1],
-    }));
+    const results = categories.map(getIconForCategory);
 
     return Object.assign({}, ...results);
   }, [categories]);

@@ -6,45 +6,100 @@ import {
   EggMoveLog,
   LevelLog,
   MachineMoveLog,
+  MoveLog,
   OtherMoveLog,
   Pokemon,
   TutorMoveLog,
 } from "~/orm/entities";
 import { PokemonContestStat } from "~/orm/enums";
 import { ReactNode } from "react";
+import { v4 as uuidv4 } from "uuid";
 
 export enum PokemonChangeOption {
-  Obtained = "Obtained New&nbsp;Pokemon",
+  Obtained = "Obtained New Pokemon",
   Level = "Level Change",
   Bond = "Bond Change",
   Pokeball = "Gave Pokeball",
   HeldItem = "Gave Held Item",
-  EvolutionStage2 = "Evolved&nbsp;into Stage&nbsp;2",
-  EvolutionStage3 = "Evolved&nbsp;into Stage&nbsp;3",
-  EggMove = "Learned Egg&nbsp;Move",
-  TutorMove = "Learned Tutor&nbsp;Move",
-  MachineMove = "Learned Machine&nbsp;Move",
-  OtherMove = "Learned Other&nbsp;Move",
+  EvolutionStage2 = "Evolved into Stage 2",
+  EvolutionStage3 = "Evolved into Stage 3",
+  EggMove = "Learned Egg Move",
+  TutorMove = "Learned Tutor Move",
+  MachineMove = "Learned Machine Move",
+  OtherMove = "Learned Other Move",
   BoutiqueVisit = "Boutique Visit",
-  ContestStat = "Contest&nbsp;Stat Change",
+  ContestStat = "Contest Stat Change",
+}
+
+export interface ChangeOptionProps {
+  group: string;
+  dataType: "string" | "number";
+  allowMultiple: unknown;
+  dataLabel: ReactNode;
+  noteLabel?: ReactNode;
+  contestStatLabel?: "Contest Stat";
+  singleton?: boolean;
+}
+
+export interface ChangeOptionPropsField extends ChangeOptionProps {
+  allowMultiple: false;
+  keys: {
+    array?: never;
+    logClass?: never;
+    url: Extract<keyof Pokemon, `${string}Link`>;
+    data: keyof Pokemon;
+    note?: keyof Pokemon;
+  };
+}
+
+export interface ChangeOptionPropsValueLog extends ChangeOptionProps {
+  allowMultiple: false;
+  keys: {
+    array: keyof Pick<Pokemon, "levelLogs" | "bondLogs">;
+    logClass: typeof LevelLog | typeof BondLog;
+    data: "value";
+  };
+}
+
+export interface ChangeOptionPropsMoveLog extends ChangeOptionProps {
+  allowMultiple: true;
+  keys: {
+    array: keyof Pick<
+      Pokemon,
+      "eggMoveLogs" | "tutorMoveLogs" | "machineMoveLogs" | "otherMoveLogs"
+    >;
+    logClass:
+      | typeof EggMoveLog
+      | typeof TutorMoveLog
+      | typeof MachineMoveLog
+      | typeof OtherMoveLog;
+    data: "move";
+  };
+}
+
+export interface ChangeOptionPropsContestStatLog extends ChangeOptionProps {
+  allowMultiple: true;
+  keys: {
+    array: keyof Pick<Pokemon, "contestStatsLogs">;
+    logClass: typeof ContestStatLog;
+    data: "statChange";
+  };
 }
 
 export const ChangeOptionPropsMap: Record<
   PokemonChangeOption,
-  {
-    group: string;
-    dataType: "string" | "number";
-    allowMultiple: boolean;
-    dataLabel: ReactNode;
-    noteLabel?: ReactNode;
-    contestStatLabel?: "Contest Stat";
-  }
+  | ChangeOptionPropsField
+  | ChangeOptionPropsValueLog
+  | ChangeOptionPropsMoveLog
+  | ChangeOptionPropsContestStatLog
 > = {
   [PokemonChangeOption.Obtained]: {
     group: "Info",
     dataType: "string",
     allowMultiple: false,
     dataLabel: "Obtained",
+    singleton: true,
+    keys: { url: "obtainedLink", data: "obtained" },
   },
   [PokemonChangeOption.Level]: {
     group: "Stats",
@@ -52,6 +107,7 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: false,
     dataLabel: "New Level",
     noteLabel: "Source",
+    keys: { array: "levelLogs", logClass: LevelLog, data: "value" },
   },
   [PokemonChangeOption.Bond]: {
     group: "Stats",
@@ -59,18 +115,21 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: false,
     dataLabel: "Bond Change",
     noteLabel: "Source",
+    keys: { array: "bondLogs", logClass: BondLog, data: "value" },
   },
   [PokemonChangeOption.Pokeball]: {
     group: "Info",
     dataType: "string",
     allowMultiple: false,
     dataLabel: "Pokeball",
+    keys: { url: "pokeballLink", data: "pokeball" },
   },
   [PokemonChangeOption.HeldItem]: {
     group: "Info",
     dataType: "string",
     allowMultiple: false,
     dataLabel: "Held Item",
+    keys: { url: "heldItemLink", data: "heldItem" },
   },
   [PokemonChangeOption.EvolutionStage2]: {
     group: "Info",
@@ -78,6 +137,12 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: false,
     dataLabel: "Evo Stage 2",
     noteLabel: "Method",
+    singleton: true,
+    keys: {
+      url: "evolutionStageTwoMethodLink",
+      data: "evolutionStageTwo",
+      note: "evolutionStageTwoMethod",
+    },
   },
   [PokemonChangeOption.EvolutionStage3]: {
     group: "Info",
@@ -85,6 +150,12 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: false,
     dataLabel: "Evo Stage 3",
     noteLabel: "Method",
+    singleton: true,
+    keys: {
+      url: "evolutionStageThreeMethodLink",
+      data: "evolutionStageThree",
+      note: "evolutionStageThreeMethod",
+    },
   },
   [PokemonChangeOption.EggMove]: {
     group: "Moves",
@@ -92,6 +163,7 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: true,
     dataLabel: "Move",
     noteLabel: "Source",
+    keys: { array: "eggMoveLogs", logClass: EggMoveLog, data: "move" },
   },
   [PokemonChangeOption.TutorMove]: {
     group: "Moves",
@@ -99,6 +171,7 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: true,
     dataLabel: "Move",
     noteLabel: "Source",
+    keys: { array: "tutorMoveLogs", logClass: TutorMoveLog, data: "move" },
   },
   [PokemonChangeOption.MachineMove]: {
     group: "Moves",
@@ -106,6 +179,7 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: true,
     dataLabel: "Move",
     noteLabel: "Source",
+    keys: { array: "machineMoveLogs", logClass: MachineMoveLog, data: "move" },
   },
   [PokemonChangeOption.OtherMove]: {
     group: "Moves",
@@ -113,12 +187,14 @@ export const ChangeOptionPropsMap: Record<
     allowMultiple: true,
     dataLabel: "Move",
     noteLabel: "Source",
+    keys: { array: "otherMoveLogs", logClass: OtherMoveLog, data: "move" },
   },
   [PokemonChangeOption.BoutiqueVisit]: {
     group: "Info",
     dataType: "string",
     allowMultiple: false,
     dataLabel: "Boutique Mods",
+    keys: { url: "boutiqueModsLink", data: "boutiqueMods" },
   },
   [PokemonChangeOption.ContestStat]: {
     group: "Stats",
@@ -127,6 +203,11 @@ export const ChangeOptionPropsMap: Record<
     dataLabel: "Stat Change",
     noteLabel: "Source",
     contestStatLabel: "Contest Stat",
+    keys: {
+      array: "contestStatsLogs",
+      logClass: ContestStatLog,
+      data: "statChange",
+    },
   },
 };
 
@@ -134,84 +215,39 @@ export class PokemonChangeLog {
   public dataValue: string | number | null = null;
   public noteValue: string | null = null;
   public contestStat: PokemonContestStat | null;
+  public readonly uuid = uuidv4();
 
   public constructor(
     public readonly changeOption: PokemonChangeOption,
-    private readonly pokemon: Pokemon,
-    public readonly idInArray: number | null,
+    private pokemon: Pokemon,
+    public idInArray: number | null,
     private url: string | null,
     private date: dayjs.Dayjs | null,
     private defaultNote: string = ""
   ) {
-    function getLog<T extends ChangeLogBase>(array: T[]) {
-      return idInArray === null
-        ? null
-        : array.find((entry) => entry.id === idInArray);
-    }
+    const { keys, dataType } = ChangeOptionPropsMap[changeOption];
 
-    switch (changeOption) {
-      case PokemonChangeOption.Obtained:
-        this.dataValue = pokemon.obtained ?? "";
-        break;
-      case PokemonChangeOption.Level:
-        const levelLog = getLog(pokemon.levelLogs);
-        this.dataValue = levelLog?.value ?? 0;
-        this.noteValue = levelLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.Bond:
-        const bondLog = getLog(pokemon.bondLogs);
-        this.dataValue = bondLog?.value ?? 0;
-        this.noteValue = bondLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.Pokeball:
-        this.dataValue = pokemon.pokeball ?? "";
-        break;
-      case PokemonChangeOption.HeldItem:
-        this.dataValue = pokemon.heldItem ?? "";
-        break;
-      case PokemonChangeOption.EvolutionStage2:
-        this.dataValue = pokemon.evolutionStageTwo ?? "";
-        this.noteValue = pokemon.evolutionStageTwoMethod ?? "";
-        break;
-      case PokemonChangeOption.EvolutionStage3:
-        this.dataValue = pokemon.evolutionStageThree ?? "";
-        this.noteValue = pokemon.evolutionStageThreeMethod ?? "";
-        break;
-      case PokemonChangeOption.EggMove:
-        const eggMoveLog = getLog(pokemon.eggMoveLogs);
-        this.dataValue = eggMoveLog?.move ?? "";
-        this.noteValue = eggMoveLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.TutorMove:
-        const tutorMoveLog = getLog(pokemon.tutorMoveLogs);
-        this.dataValue = tutorMoveLog?.move ?? "";
-        this.noteValue = tutorMoveLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.MachineMove:
-        const machineMoveLog = getLog(pokemon.machineMoveLogs);
-        this.dataValue = machineMoveLog?.move ?? "";
-        this.noteValue = machineMoveLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.OtherMove:
-        const otherMoveLog = getLog(pokemon.otherMoveLogs);
-        this.dataValue = otherMoveLog?.move ?? "";
-        this.noteValue = otherMoveLog?.sourceNote ?? defaultNote;
-        break;
-      case PokemonChangeOption.BoutiqueVisit:
-        this.dataValue = pokemon.boutiqueMods ?? "";
-        break;
-      case PokemonChangeOption.ContestStat:
-        const contestStatLog = getLog(pokemon.contestStatsLogs);
-        this.dataValue = contestStatLog?.statChange ?? 0;
-        this.noteValue = contestStatLog?.sourceNote ?? defaultNote;
-        this.contestStat = contestStatLog?.stat ?? PokemonContestStat.ALL;
-        break;
-      default:
-        throw new Error(
-          "invalid change option: " + PokemonChangeOption[changeOption] ??
-            changeOption
-        );
+    if (keys.array) {
+      const log = this.getLog(pokemon[keys.array] as ChangeLogBase[]) as
+        | (LevelLog & BondLog & MoveLog & ContestStatLog)
+        | null;
+      this.dataValue = log?.[keys.data] ?? (dataType === "string" ? "" : 0);
+      this.noteValue = log?.sourceNote ?? this.defaultNote;
+      if (changeOption === PokemonChangeOption.ContestStat) {
+        this.contestStat = log?.stat ?? null;
+      }
+    } else {
+      this.dataValue = pokemon[keys.data] ?? (dataType === "string" ? "" : 0);
+      if (keys.note) {
+        this.noteValue = pokemon[keys.note];
+      }
     }
+  }
+
+  private getLog<T extends ChangeLogBase>(array: T[]) {
+    return this.idInArray === null
+      ? null
+      : array.find((entry) => entry.id === this.idInArray) ?? null;
   }
 
   public updateInfo(
@@ -219,123 +255,109 @@ export class PokemonChangeLog {
     date: dayjs.Dayjs | null,
     defaultNote: string
   ): PokemonChangeLog {
-    defaultNote.trim();
     this.url = url.trim();
     this.date = date;
 
     if (this.noteValue?.trim() === this.defaultNote.trim()) {
       this.noteValue = defaultNote.trim();
     }
-
     this.defaultNote = defaultNote;
 
     return this;
   }
 
-  public updateValues(
-    dataValue: typeof this.dataValue,
-    noteValue?: typeof this.noteValue,
-    contestStat?: typeof this.contestStat
-  ) {
-    this.dataValue = dataValue;
-    this.noteValue = noteValue ?? this.noteValue;
-    this.contestStat = contestStat ?? this.contestStat;
+  public updateIdInArray(updatedPokemon: Pokemon) {
+    const { keys } = ChangeOptionPropsMap[this.changeOption];
+    if (!keys.array) return;
+
+    this.idInArray = updatedPokemon[keys.array].findIndex(
+      (l: Partial<LevelLog & BondLog & MoveLog & ContestStatLog>) =>
+        l.sourceUrl === this.url &&
+        l.sourceNote === this.noteValue &&
+        l[keys.data] === this.dataValue &&
+        (!(this.changeOption === PokemonChangeOption.ContestStat) ||
+          l.stat === this.contestStat)
+    );
+    if (this.idInArray === -1) {
+      throw new Error(
+        "Could not find PokemonChangeLog's values in array of updated pokemon"
+      );
+    }
+
+    this.pokemon = updatedPokemon;
   }
 
-  public applyChanges(targetPokemon: Partial<Pokemon> = {}) {
-    const getOrMakeLog = <T extends ChangeLogBase>(
-      arrayProp: keyof Pokemon,
-      logType: new () => T
-    ): T => {
-      let array: T[] | undefined = targetPokemon[arrayProp];
-      if (typeof array === "undefined") {
-        array = (targetPokemon as any)[arrayProp] = [];
-      } else if (!Array.isArray(array)) {
-        throw new Error("bad arrayProp: " + arrayProp);
+  public applyChanges(targetPokemon: Partial<Pokemon> = this.pokemon) {
+    const { keys } = ChangeOptionPropsMap[this.changeOption];
+
+    if (keys.array) {
+      let logArray = targetPokemon[keys.array] as
+        | InstanceType<typeof keys.logClass>[]
+        | undefined;
+      if (typeof logArray === "undefined") {
+        logArray = targetPokemon[keys.array] = [];
       }
 
-      let entry: T | undefined = array.find((log) => log.id === this.idInArray);
-      if (typeof entry === "undefined") {
-        entry = new logType();
-        array.push(entry);
+      let log = logArray.find((l) => l.id === this.idInArray);
+      if (typeof log === "undefined") {
+        log = new keys.logClass();
+        logArray.push(log);
       }
 
-      return entry;
-    };
-
-    switch (this.changeOption) {
-      case PokemonChangeOption.Obtained:
-        targetPokemon.obtained = this.dataValue as string;
-        targetPokemon.obtainedLink = this.url;
-        break;
-      case PokemonChangeOption.Level:
-        const levelLog = getOrMakeLog("levelLogs", LevelLog);
-        levelLog.value = this.dataValue as number;
-        levelLog.sourceNote = this.noteValue || this.defaultNote;
-        levelLog.sourceUrl = this.url;
-        break;
-      case PokemonChangeOption.Bond:
-        const bondLog = getOrMakeLog("bondLogs", BondLog);
-        bondLog.value = this.dataValue as number;
-        bondLog.sourceNote = this.noteValue || this.defaultNote;
-        bondLog.sourceUrl = this.url;
-        bondLog.date = this.date ?? dayjs.utc();
-        break;
-      case PokemonChangeOption.Pokeball:
-        targetPokemon.pokeball = this.dataValue as string;
-        targetPokemon.pokeballLink = this.url;
-        break;
-      case PokemonChangeOption.HeldItem:
-        targetPokemon.heldItem = this.dataValue as string;
-        targetPokemon.heldItemLink = this.url;
-        break;
-      case PokemonChangeOption.EvolutionStage2:
-        targetPokemon.evolutionStageTwo = this.dataValue as string;
-        targetPokemon.evolutionStageTwoMethod = this.noteValue;
-        targetPokemon.evolutionStageTwoMethodLink = this.url;
-        break;
-      case PokemonChangeOption.EvolutionStage3:
-        targetPokemon.evolutionStageThree = this.dataValue as string;
-        targetPokemon.evolutionStageThreeMethod = this.noteValue;
-        targetPokemon.evolutionStageThreeMethodLink = this.url;
-        break;
-      case PokemonChangeOption.EggMove:
-        const eggMoveLog = getOrMakeLog("eggMoveLogs", EggMoveLog);
-        eggMoveLog.move = this.dataValue as string;
-        eggMoveLog.sourceNote = this.noteValue || this.defaultNote;
-        eggMoveLog.sourceUrl = this.url;
-        break;
-      case PokemonChangeOption.TutorMove:
-        const tutorMoveLog = getOrMakeLog("tutorMoveLogs", TutorMoveLog);
-        tutorMoveLog.move = this.dataValue as string;
-        tutorMoveLog.sourceNote = this.noteValue || this.defaultNote;
-        tutorMoveLog.sourceUrl = this.url;
-        break;
-      case PokemonChangeOption.MachineMove:
-        const machineMoveLog = getOrMakeLog("machineMoveLogs", MachineMoveLog);
-        machineMoveLog.move = this.dataValue as string;
-        machineMoveLog.sourceNote = this.noteValue || this.defaultNote;
-        machineMoveLog.sourceUrl = this.url;
-        break;
-      case PokemonChangeOption.OtherMove:
-        const otherMoveLog = getOrMakeLog("otherMoveLogs", OtherMoveLog);
-        otherMoveLog.move = this.dataValue as string;
-        otherMoveLog.sourceNote = this.noteValue || this.defaultNote;
-        otherMoveLog.sourceUrl = this.url;
-        break;
-      case PokemonChangeOption.BoutiqueVisit:
-        targetPokemon.boutiqueMods = this.dataValue as string;
-        targetPokemon.boutiqueModsLink = this.url;
-        break;
-      case PokemonChangeOption.ContestStat:
-        const contestStatLog = getOrMakeLog("contestStatsLogs", ContestStatLog);
-        contestStatLog.statChange = this.dataValue as number;
-        contestStatLog.sourceNote = this.noteValue || this.defaultNote;
-        contestStatLog.sourceUrl = this.url;
-        contestStatLog.stat = this.contestStat ?? PokemonContestStat.ALL;
-        break;
-      default:
-        throw new Error("invalid change option: " + this.changeOption);
+      (log as any)[keys.data] = this.dataValue;
+      log.sourceNote = this.noteValue || this.defaultNote;
+      log.sourceUrl = this.url;
+      if (this.changeOption === PokemonChangeOption.Bond) {
+        (log as BondLog).date = this.date ?? dayjs.utc();
+      } else if (this.changeOption === PokemonChangeOption.ContestStat) {
+        (log as ContestStatLog).stat =
+          this.contestStat ?? PokemonContestStat.ALL;
+      }
+    } else {
+      targetPokemon[keys.url] = this.url;
+      (targetPokemon as any)[keys.data] = this.dataValue;
+      if (keys.note) {
+        (targetPokemon as any)[keys.note] = this.noteValue;
+      }
     }
+  }
+
+  public deleteChanges(targetPokemon: Pokemon = this.pokemon) {
+    const { keys } = ChangeOptionPropsMap[this.changeOption];
+    if (keys.array) {
+      targetPokemon[keys.array] = (targetPokemon[keys.array] as any[]).filter(
+        (log) => log.id !== this.idInArray
+      );
+    } else {
+      targetPokemon[keys.url] = null;
+      (targetPokemon as any)[keys.data] = null;
+      if (keys.note) {
+        (targetPokemon as any)[keys.note] = null;
+      }
+    }
+  }
+}
+
+export function canCreateSingletonOption(
+  pokemon: Pokemon,
+  changeOption: PokemonChangeOption
+): boolean {
+  if (!ChangeOptionPropsMap[changeOption].singleton) {
+    throw new Error(`"${changeOption}" is not a singleton option`);
+  }
+
+  switch (changeOption) {
+    case PokemonChangeOption.Obtained:
+      return !pokemon.obtained && !pokemon.obtained;
+    case PokemonChangeOption.EvolutionStage2:
+      return (
+        !pokemon.evolutionStageTwoMethodLink && !!pokemon.evolutionStageTwo
+      );
+    case PokemonChangeOption.EvolutionStage3:
+      return (
+        !pokemon.evolutionStageTwoMethodLink && !!pokemon.evolutionStageThree
+      );
+    default:
+      return false;
   }
 }

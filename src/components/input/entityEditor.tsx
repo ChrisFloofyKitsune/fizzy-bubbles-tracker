@@ -53,6 +53,7 @@ export type EditorWrapperProps<T extends ObjectLiteral> = {
   createNewEntity?: () => T | null;
   onAdd?: EntityCallback<T>;
   onUpdate?: EntityCallback<T[]>;
+  allowAdd?: boolean;
   allowDelete?: boolean;
   onConfirmedDelete?: EntityCallback<T>;
   confirmDeletePlaceholder?: string;
@@ -70,6 +71,7 @@ export function EntityEditor<T extends ObjectLiteral>({
   createNewEntity,
   onAdd,
   onUpdate,
+  allowAdd = true,
   allowDelete = true,
   onConfirmedDelete,
   confirmDeletePlaceholder = "DELETE",
@@ -246,7 +248,12 @@ export function EntityEditor<T extends ObjectLiteral>({
       </Modal>
 
       <Group noWrap>
-        <Button color="green" leftIcon={<AddIcon />} onClick={addNew}>
+        <Button
+          color="green"
+          leftIcon={<AddIcon />}
+          onClick={addNew}
+          disabled={!allowAdd}
+        >
           {`Create New ${entityLabel ?? entityRepo.metadata.name}`}
         </Button>
         {extraHeaderElement}
