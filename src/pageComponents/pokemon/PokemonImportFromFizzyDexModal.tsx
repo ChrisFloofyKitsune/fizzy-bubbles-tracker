@@ -356,7 +356,7 @@ export function PokemonImportFromFizzyDexModal({
                 (evoChain.stageTwo
                   ? ` -(${evoChain.stageTwoMethod})> ${evoChain.stageTwo}` +
                     (evoChain.stageThree
-                      ? ` -(${evoChain.stageTwoMethod})> ${evoChain.stageTwo}`
+                      ? ` -(${evoChain.stageThreeMethod})> ${evoChain.stageThree}`
                       : "")
                   : "")
               );
