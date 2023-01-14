@@ -198,7 +198,7 @@ export const ChangeOptionPropsMap: Record<
   },
   [PokemonChangeOption.ContestStat]: {
     group: "Stats",
-    dataType: "string",
+    dataType: "number",
     allowMultiple: true,
     dataLabel: "Stat Change",
     noteLabel: "Source",
@@ -234,7 +234,7 @@ export class PokemonChangeLog {
       this.dataValue = log?.[keys.data] ?? (dataType === "string" ? "" : 0);
       this.noteValue = log?.sourceNote ?? this.defaultNote;
       if (changeOption === PokemonChangeOption.ContestStat) {
-        this.contestStat = log?.stat ?? null;
+        this.contestStat = log?.stat ?? PokemonContestStat.ALL;
       }
     } else {
       this.dataValue = pokemon[keys.data] ?? (dataType === "string" ? "" : 0);
@@ -270,17 +270,28 @@ export class PokemonChangeLog {
     const { keys } = ChangeOptionPropsMap[this.changeOption];
     if (!keys.array) return;
 
-    this.idInArray = updatedPokemon[keys.array].findIndex(
-      (l: Partial<LevelLog & BondLog & MoveLog & ContestStatLog>) =>
-        l.sourceUrl === this.url &&
-        l.sourceNote === this.noteValue &&
-        l[keys.data] === this.dataValue &&
-        (!(this.changeOption === PokemonChangeOption.ContestStat) ||
-          l.stat === this.contestStat)
-    );
-    if (this.idInArray === -1) {
+    const array = updatedPokemon[keys.array] as InstanceType<
+      typeof keys.logClass
+    >[];
+
+    this.idInArray =
+      array.find(
+        (log) =>
+          log.sourceUrl === this.url &&
+          log.sourceNote === this.noteValue &&
+          log[keys.data as keyof typeof log] === this.dataValue &&
+          (!(this.changeOption === PokemonChangeOption.ContestStat) ||
+            (log as ContestStatLog).stat === this.contestStat)
+      )?.id ?? null;
+
+    if (this.idInArray === null) {
       throw new Error(
-        "Could not find PokemonChangeLog's values in array of updated pokemon"
+        `Could not find PokemonChangeLog's values in array of updated pokemon
+${this.changeOption}, ${this.url}, ${this.dataValue}${
+          this.changeOption === PokemonChangeOption.ContestStat
+            ? `, ${this.contestStat}`
+            : ""
+        }`
       );
     }
 
@@ -300,6 +311,11 @@ export class PokemonChangeLog {
 
       let log = logArray.find((l) => l.id === this.idInArray);
       if (typeof log === "undefined") {
+        console.debug(
+          `log ${this.changeOption} adding itself to ${
+            targetPokemon.name || targetPokemon.species
+          }`
+        );
         log = new keys.logClass();
         logArray.push(log);
       }

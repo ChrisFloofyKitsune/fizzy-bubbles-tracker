@@ -3,7 +3,7 @@ import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { v4 as uuid } from "uuid";
 import { AvatarIconImage } from "~/components";
 import { AddIcon } from "~/appIcons";
-import { Select, Text } from "@mantine/core";
+import { Group, Select, Text } from "@mantine/core";
 import { OpenCreateItemDefModal } from "~/pageComponents/post-summaries/CreateItemDefModal";
 import { ComponentPropsWithoutRef, forwardRef, ReactNode } from "react";
 
@@ -84,6 +84,25 @@ export function createItemDefinitionSelectConfig(
             minHeight: "unset",
             height: "2em",
           },
+        }}
+        creatable
+        getCreateLabel={(query) => (
+          <Group spacing="xs">
+            <AddIcon
+              style={{
+                verticalAlign: "text-bottom",
+                marginRight: "0.5em",
+              }}
+            />
+            {`Create Item "${query}"`}
+          </Group>
+        )}
+        onCreate={(query) => {
+          OpenCreateItemDefModal({
+            onSubmit: onChange,
+            startingName: query,
+          });
+          return undefined;
         }}
       />
     ),

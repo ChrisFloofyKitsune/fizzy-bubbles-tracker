@@ -44,6 +44,7 @@ export function createDayjsPropConfig<T extends {}, P extends keyof T>(
             height: "2em",
           },
         })}
+        withinPortal
       />
     ),
   };

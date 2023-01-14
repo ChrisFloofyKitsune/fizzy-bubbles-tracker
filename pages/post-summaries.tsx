@@ -255,6 +255,7 @@ const PostSummariesPage: NextPage = () => {
       );
       urlNotesHandler.setState(await urlNoteRepo.find());
       setSelectedUrl(newUrlNote);
+      setEditModeOn(true);
       cancelModal();
     },
     [modalForm, ds, pokedollarReward, cancelModal, wordCount]
@@ -278,11 +279,6 @@ const PostSummariesPage: NextPage = () => {
       >
         <form onSubmit={modalForm.onSubmit(onSubmit)}>
           <Stack>
-            <TextInput
-              required
-              label="Post URL"
-              {...modalForm.getInputProps("url")}
-            />
             <Group spacing="xs">
               <DatePicker
                 sx={{ width: "7em" }}
@@ -303,6 +299,11 @@ const PostSummariesPage: NextPage = () => {
                 {...modalForm.getInputProps("label")}
               />
             </Group>
+            <TextInput
+              required
+              label="Post URL"
+              {...modalForm.getInputProps("url")}
+            />
             <Radio.Group
               label="Roleplay Word Count Rewards"
               defaultValue="none"

@@ -30,7 +30,7 @@ import { PokemonContestStat } from "~/orm/enums";
 import { toHeaderCase } from "js-convert-case";
 import { css } from "@emotion/react";
 import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
-import { useRepository } from "~/services";
+import { useDebouncedRepoSave, useRepository } from "~/services";
 
 const useDataTableStyles = createStyles<
   keyof Pick<
@@ -87,6 +87,12 @@ export function PokemonChangeDataTable({
     pokemonRef.current = pokemon;
   }, [pokemon]);
 
+  const debouncedPokemonSave = useDebouncedRepoSave(pokemonRepo, {
+    afterSavedToRepo([updatedPokemon]) {
+      pokemonRef.current = updatedPokemon;
+    },
+  });
+
   const dataTableCallbacks: DataTableCallbacks<PokemonChangeLog> = useMemo(
     () => ({
       async add() {
@@ -102,8 +108,13 @@ export function PokemonChangeDataTable({
               date,
               urlLabel
             );
+
             newLog.applyChanges(pokemonRef.current);
             pokemonRef.current = await pokemonRepo!.save(pokemonRef.current);
+            if (ChangeOptionPropsMap[option].allowMultiple) {
+              newLog.updateIdInArray(pokemonRef.current);
+            }
+
             changeLogsHandler.append(newLog);
           },
         });
@@ -112,22 +123,18 @@ export function PokemonChangeDataTable({
         if (key !== "dataValue" && key !== "noteValue" && key !== "contestStat")
           return;
 
-        const needToUpdateLogId =
-          log.idInArray === null &&
-          ChangeOptionPropsMap[log.changeOption].allowMultiple;
+        (log[key] as any) = value;
+        log.applyChanges(pokemonRef.current);
 
         changeLogsHandler.setState((prev) =>
-          prev.map((l) =>
-            l.uuid === log.uuid ? Object.assign(l, { [key]: value }) : l
+          prev.map((prevLog) =>
+            prevLog.uuid === log.uuid
+              ? Object.assign(prevLog, { [key]: value })
+              : prevLog
           )
         );
 
-        (log[key] as any) = value;
-        log.applyChanges(pokemonRef.current);
-        pokemonRef.current = await pokemonRepo!.save(pokemonRef.current);
-        if (needToUpdateLogId) {
-          log.updateIdInArray(pokemonRef.current);
-        }
+        debouncedPokemonSave(pokemonRef.current);
       },
       async remove(log) {
         log.deleteChanges(pokemonRef.current);
@@ -143,7 +150,15 @@ export function PokemonChangeDataTable({
         }
       },
     }),
-    [changeLogs, url, date, urlLabel, pokemonRepo, onNoLogs]
+    [
+      changeLogs,
+      url,
+      date,
+      urlLabel,
+      pokemonRepo,
+      debouncedPokemonSave,
+      onNoLogs,
+    ]
   );
 
   const dataTableStyles = useDataTableStyles({

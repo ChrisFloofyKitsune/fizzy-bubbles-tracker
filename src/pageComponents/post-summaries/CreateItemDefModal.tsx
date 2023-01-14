@@ -1,6 +1,6 @@
 import { ItemDefinition } from "~/orm/entities";
 import { ContextModalProps, openContextModal } from "@mantine/modals";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Button,
   Group,
@@ -25,12 +25,13 @@ import {
 
 export type CreateItemDefModalProps = {
   onSubmit: (itemDef: ItemDefinition) => Promise<void>;
+  startingName?: string;
 };
 
 export function CreateItemDefModal(
   props: ContextModalProps<CreateItemDefModalProps>
 ) {
-  const { onSubmit } = props.innerProps;
+  const { onSubmit, startingName } = props.innerProps;
   const repo = useRepository(ItemDefinition);
 
   const createCategorySelectItem = useCallback(
@@ -66,6 +67,12 @@ export function CreateItemDefModal(
       description: "",
     },
   });
+
+  useEffect(() => {
+    if (!!startingName) {
+      itemDefForm.setValues({ name: startingName });
+    }
+  }, [itemDefForm, startingName]);
 
   if (!repo) {
     return <></>;
@@ -154,5 +161,7 @@ export function OpenCreateItemDefModal(innerProps: CreateItemDefModalProps) {
     size: "lg",
     innerProps,
     centered: true,
+    trapFocus: false,
+    withFocusReturn: false,
   });
 }
