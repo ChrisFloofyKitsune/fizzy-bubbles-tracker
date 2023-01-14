@@ -57,11 +57,14 @@ import {
   UseListStateHandlers,
 } from "@mantine/hooks";
 import { IconPencilPlus, IconQuestionCircle } from "@tabler/icons";
-import { debounce } from "~/util";
+import { createBlankPokemon, debounce } from "~/util";
 import { createItemDefinitionSelectConfig } from "~/components/dataTable/configCreators/createItemDefinitionSelectConfig";
 import { TbSearch } from "react-icons/tb";
 import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
 import { PokemonChangeLog } from "~/pageComponents/post-summaries/PokemonChangeLog";
+import { openContextModal } from "@mantine/modals";
+import { ModalName } from "~/modalsList";
+import { PokemonImportFromFizzyDexModalProps } from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
 
 interface PostSummaryProps {
   urlNote: UrlNote;
@@ -320,7 +323,7 @@ export function PostSummary({
     (pokemon: Pokemon) => {
       OpenAddPokemonChangeModal({
         existingPokemon: pokemon,
-        onSelect(option) {
+        async onSelect(option) {
           if (!pokemonRepo) return;
           const { url, date, label } = infoRef.current;
           const tempLog = new PokemonChangeLog(
@@ -332,14 +335,50 @@ export function PostSummary({
             label ?? ""
           );
           tempLog.applyChanges();
-          pokemonRepo.save(pokemon).then(() => {
-            pokemonListHandler.append(pokemon);
-          });
+          pokemonListHandler.append(await pokemonRepo.save(pokemon));
         },
       });
     },
     [pokemonRepo]
   );
+
+  const onRecordNewPokemon = useCallback(async () => {
+    if (!pokemonRepo) return;
+    openContextModal({
+      modal: ModalName.PokemonImportFromFizzyDex,
+      title: <Title order={2}>Record New Pokemon</Title>,
+      size: "lg",
+      innerProps: {
+        async onImportSubmit(pokemonData) {
+          if (!pokemonRepo) return;
+          const newPokemon = createBlankPokemon();
+          newPokemon.obtained = label;
+          newPokemon.obtainedLink = url;
+
+          newPokemon.species = pokemonData.species ?? "";
+          newPokemon.dexNum = pokemonData.dexNum ?? "";
+          newPokemon.type = pokemonData.type ?? "";
+          newPokemon.ability = pokemonData.ability ?? "";
+          newPokemon.levelUpMoves = pokemonData.levelUpMoves ?? [];
+
+          if (pokemonData.evolutionChain) {
+            newPokemon.evolutionStageOne = pokemonData.evolutionChain.stageOne;
+            newPokemon.evolutionStageTwoMethod =
+              pokemonData.evolutionChain.stageTwoMethod;
+            newPokemon.evolutionStageTwo = pokemonData.evolutionChain.stageTwo;
+            newPokemon.evolutionStageThreeMethod =
+              pokemonData.evolutionChain.stageThreeMethod;
+            newPokemon.evolutionStageThree =
+              pokemonData.evolutionChain.stageThree;
+          }
+
+          newPokemon.imageLink = pokemonData.imageLink ?? "";
+
+          pokemonListHandler.append(await pokemonRepo.save(newPokemon));
+        },
+      } as PokemonImportFromFizzyDexModalProps,
+    });
+  }, [label, pokemonRepo, url]);
 
   if (!urlNoteRepo) {
     return <>Loading...</>;
@@ -551,7 +590,12 @@ export function PostSummary({
           pokemonList={selectablePokemon}
           onSelectPokemon={onSelectPokemon}
         />
-        <Button leftIcon={<AddIcon />} color="green" disabled={!isEditMode}>
+        <Button
+          leftIcon={<AddIcon />}
+          color="green"
+          disabled={!isEditMode}
+          onClick={async () => await onRecordNewPokemon()}
+        >
           Record New Pokemon
         </Button>
       </Flex>

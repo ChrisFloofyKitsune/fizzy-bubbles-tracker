@@ -185,9 +185,17 @@ export function PokemonChangeDataTable({
           >
             <Title order={6}>{pokemon.name || pokemon.species}</Title>
             <Image
+              key={`pokemon_image_${pokemon.uuid}`}
               src={pokemon.imageLink}
-              placeholder={<IconQuestionCircle />}
-              alt={`${pokemon.name || pokemon.species} image`}
+              alt="pokemon_image"
+              withPlaceholder
+              fit="scale-down"
+              styles={{
+                image: {
+                  aspectRatio: "1/1",
+                },
+              }}
+              placeholder={<IconQuestionCircle size={"100%"} />}
             />
           </Stack>
           <Box sx={{ flex: "0 1 100%" }}>

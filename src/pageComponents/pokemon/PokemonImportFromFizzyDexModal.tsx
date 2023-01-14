@@ -246,7 +246,7 @@ function DisplayImportOption<
 }
 
 export type PokemonImportFromFizzyDexModalProps = {
-  importFieldExistsMap: ImportFieldExistsMap | null;
+  importFieldExistsMap?: ImportFieldExistsMap | null;
   onImportSubmit: (
     importData: FizzyDexImportData,
     saveToExisting: boolean
@@ -262,7 +262,7 @@ export function PokemonImportFromFizzyDexModal({
   const fizzyDex = useFizzyDex();
   const importOptionMap = useFizzyDexImportOptionMap(
     fizzyDex,
-    props.importFieldExistsMap
+    props.importFieldExistsMap ?? null
   );
 
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);

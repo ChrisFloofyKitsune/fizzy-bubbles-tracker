@@ -1,4 +1,5 @@
 import dayjs, { Dayjs } from "dayjs";
+import { Pokemon } from "~/orm/entities";
 
 export function debounce(fn: Function, ms = 300) {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -54,4 +55,21 @@ export function getCircularReplacer() {
     }
     return value;
   };
+}
+
+export function createBlankPokemon(): Pokemon {
+  return Object.assign(new Pokemon(), {
+    name: "",
+    species: "",
+    dexNum: "",
+    levelLogs: [],
+    bondLogs: [],
+    levelUpMoves: [],
+    eggMoveLogs: [],
+    machineMoveLogs: [],
+    tutorMoveLogs: [],
+    otherMoveLogs: [],
+    contestStatsLogs: [],
+    specialStatuses: [],
+  });
 }

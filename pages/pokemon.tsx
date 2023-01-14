@@ -50,7 +50,7 @@ import {
   createUrlPropConfig,
 } from "~/components/dataTable/configCreators";
 import { PropConfig } from "~/components/dataTable/dataTable";
-import { currentTime } from "~/util";
+import { createBlankPokemon, currentTime } from "~/util";
 import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
 import { useListState } from "@mantine/hooks";
@@ -206,23 +206,6 @@ const PokemonPage: NextPage = () => {
     });
     setTrainerList(trainers);
   }, [trainerRepo]);
-
-  const createNewPokemon = useCallback(() => {
-    return repo?.create({
-      name: "",
-      species: "",
-      dexNum: "",
-      levelLogs: [],
-      bondLogs: [],
-      levelUpMoves: [],
-      eggMoveLogs: [],
-      machineMoveLogs: [],
-      tutorMoveLogs: [],
-      otherMoveLogs: [],
-      contestStatsLogs: [],
-      specialStatuses: [],
-    }) as Pokemon;
-  }, [repo]);
 
   const editorStyle = useEditorStyle();
 
@@ -473,7 +456,7 @@ const PokemonPage: NextPage = () => {
         let pokemon =
           saveToExisting && selectedPokemon
             ? Object.assign(new Pokemon(), selectedPokemon)
-            : createNewPokemon();
+            : createBlankPokemon();
 
         console.debug("Importing the following from FizzyDex", importData);
 
@@ -505,7 +488,7 @@ const PokemonPage: NextPage = () => {
           setSelectedPokemon(pokemon);
         }
       },
-      [createNewPokemon, entityList, entityListHandler, repo, selectedPokemon]
+      [entityList, entityListHandler, repo, selectedPokemon]
     );
 
   if (!repo) {
@@ -550,7 +533,7 @@ const PokemonPage: NextPage = () => {
             leftIcon={<AddIcon />}
             onClick={async () => {
               await waitForTransactions(repo);
-              const pokemon = await repo!.save(createNewPokemon());
+              const pokemon = await repo!.save(createBlankPokemon());
               entityListHandler.append(pokemon);
               setSelectedPokemon(pokemon);
               setEditModeOn(true);
@@ -568,7 +551,7 @@ const PokemonPage: NextPage = () => {
             confirmDeletePlaceholder={`${
               selectedPokemon.name || selectedPokemon.species || "(New Pokemon)"
             } has fainted!`}
-            createNewEntity={createNewPokemon}
+            createNewEntity={createBlankPokemon}
             onAdd={(pokemon: Pokemon) => {
               entityListHandler.append(pokemon);
               setSelectedPokemon(pokemon);
