@@ -1,6 +1,7 @@
-- Add Quick Log feature to easily log everything that has happened in a single post
 - Allow custom fields for Pokémon profiles (straight replacement only) to allow for extra customization
 - Template / Customization Overhaul
+    - Current proposed format example: {{nature}} => {[B]Nature:[/B] {nature}}
+      - Text inside the first pair of brackets will only show if the field has a value, allowing for optional output.
     - Dedicated Template editing page
     - Editable Templates for Items, Wallet, Bond
     - Preset Templates to pick from
