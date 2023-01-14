@@ -31,9 +31,6 @@ import {
   createNumberPropConfig,
 } from "~/components/dataTable/configCreators";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-
-dayjs.extend(utc);
 
 export type EditInventoryModalContext = {
   startingItemDef?: ItemDefinition;

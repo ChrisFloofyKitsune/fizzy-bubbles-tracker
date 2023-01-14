@@ -128,13 +128,14 @@ function useFizzyDexImportOptionMap(
           return null;
         }
 
+        const dexNum = form.Pokemon.DexNum;
         const formName = form.FormName;
         const evoChains =
           form.Pokemon.EvolutionChains.filter(
             (ec) =>
-              ec.Stage1Form === formName ||
-              ec.Stage2Form === formName ||
-              ec.Stage3Form === formName
+              (ec.Stage1DexNum === dexNum && ec.Stage1Form === formName) ||
+              (ec.Stage2DexNum === dexNum && ec.Stage2Form === formName) ||
+              (ec.Stage3DexNum === dexNum && ec.Stage3Form === formName)
           ) ?? [];
 
         const result: FizzyDexImportData["evolutionChain"] = {
@@ -245,7 +246,7 @@ function DisplayImportOption<
 }
 
 export type PokemonImportFromFizzyDexModalProps = {
-  importFieldExistsMap: ImportFieldExistsMap | null;
+  importFieldExistsMap?: ImportFieldExistsMap | null;
   onImportSubmit: (
     importData: FizzyDexImportData,
     saveToExisting: boolean
@@ -261,7 +262,7 @@ export function PokemonImportFromFizzyDexModal({
   const fizzyDex = useFizzyDex();
   const importOptionMap = useFizzyDexImportOptionMap(
     fizzyDex,
-    props.importFieldExistsMap
+    props.importFieldExistsMap ?? null
   );
 
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);

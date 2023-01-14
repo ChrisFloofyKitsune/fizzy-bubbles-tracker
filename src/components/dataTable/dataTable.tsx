@@ -16,10 +16,11 @@ import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
 export type PropConfigEntry<T, P extends keyof T> = {
   headerLabel: string;
-  viewComponent: (value: T[P]) => JSX.Element;
+  viewComponent: (value: T[P], object: T) => JSX.Element;
   editorComponent: (
     value: T[P],
-    onChange: (value: T[P]) => Promise<void>
+    onChange: (value: T[P]) => Promise<void>,
+    object: T
   ) => JSX.Element;
   order?: number;
 };
@@ -123,7 +124,9 @@ export function DataTable<T extends {}>({
 
   const headers = useMemo(() => {
     const result = sortedConfig.map(([prop, { headerLabel }]) => (
-      <th key={`header-${String(prop)}`}>{headerLabel}</th>
+      <th key={`header-${String(prop)}`} className={myClasses[prop]}>
+        {headerLabel}
+      </th>
     ));
 
     if (isEditMode && allowRowReordering)
@@ -355,12 +358,13 @@ function DataTableRow<T extends {}>({
       {sortedConfig.map(([prop, config]) => (
         <td key={`row-${id}-${String(prop)}`} className={classes[prop] ?? ""}>
           <div key={`row-${id}-${String(prop)}-view`} hidden={editMode}>
-            {config.viewComponent(rowObj[prop])}
+            {config.viewComponent(rowObj[prop], rowObj)}
           </div>
           <div key={`row-${id}-${String(prop)}-edit`} hidden={!editMode}>
             {config.editorComponent(
               rowObj[prop],
-              async (value) => await edit?.(rowObj, prop, value)
+              async (value) => await edit?.(rowObj, prop, value),
+              rowObj
             )}
           </div>
         </td>

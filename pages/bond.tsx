@@ -18,7 +18,7 @@ import {
   Title,
 } from "@mantine/core";
 import { EditModeToggle } from "~/components";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { BondSummary } from "~/pageComponents/bond/BondSummary";
 import { BondConfigEditor } from "~/pageComponents/bond/BondConfigEditor";
 import { DataTableProps, PropConfig } from "~/components/dataTable/dataTable";
@@ -27,10 +27,9 @@ import {
   createSelectPropConfig,
 } from "~/components/dataTable/configCreators";
 import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
 import { LogDataTable } from "~/components/dataTable/logDataTable";
 import { BondBbCodeOutput } from "~/pageComponents/bond/BondBBCodeOutput";
-dayjs.extend(utc);
+import { css } from "@emotion/react";
 
 const useDataTableStyles = createStyles({
   pokemon: {
@@ -161,21 +160,23 @@ const BondPage: NextPage = () => {
     <>
       <Stack>
         <Group
+          pos="relative"
+          position="center"
           sx={{
             alignContent: "center",
           }}
         >
-          <Title
-            order={2}
-            sx={{
-              width: "50%",
-              textAlign: "right",
-              marginRight: "auto",
-            }}
-          >
+          <Title order={2} align="center">
             Bond
           </Title>
-          <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          <div
+            css={css`
+              position: absolute;
+              right: 0;
+            `}
+          >
+            <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
+          </div>
         </Group>
         <Box
           sx={{

@@ -36,6 +36,7 @@ export function createSelectPropConfig<T extends {}, P extends keyof T>(
         })}
       >
         <Select
+          withinPortal
           key={"select-prop-input"}
           data={selectOptions}
           variant="unstyled"

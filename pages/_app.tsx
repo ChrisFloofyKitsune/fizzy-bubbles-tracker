@@ -23,6 +23,7 @@ import { useResizeObserver } from "@mantine/hooks";
 
 import {
   AppNavbar,
+  UtcClock,
   // GoogleLoginCredentials,
   // GoogleDriveCommunicator,
 } from "~/components/";
@@ -31,24 +32,7 @@ import {
   DataSourceOptions,
   DataSourceProvider,
 } from "~/services/";
-import {
-  BBCodeReplacementConfig,
-  ContestStatLog,
-  ItemDefinition,
-  ItemLog,
-  LevelLog,
-  Pokemon,
-  Trainer,
-  WalletLog,
-  MiscValue,
-  BondLog,
-  EggMoveLog,
-  MachineMoveLog,
-  TutorMoveLog,
-  OtherMoveLog,
-  Setting,
-  BondStylingConfig,
-} from "~/orm/entities";
+import * as entities from "~/orm/entities";
 import * as migrations from "~/orm/migrations";
 import { ModalsProvider } from "@mantine/modals";
 import { Prism } from "prism-react-renderer";
@@ -60,24 +44,32 @@ import { FizzyDexProvider } from "~/services/FizzyDexService";
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
 
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import forceUtc from "~/dayJsForceUtcPlugin";
+import { appScrollSubject } from "~/useAppScroll";
+dayjs.extend(utc);
+dayjs.extend(forceUtc);
+
 let DataSourceOpts: DataSourceOptions = {
   entities: [
-    Trainer,
-    Pokemon,
-    EggMoveLog,
-    MachineMoveLog,
-    TutorMoveLog,
-    OtherMoveLog,
-    LevelLog,
-    BondLog,
-    ContestStatLog,
-    ItemDefinition,
-    ItemLog,
-    WalletLog,
-    BBCodeReplacementConfig,
-    MiscValue,
-    Setting,
-    BondStylingConfig,
+    entities.Trainer,
+    entities.Pokemon,
+    entities.EggMoveLog,
+    entities.MachineMoveLog,
+    entities.TutorMoveLog,
+    entities.OtherMoveLog,
+    entities.LevelLog,
+    entities.BondLog,
+    entities.ContestStatLog,
+    entities.ItemDefinition,
+    entities.ItemLog,
+    entities.WalletLog,
+    entities.BBCodeReplacementConfig,
+    entities.MiscValue,
+    entities.Setting,
+    entities.BondStylingConfig,
+    entities.UrlNote,
   ],
   migrations: Array.from(Object.values(migrations)),
 };
@@ -193,6 +185,14 @@ function MyApp({ Component, pageProps }: AppProps) {
                           />
                         </MediaQuery>
                         <Title>Fizzy Tracker App</Title>
+                        <MediaQuery
+                          smallerThan={540}
+                          styles={{ display: "none" }}
+                        >
+                          <Box ml="auto">
+                            <UtcClock />
+                          </Box>
+                        </MediaQuery>
                         {/* <Box ml='auto'>
                             {
                               (!loginCredentials) ?
@@ -238,6 +238,9 @@ function MyApp({ Component, pageProps }: AppProps) {
                     }}
                   >
                     <ScrollArea
+                      onScrollPositionChange={(pos) =>
+                        appScrollSubject.next(pos.y)
+                      }
                       type="auto"
                       styles={{
                         viewport: {

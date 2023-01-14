@@ -1,3 +1,14 @@
+### v0.2.0
+- New Feature Added: Post Summaries
+  - Warning: Page may sometimes freeze up as the code thinks really hard.
+  - A "one-stop-shop" like page where you can record everything that's happened in one RP post!
+    - Wallet Changes: Pokedollars, Rare Candies, ~~Watts~~ League Points
+    - Item Changes
+    - **Pokemon Changes!** Record changes to an existing pokemon or import directly from the FizzyDex!
+      - Only changes that can have a link associated with them, including levels, bond, new moves, and contest stats (for those who bother with them)
+  - Summaries are also automatically generated for old posts by collecting together links!
+    - However, they may end up marked as (Undated) and put to the bottom of the list.
+
 ### v0.1.10
 
 - Improvement: Pokemon Page
