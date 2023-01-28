@@ -126,8 +126,8 @@ export class DBService {
     await DBService.dataSource.initialize();
 
     console.log("📝 Making sure Database is up-to-date... 📝");
-    await DBService.dataSource.runMigrations();
     await DBService.dataSource.synchronize();
+    await DBService.dataSource.runMigrations();
     console.log("✅ Local Database Initialized ✅");
 
     // for purposes of exposing to web browser console

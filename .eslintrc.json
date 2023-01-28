@@ -13,5 +13,6 @@
     "react/jsx-uses-vars": "warn",
     "no-unused-vars": "off",
     "unused-imports/no-unused-imports": "error"
-  }
+  },
+  "ignorePatterns": ["**/mantine-dates-joda/**"]
 }
