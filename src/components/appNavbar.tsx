@@ -11,8 +11,6 @@ import { useState } from "react";
 import { useDocumentTitle, useIsomorphicEffect } from "@mantine/hooks";
 import { ActiveLink } from "./activeLink";
 import { NavOptionList } from "~/navOptions";
-import { useSettingValue } from "~/services";
-import { SettingEnum } from "~/settingEnum";
 
 const borderRadius = {
   normal: "1em",
@@ -81,33 +79,29 @@ export const AppNavbar = () => {
     navOptClasses[opt.pageName] = opt.useStyle().classes.className;
   }
 
-  const showDataPage = useSettingValue(SettingEnum.ShowDataManagementPage);
-
   return (
     <Stack
       sx={{
         height: "100%",
       }}
     >
-      {NavOptionList.filter((opt) => opt.path !== "/data" || showDataPage).map(
-        (opt) => {
-          return (
-            <Anchor component={ActiveLink} href={opt.path} key={opt.pageName}>
-              <a
-                id={opt.pageName}
-                className={cx(classes.Link, navOptClasses[opt.pageName])}
-              >
-                <Group>
-                  <ThemeIcon sx={{ height: "3em", width: "3em" }}>
-                    <opt.icon size="3em" />
-                  </ThemeIcon>
-                  <Text>{opt.pageName}</Text>
-                </Group>
-              </a>
-            </Anchor>
-          );
-        }
-      )}
+      {NavOptionList.map((opt) => {
+        return (
+          <Anchor component={ActiveLink} href={opt.path} key={opt.pageName}>
+            <a
+              id={opt.pageName}
+              className={cx(classes.Link, navOptClasses[opt.pageName])}
+            >
+              <Group>
+                <ThemeIcon sx={{ height: "3em", width: "3em" }}>
+                  <opt.icon size="3em" />
+                </ThemeIcon>
+                <Text>{opt.pageName}</Text>
+              </Group>
+            </a>
+          </Anchor>
+        );
+      })}
     </Stack>
   );
 };
