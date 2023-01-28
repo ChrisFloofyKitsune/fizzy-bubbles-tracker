@@ -1,18 +1,26 @@
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text, Box, Textarea } from "@mantine/core";
 
-export function createTextAreaPropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createTextAreaPropConfig<
+  Object extends {},
+  Property extends keyof Object,
+  AllowNull extends boolean = true
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<
+  Object,
+  Property,
+  AllowNull extends true ? string | null : string
+> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value) => (
       <Box
         key={"string-prop-view"}
-        sx={(theme) => ({
+        sx={() => ({
           minHeight: "2em",
           padding: "0 0.25em",
         })}
@@ -20,7 +28,7 @@ export function createTextAreaPropConfig<T extends {}, P extends keyof T>(
         <Text key={"string-prop-text"}>{value ?? ""}</Text>
       </Box>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (value, onChange) => (
       <Box
         key={"string-prop-edit"}
         sx={(theme) => ({
@@ -43,7 +51,7 @@ export function createTextAreaPropConfig<T extends {}, P extends keyof T>(
               padding: "2px 2px",
             },
           }}
-          value={(value as string) ?? ""}
+          value={value ?? ""}
           onChange={async (event) => await onChange(event.currentTarget.value)}
         />
       </Box>

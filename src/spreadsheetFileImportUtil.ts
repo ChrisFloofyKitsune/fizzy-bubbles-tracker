@@ -14,13 +14,13 @@ import {
   TutorMoveLog,
   WalletLog,
 } from "~/orm/entities";
-import dayjs, { Dayjs } from "dayjs";
 import {
   CurrencyType,
   PokemonContestStat,
   PokemonGenderOptions,
 } from "~/orm/enums";
 import { findLastIndex } from "~/util";
+import { DateTimeFormatter, LocalDate, ZoneId } from "@js-joda/core";
 
 export async function fileToWorkBook(
   fileInput: File | null
@@ -33,16 +33,17 @@ export async function fileToWorkBook(
   }
 }
 
-export function cellToUTC(
+const CellLocalTimeFormatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+function cellToLocalDate(
   cellValue: number | string | null | undefined
-): Dayjs {
+): LocalDate {
   if (typeof cellValue === "undefined" || cellValue === null) {
-    return dayjs().utc();
+    return LocalDate.now(ZoneId.UTC);
   }
   if (typeof cellValue === "string") {
-    return dayjs.utc(cellValue, "D/M/YYYY");
+    return LocalDate.parse(cellValue, CellLocalTimeFormatter);
   }
-  return dayjs.utc("1900").add(cellValue - 2, "day");
+  return LocalDate.of(1900, 1, 1).plusDays(cellValue - 2);
 }
 
 export function extractInventory(
@@ -104,7 +105,7 @@ export function extractInventory(
     log.itemDefinition = definition;
     log.quantityChange = cell(idx.quantity, 0);
     log.sourceNote = cell(idx.source, "");
-    log.date = cellToUTC(cell(idx.date) as number);
+    log.date = cellToLocalDate(cell(idx.date) as number);
     log.sourceUrl = cell(idx.link, "");
 
     logResults.push(log);
@@ -169,7 +170,7 @@ export function extractWallet(workBook: WorkBook) {
       log.currencyType = currencyType;
       log.quantityChange = row[0] as number;
       log.sourceNote = (row[1] ?? "") as string;
-      log.date = cellToUTC(row[2] as number);
+      log.date = cellToLocalDate(row[2] as number);
       log.sourceUrl = (row[3] ?? "") as string;
       log.verifiedInShopUpdate = !!row[4];
       rowResults.push(log);
@@ -356,7 +357,7 @@ export function extractPokemonSheet(workBook: WorkBook, sheetName: string) {
             newLog.pokemon = pkm;
             newLog.value = log[1] as number;
             newLog.sourceNote = log[2] as string;
-            newLog.date = cellToUTC(log[3] as any);
+            newLog.date = cellToLocalDate(log[3] as any);
             newLog.sourceUrl = log[4] as string;
             newLog.verifiedInShopUpdate =
               (log[5] as string) !== currentBondPost;

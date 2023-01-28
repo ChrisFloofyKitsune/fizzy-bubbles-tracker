@@ -1,5 +1,6 @@
-import dayjs, { Dayjs } from "dayjs";
 import { Pokemon } from "~/orm/entities";
+import { DateTimeFormatter } from "@js-joda/core";
+import { Locale } from "@js-joda/locale_en-us";
 
 export function debounce(fn: Function, ms = 300) {
   let timeoutId: ReturnType<typeof setTimeout>;
@@ -26,10 +27,6 @@ type WrapIfProps = {
 };
 export function WrapIf({ wrapIf, wrap, children }: WrapIfProps): JSX.Element {
   return wrapIf ? wrap(children) : children;
-}
-
-export function currentTime(): Dayjs {
-  return dayjs().utc();
 }
 
 export function findLastIndex<T>(
@@ -73,3 +70,7 @@ export function createBlankPokemon(): Pokemon {
     specialStatuses: [],
   });
 }
+
+export const LocalDateFormatter = DateTimeFormatter.ofPattern(
+  "dd-MMM-yyyy"
+).withLocale(Locale.ENGLISH);

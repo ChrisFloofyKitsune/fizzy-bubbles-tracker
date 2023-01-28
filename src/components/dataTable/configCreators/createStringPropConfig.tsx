@@ -1,18 +1,21 @@
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text, TextInput, Box } from "@mantine/core";
 
-export function createStringPropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createStringPropConfig<
+  Object extends {},
+  Property extends keyof Object
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, string | null> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value) => (
       <Box
         key={"string-prop-view"}
-        sx={(theme) => ({
+        sx={() => ({
           minHeight: "2em",
           padding: "0 0.25em",
         })}
@@ -20,7 +23,7 @@ export function createStringPropConfig<T extends {}, P extends keyof T>(
         <Text key={"string-prop-text"}>{value ?? ""}</Text>
       </Box>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (value, onChange) => (
       <Box
         key={"string-prop-edit"}
         sx={(theme) => ({
@@ -38,7 +41,7 @@ export function createStringPropConfig<T extends {}, P extends keyof T>(
               height: "2em",
             },
           }}
-          value={(value as string) ?? ""}
+          value={value ?? ""}
           onChange={async (event) => await onChange(event.currentTarget.value)}
         />
       </Box>

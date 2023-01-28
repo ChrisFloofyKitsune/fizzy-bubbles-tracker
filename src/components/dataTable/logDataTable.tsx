@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import {
   createStringPropConfig,
   createUrlPropConfig,
-  createDayjsPropConfig,
+  createLocalDatePropConfig,
   createBooleanPropConfig,
 } from "~/components/dataTable/configCreators";
 
@@ -30,28 +30,28 @@ export function LogDataTable<T extends ChangeLogBase | ShopTrackedChangeLog>({
 }: LogDataTableProps<T>) {
   const finalConfig = useMemo(() => {
     const result = Object.assign({}, tableProps.propConfig);
-    function addIfMissingForProp<K>(
-      prop: keyof K,
+    function addIfMissingForProp<O, P extends keyof O>(
+      prop: P,
       headerLabel: string,
       order: number,
       createFunction: (
         prop: any,
         headerLabel: string,
         order: number
-      ) => PropConfigEntry<K, keyof K>
+      ) => PropConfigEntry<O, P, O[P]>
     ): void {
       if (!(result as any)[prop]) {
         (result as any)[prop] = createFunction(prop, headerLabel, order);
       }
     }
 
-    addIfMissingForProp<ChangeLogBase>(
+    addIfMissingForProp<ChangeLogBase, "sourceNote">(
       "sourceNote",
       "Note",
       101,
       createStringPropConfig
     );
-    addIfMissingForProp<ChangeLogBase>(
+    addIfMissingForProp<ChangeLogBase, "sourceUrl">(
       "sourceUrl",
       "Link",
       102,
@@ -59,13 +59,13 @@ export function LogDataTable<T extends ChangeLogBase | ShopTrackedChangeLog>({
     );
 
     if (isShopLog) {
-      addIfMissingForProp<ShopTrackedChangeLog>(
+      addIfMissingForProp<ShopTrackedChangeLog, "date">(
         "date",
         "Date",
         201,
-        createDayjsPropConfig
+        createLocalDatePropConfig
       );
-      addIfMissingForProp<ShopTrackedChangeLog>(
+      addIfMissingForProp<ShopTrackedChangeLog, "verifiedInShopUpdate">(
         "verifiedInShopUpdate",
         "Shop Verified?",
         202,

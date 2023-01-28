@@ -46,8 +46,8 @@ import { ModalName } from "~/modalsList";
 import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
 import { InventoryBBCodeOutput } from "~/pageComponents/items/InventoryBBCodeOutput";
 import {
-  createDayjsPropConfig,
   createImagePropConfig,
+  createLocalDatePropConfig,
   createNumberPropConfig,
   createStringPropConfig,
   createTextAreaPropConfig,
@@ -57,6 +57,7 @@ import {
   useItemCategoryMap,
 } from "~/categoryIconPatterns";
 import { css } from "@emotion/react";
+import { LocalDateFormatter } from "~/util";
 
 const useDataTableStyles = createStyles({
   quantityChange: {
@@ -146,7 +147,7 @@ const ItemsPage: NextPage = () => {
                 link: log.sourceUrl,
                 tooltipLabel: [
                   log.sourceNote,
-                  `(${log.date.format("DD-MMM-YYYY")})`,
+                  `(${log.date.format(LocalDateFormatter)})`,
                 ].join(" "),
               },
             ],
@@ -160,7 +161,7 @@ const ItemsPage: NextPage = () => {
             link: log.sourceUrl,
             tooltipLabel: [
               log.sourceNote,
-              `(${log.date.format("DD-MMM-YYYY")})`,
+              `(${log.date.format(LocalDateFormatter)})`,
             ].join(" "),
           });
         }
@@ -372,7 +373,7 @@ const ItemsPage: NextPage = () => {
       propConfig: {
         quantityChange: createNumberPropConfig("quantityChange", "Change", 1),
         itemDefinitionId: itemDefConfig,
-        date: createDayjsPropConfig("date", "Date", 200),
+        date: createLocalDatePropConfig("date", "Date", 200),
       },
       add: async () => {
         if (!logRepo) return;
@@ -401,7 +402,11 @@ const ItemsPage: NextPage = () => {
     () => ({
       rowObjToId: (def) => def.id,
       propConfig: {
-        name: createTextAreaPropConfig("name", "Name", 0),
+        name: createTextAreaPropConfig<ItemDefinition, "name", false>(
+          "name",
+          "Name",
+          0
+        ),
         category: createStringPropConfig("category", "Category", 1),
         imageLink: createImagePropConfig("imageLink", "Image", 2),
         description: createTextAreaPropConfig("description", "Description", 3),

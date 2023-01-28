@@ -11,10 +11,7 @@ import { useMantineTheme, useComponentDefaultProps } from "@mantine/core";
 import { FirstDayOfWeek } from "../../types";
 import { Calendar } from "../Calendar/Calendar";
 import { CalendarSharedProps } from "../CalendarBase/CalendarBase";
-import {
-  DatePickerBase,
-  DatePickerBaseSharedProps,
-} from "../DatePickerBase/DatePickerBase";
+import { DatePickerBase, DatePickerBaseSharedProps } from "../DatePickerBase";
 import {
   DateTimeFormatter,
   DateTimeParseException,
@@ -79,7 +76,7 @@ const defaultProps: Partial<DatePickerProps> = {
   shadow: "sm",
   transitionDuration: 200,
   closeCalendarOnChange: true,
-  labelFormat: "MMMM YYYY",
+  labelFormat: "MMMM yyyy",
   initiallyOpened: false,
   name: "date",
   size: "sm",

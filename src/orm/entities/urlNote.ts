@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { UTCTransformerAllowNull } from "~/orm/ormUtil";
-import { Dayjs } from "dayjs";
+import { makeLocalDateTransformer } from "~/orm/makeLocalDateTransformer";
+import { LocalDate } from "@js-joda/core";
 
 @Entity({
   orderBy: {
@@ -17,8 +17,11 @@ export class UrlNote {
   @Column("text", { nullable: true })
   label: string | null = null;
 
-  @Column("integer", { nullable: true, transformer: UTCTransformerAllowNull })
-  date: Dayjs | null;
+  @Column("blob", {
+    nullable: true,
+    transformer: makeLocalDateTransformer(true),
+  })
+  date: LocalDate | null;
 
   @Column("text", { nullable: true })
   postText: string | null = null;

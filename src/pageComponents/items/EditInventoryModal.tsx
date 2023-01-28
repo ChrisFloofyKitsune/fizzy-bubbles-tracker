@@ -27,10 +27,10 @@ import {
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
 import {
-  createDayjsPropConfig,
+  createLocalDatePropConfig,
   createNumberPropConfig,
 } from "~/components/dataTable/configCreators";
-import dayjs from "dayjs";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 export type EditInventoryModalContext = {
   startingItemDef?: ItemDefinition;
@@ -102,7 +102,7 @@ export function EditInventoryModal({
       newLog.id = -(logsLength + 1);
       newLog.quantityChange = startQuantity;
       newLog.itemDefinitionId = form.values["id"];
-      newLog.date = dayjs().utc();
+      newLog.date = LocalDate.now(ZoneId.UTC);
       return newLog;
     },
     [form.values]
@@ -170,7 +170,7 @@ export function EditInventoryModal({
       isShopLog: false,
       propConfig: {
         quantityChange: createNumberPropConfig("quantityChange", "Change", 0),
-        date: createDayjsPropConfig("date", "Date", 200),
+        date: createLocalDatePropConfig("date", "Date", 200),
       },
       add: async () => {
         logsHandler.append(makeNewItemLog(logs.length));

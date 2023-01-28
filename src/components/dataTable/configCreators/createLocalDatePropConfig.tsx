@@ -1,18 +1,18 @@
-import { Dayjs } from "dayjs";
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text } from "@mantine/core";
-import { UTCDatePicker } from "~/components/input/UTCDatePicker";
-import { toUTCDate, toUTCDayjs } from "~/toUTCDate";
+import { LocalDate, ZoneId } from "@js-joda/core";
+import { LocalDateFormatter } from "~/util";
+import { DatePicker } from "~/mantine-dates-joda";
 
-export function createDayjsPropConfig<T extends {}, P extends keyof T>(
+export function createLocalDatePropConfig<T extends {}, P extends keyof T>(
   prop: P,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<T, P, LocalDate> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value: LocalDate) => (
       <Text
         key={"date-prop-view"}
         sx={{
@@ -22,18 +22,23 @@ export function createDayjsPropConfig<T extends {}, P extends keyof T>(
         }}
         align="center"
       >
-        {(value as Dayjs).format("DD-MMM-YYYY")}
+        {value.format(LocalDateFormatter)}
       </Text>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => {
+    editorComponent: (
+      value: LocalDate,
+      onChange: (value: LocalDate) => Promise<void>
+    ) => {
       return (
-        <UTCDatePicker
+        <DatePicker
           key={"date-prop-edit"}
-          value={toUTCDate(value as Dayjs)}
-          onChange={async (date) => await onChange(toUTCDayjs(date))}
+          value={value}
+          onChange={async (date) =>
+            await onChange(date ?? LocalDate.now(ZoneId.UTC))
+          }
           variant="unstyled"
           clearable={false}
-          inputFormat="DD-MMM-YYYY"
+          inputFormat="dd-MMM-yyyy"
           firstDayOfWeek="sunday"
           sx={(theme) => ({
             boxShadow: "inset 0px 0px 1px 1px" + theme.colors.gray[7],

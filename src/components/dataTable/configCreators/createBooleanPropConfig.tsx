@@ -2,15 +2,18 @@ import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { ActionIcon, ThemeIcon, Center } from "@mantine/core";
 import { TbCheck, TbX } from "react-icons/tb";
 
-export function createBooleanPropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createBooleanPropConfig<
+  Object extends {},
+  Property extends keyof Object
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, boolean> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value: boolean) => (
       <Center key={"bool-prop-view"}>
         <ThemeIcon
           key={"bool-prop-icon"}
@@ -21,7 +24,10 @@ export function createBooleanPropConfig<T extends {}, P extends keyof T>(
         </ThemeIcon>
       </Center>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (
+      value: any,
+      onChange: (value: boolean) => Promise<void>
+    ) => (
       <Center key={"bool-prop-edit"}>
         <ActionIcon
           key={"bool-prop-action-icon"}
