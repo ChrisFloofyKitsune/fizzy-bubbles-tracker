@@ -185,7 +185,10 @@ export class Pokemon {
     const result = this.bondLogs.reduce(
       (result: LogResult, current) => {
         let log: BondLog;
-        if (result.latestLog === null || current.date > result.latestLog.date) {
+        if (
+          result.latestLog === null ||
+          current.date.isAfter(result.latestLog.date)
+        ) {
           log = current;
         } else {
           log = result.latestLog;
