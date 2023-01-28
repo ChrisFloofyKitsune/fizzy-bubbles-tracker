@@ -6,3 +6,4 @@ export * from "./createNumberPropConfig";
 export * from "./createStringPropConfig";
 export * from "./createBooleanPropConfig";
 export * from "./createTextAreaPropConfig";
+export { toUTCDate } from "~/toUTCDate";

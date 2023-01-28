@@ -46,10 +46,12 @@ console.log("Starting app...");
 
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import forceUtc from "~/dayJsForceUtcPlugin";
+import objectSupport from "dayjs/plugin/objectSupport";
+// import forceUtc from "~/dayJsForceUtcPlugin";
 import { appScrollSubject } from "~/useAppScroll";
 dayjs.extend(utc);
-dayjs.extend(forceUtc);
+dayjs.extend(objectSupport);
+// dayjs.extend(forceUtc);
 
 let DataSourceOpts: DataSourceOptions = {
   entities: [

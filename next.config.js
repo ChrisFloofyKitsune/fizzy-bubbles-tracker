@@ -1,5 +1,6 @@
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
+const { IgnorePlugin } = require("webpack");
 /** @typedef { import('webpack/types').Configuration} WebpackConfig */
 
 const isProd = process.env.NODE_ENV === "production";
@@ -56,6 +57,10 @@ const nextConfig = {
             to: path.join(__dirname, "/public/dist/sql-wasm.js"),
           },
         ],
+      }),
+      new IgnorePlugin({
+        resourceRegExp: /.+\.md|LICENSE/,
+        contextRegExp: /cldr-data/,
       })
     );
 
