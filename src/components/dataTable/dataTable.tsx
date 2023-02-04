@@ -14,26 +14,34 @@ import { openConfirmModal } from "@mantine/modals";
 import { CSSLengthPercentage } from "mantine-number-size-fix";
 import { TbArrowDown, TbArrowUp } from "react-icons/tb";
 
-export type PropConfigEntry<T, P extends keyof T> = {
+export type PropConfigEntry<
+  Object,
+  Property extends keyof Object,
+  Type = Object[Property]
+> = {
   headerLabel: string;
-  viewComponent: (value: T[P], object: T) => JSX.Element;
+  viewComponent: (value: Type, object: Object) => JSX.Element;
   editorComponent: (
-    value: T[P],
-    onChange: (value: T[P]) => Promise<void>,
-    object: T
+    value: Type,
+    onChange: (value: Type) => Promise<void>,
+    object: Object
   ) => JSX.Element;
   order?: number;
 };
 
-export type PropConfig<T> = {
-  [P in keyof T]?: PropConfigEntry<T, P>;
+export type PropConfig<Object> = {
+  [Property in keyof Object]?: PropConfigEntry<Object, Property>;
 };
 
-export type DataTableCallbacks<T extends {}> = {
+export type DataTableCallbacks<Object extends {}> = {
   add?: () => Promise<void>;
-  edit?: (rowObj: T, prop: keyof T, value: T[typeof prop]) => Promise<void>;
-  remove?: (rowObj: T) => Promise<void>;
-  onRowReorder?: (rowObj: T, newPosition: number) => void | Promise<void>;
+  edit?: (
+    rowObj: Object,
+    prop: keyof Object,
+    value: Object[typeof prop]
+  ) => Promise<void>;
+  remove?: (rowObj: Object) => Promise<void>;
+  onRowReorder?: (rowObj: Object, newPosition: number) => void | Promise<void>;
 };
 
 export type DataTableProps<T extends {}> = {
@@ -144,13 +152,7 @@ export function DataTable<T extends {}>({
       );
 
     return result;
-  }, [
-    allowRowReordering,
-    isEditMode,
-    myClasses.remove,
-    myClasses.reorder,
-    sortedConfig,
-  ]);
+  }, [allowRowReordering, isEditMode, myClasses, sortedConfig]);
 
   const myRowObjs = useMemo(() => rowObjs.filter((r) => !!r), [rowObjs]);
 

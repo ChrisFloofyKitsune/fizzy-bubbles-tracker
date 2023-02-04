@@ -18,7 +18,6 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { useEffect, useState } from "react";
-import localforage from "localforage";
 import { useResizeObserver } from "@mantine/hooks";
 
 import {
@@ -43,13 +42,7 @@ import { FizzyDexProvider } from "~/services/FizzyDexService";
 (typeof global !== "undefined" ? global : window).Prism = Prism;
 require("prismjs/components/prism-bbcode");
 console.log("Starting app...");
-
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import forceUtc from "~/dayJsForceUtcPlugin";
 import { appScrollSubject } from "~/useAppScroll";
-dayjs.extend(utc);
-dayjs.extend(forceUtc);
 
 let DataSourceOpts: DataSourceOptions = {
   entities: [
@@ -80,14 +73,14 @@ function MyApp({ Component, pageProps }: AppProps) {
   // const [loginCredentials, setLoginCredentials] = useState<
   //   GoogleLoginCredentials | null | "ERROR"
   // >(null);
-  const [googleSyncEnabled, setGoogleSyncEnabled] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localforage.getItem<boolean>("google-drive-sync-enabled").then((value) => {
-      setGoogleSyncEnabled(!!value);
-    });
-  }, []);
+  // const [googleSyncEnabled, setGoogleSyncEnabled] = useState<boolean>(false);
+  //
+  // useEffect(() => {
+  //   if (typeof window === "undefined") return;
+  //   localforage.getItem<boolean>("google-drive-sync-enabled").then((value) => {
+  //     setGoogleSyncEnabled(!!value);
+  //   });
+  // }, []);
 
   const [headerRef, headerBoxRect] = useResizeObserver();
   const [changingPage, setChangingPage] = useState<boolean>(false);

@@ -1,5 +1,4 @@
 import { ChangeLogBase, Pokemon } from "~/orm/entities";
-import dayjs from "dayjs";
 import React, { useEffect, useMemo, useRef } from "react";
 import { useListState } from "@mantine/hooks";
 import {
@@ -31,6 +30,7 @@ import { toHeaderCase } from "js-convert-case";
 import { css } from "@emotion/react";
 import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
 import { useDebouncedRepoSave, useRepository } from "~/services";
+import { LocalDate } from "@js-joda/core";
 
 const useDataTableStyles = createStyles<
   keyof Pick<
@@ -54,7 +54,7 @@ export interface PokemonChangeDataTableProps {
   isEditMode: boolean;
   url: string;
   urlLabel: string;
-  date: dayjs.Dayjs | null;
+  date: LocalDate | null;
   onNoLogs: () => void;
 }
 
@@ -241,7 +241,7 @@ export function PokemonChangeDataTable({
 
 function generateLogs(
   pokemon: Pokemon,
-  info: { url: string; urlLabel: string; date: dayjs.Dayjs | null }
+  info: { url: string; urlLabel: string; date: LocalDate | null }
 ): PokemonChangeLog[] {
   const result: PokemonChangeLog[] = [];
   const { url, urlLabel, date } = info;

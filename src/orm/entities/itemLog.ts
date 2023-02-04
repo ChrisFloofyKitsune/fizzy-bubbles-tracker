@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, ManyToOne } from "typeorm";
 import { ItemDefinition } from "./itemDefinition";
 import { ChangeLogBase } from "./changeLogBase";
-import { UTCTransformer } from "~/orm/ormUtil";
-import { Dayjs } from "dayjs";
+import { makeLocalDateTransformer } from "~/orm/makeLocalDateTransformer";
+import { LocalDate } from "@js-joda/core";
 
 @Entity({
   orderBy: {
@@ -23,8 +23,8 @@ export class ItemLog extends ChangeLogBase {
   itemDefinition: ItemDefinition | null;
 
   @CreateDateColumn({
-    type: "integer",
-    transformer: UTCTransformer,
+    type: "blob",
+    transformer: makeLocalDateTransformer(false),
   })
-  date: Dayjs;
+  date: LocalDate;
 }

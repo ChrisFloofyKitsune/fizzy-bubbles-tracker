@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, PrimaryGeneratedColumn } from "typeorm";
-import { Dayjs } from "dayjs";
-import { UTCTransformer } from "../ormUtil";
+import { makeLocalDateTransformer } from "~/orm/makeLocalDateTransformer";
+import { LocalDate } from "@js-joda/core";
 
 export abstract class ChangeLogBase {
   @PrimaryGeneratedColumn()
@@ -15,10 +15,10 @@ export abstract class ChangeLogBase {
 
 export abstract class ShopTrackedChangeLog extends ChangeLogBase {
   @CreateDateColumn({
-    type: "integer",
-    transformer: UTCTransformer,
+    type: "blob",
+    transformer: makeLocalDateTransformer(false),
   })
-  date: Dayjs;
+  date: LocalDate;
 
   @Column({
     type: "boolean",

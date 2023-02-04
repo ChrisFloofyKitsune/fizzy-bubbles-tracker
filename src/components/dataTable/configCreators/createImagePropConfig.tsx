@@ -2,15 +2,18 @@ import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Box, TextInput } from "@mantine/core";
 import { AvatarIconImage } from "~/components/AvatarIconImage";
 
-export function createImagePropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createImagePropConfig<
+  Object extends {},
+  Property extends keyof Object
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, string | null> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value) => (
       <Box
         key={"image-prop-view"}
         sx={{
@@ -22,7 +25,7 @@ export function createImagePropConfig<T extends {}, P extends keyof T>(
         {value && <AvatarIconImage imageLink={value} />}
       </Box>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (value, onChange) => (
       <Box
         key={"image-prop-edit"}
         sx={(theme) => ({

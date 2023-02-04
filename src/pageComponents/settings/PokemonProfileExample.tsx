@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { BBCodeReplacementConfig, LevelUpMove, Pokemon } from "~/orm/entities";
-import dayjs from "dayjs";
 import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 import { BBCodeArea } from "~/components";
 import { PokemonContestStat } from "~/orm/enums";
@@ -11,6 +10,7 @@ import {
 } from "~/services";
 import { useAsyncEffect } from "use-async-effect";
 import { Like } from "typeorm";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 const examplePokemon: Pokemon = Object.assign(new Pokemon(), {
   uuid: "fizzy-bot-pikachu",
@@ -35,7 +35,7 @@ const examplePokemon: Pokemon = Object.assign(new Pokemon(), {
   bondLogs: [
     {
       value: 9,
-      date: dayjs(),
+      date: LocalDate.now(ZoneId.UTC),
     } as any,
   ],
   boutiqueMods: "-",

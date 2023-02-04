@@ -50,7 +50,7 @@ import {
   createUrlPropConfig,
 } from "~/components/dataTable/configCreators";
 import { PropConfig } from "~/components/dataTable/dataTable";
-import { createBlankPokemon, currentTime } from "~/util";
+import { createBlankPokemon } from "~/util";
 import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
 import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
 import { useListState } from "@mantine/hooks";
@@ -63,6 +63,7 @@ import {
   ImportFieldExistsMap,
   PokemonImportFromFizzyDexModalProps,
 } from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 const useEditorStyle = createStyles((theme) => ({
   editor: {
@@ -253,7 +254,7 @@ const PokemonPage: NextPage = () => {
         createRowObj: (rowsObjsCount) => {
           const newLog = new BondLog();
           newLog.id = -(rowsObjsCount + 1);
-          newLog.date = currentTime();
+          newLog.date = LocalDate.now(ZoneId.UTC);
           return newLog;
         },
         prepareForSaveCallback: async (logs: BondLog[]) => {

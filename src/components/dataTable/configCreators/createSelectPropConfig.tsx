@@ -1,16 +1,20 @@
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text, Box, SelectItem, Select } from "@mantine/core";
 
-export function createSelectPropConfig<T extends {}, P extends keyof T>(
+export function createSelectPropConfig<
+  Object extends {},
+  Property extends keyof Object,
+  Type extends string = string
+>(
   selectOptions: SelectItem[],
-  prop: P,
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, Type> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value) => (
       <Box
         key={"select-prop-view"}
         sx={{
@@ -25,7 +29,7 @@ export function createSelectPropConfig<T extends {}, P extends keyof T>(
         </Text>
       </Box>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (value, onChange) => (
       <Box
         key={"select-prop-edit"}
         sx={(theme) => ({
@@ -46,8 +50,8 @@ export function createSelectPropConfig<T extends {}, P extends keyof T>(
               height: "2em",
             },
           }}
-          value={(value as string) ?? ""}
-          onChange={async (value) => await onChange(value)}
+          value={value ?? ""}
+          onChange={async (value) => await onChange(value! as Type)}
         />
       </Box>
     ),

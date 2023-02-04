@@ -7,7 +7,6 @@ import {
   TbPokeball,
   TbBackpack,
   TbWallet,
-  TbDatabase,
   TbWriting,
   TbHeartHandshake,
   TbClipboardList,
@@ -57,5 +56,4 @@ export const NavOptionList = [
       },
     },
   })),
-  new NavOption("Data", "/data", TbDatabase),
 ];

@@ -1,15 +1,18 @@
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Box, Text, TextInput, Anchor } from "@mantine/core";
 
-export function createUrlPropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createUrlPropConfig<
+  Object extends {},
+  Property extends keyof Object
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, string | null> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value) => (
       <Box
         key={"url-prop-view"}
         sx={{
@@ -34,7 +37,7 @@ export function createUrlPropConfig<T extends {}, P extends keyof T>(
         )}
       </Box>
     ),
-    editorComponent: (value: any, onChange: (value: any) => Promise<void>) => (
+    editorComponent: (value, onChange) => (
       <Box
         key={"url-prop-edit"}
         sx={(theme) => ({

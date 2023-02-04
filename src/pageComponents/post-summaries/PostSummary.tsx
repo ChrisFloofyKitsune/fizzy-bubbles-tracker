@@ -39,15 +39,14 @@ import {
   PropConfig,
 } from "~/components/dataTable/dataTable";
 import {
-  createDayjsPropConfig,
+  createLocalDatePropConfig,
   createNumberPropConfig,
   createSelectPropConfig,
   createStringPropConfig,
 } from "~/components/dataTable/configCreators";
 import { CurrencyTypeSelectItems } from "~/orm/enums";
 import { EntityEditor } from "~/components/input";
-import { DatePicker } from "@mantine/dates";
-import dayjs from "dayjs";
+import { DatePicker } from "~/mantine-dates-joda";
 import { PokemonChangeDataTable } from "~/pageComponents/post-summaries/PokemonChangeDataTable";
 import { AddIcon } from "~/appIcons";
 import { css } from "@emotion/react";
@@ -65,6 +64,7 @@ import { PokemonChangeLog } from "~/pageComponents/post-summaries/PokemonChangeL
 import { openContextModal } from "@mantine/modals";
 import { ModalName } from "~/modalsList";
 import { PokemonImportFromFizzyDexModalProps } from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 interface PostSummaryProps {
   urlNote: UrlNote;
@@ -175,7 +175,7 @@ export function PostSummary({
     [initialPokemonList]
   );
 
-  const [dateValue, setDateValue] = useState<dayjs.Dayjs | null>(null);
+  const [dateValue, setDateValue] = useState<LocalDate | null>(null);
 
   const { id, label, url, date } = urlNote;
   const infoRef = useRef({ ...urlNote });
@@ -190,7 +190,7 @@ export function PostSummary({
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const applyNewInfoToLogs = useCallback(
-    debounce((label: string | null, url: string, date: dayjs.Dayjs | null) => {
+    debounce((label: string | null, url: string, date: LocalDate | null) => {
       function innerApply<T extends ItemLog | WalletLog>(log: T): T {
         if (
           !log.sourceNote?.trim() ||
@@ -208,7 +208,7 @@ export function PostSummary({
           !log.date ||
           log.date?.valueOf() === oldInfoRef.current.date?.valueOf()
         ) {
-          log.date = date ?? dayjs().utc(false);
+          log.date = date ?? LocalDate.now(ZoneId.UTC);
         }
         return { ...log };
       }
@@ -438,14 +438,12 @@ export function PostSummary({
                 }}
                 label="Date"
                 clearable={false}
-                inputFormat="DD-MMM-YYYY"
+                inputFormat="dd-MMM-yyyy"
                 firstDayOfWeek="sunday"
                 disabled={!isEditMode}
-                value={dateValue?.toDate()}
+                value={dateValue}
                 onChange={(date) => {
-                  const dayjsVal = date ? dayjs(date).utc(false) : null;
-                  setDateValue(dayjsVal);
-                  inputPropMap.date.onChange(dayjsVal);
+                  inputPropMap.date.onChange(date ?? LocalDate.now(ZoneId.UTC));
                 }}
                 styles={{
                   input: { textAlign: "center" },
@@ -628,7 +626,7 @@ const walletLogPropConfig: PropConfig<WalletLog> = {
     "Currency Type"
   ),
   sourceNote: createStringPropConfig("sourceNote", "Note"),
-  date: createDayjsPropConfig("date", "Date"),
+  date: createLocalDatePropConfig("date", "Date"),
 };
 
 function makeItemLogPropConfig(
@@ -638,7 +636,7 @@ function makeItemLogPropConfig(
     quantityChange: createNumberPropConfig("quantityChange", "Change"),
     itemDefinition: createItemDefinitionSelectConfig(availableItemDefs, "Item"),
     sourceNote: createStringPropConfig("sourceNote", "Note"),
-    date: createDayjsPropConfig("date", "Date"),
+    date: createLocalDatePropConfig("date", "Date"),
   };
 }
 

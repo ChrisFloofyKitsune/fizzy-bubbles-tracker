@@ -26,10 +26,10 @@ import {
   createNumberPropConfig,
   createSelectPropConfig,
 } from "~/components/dataTable/configCreators";
-import dayjs from "dayjs";
 import { LogDataTable } from "~/components/dataTable/logDataTable";
 import { BondBbCodeOutput } from "~/pageComponents/bond/BondBBCodeOutput";
 import { css } from "@emotion/react";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 const useDataTableStyles = createStyles({
   pokemon: {
@@ -100,14 +100,14 @@ const BondPage: NextPage = () => {
   const dataTablePropConfig: PropConfig<BondLog> = useMemo(
     () => ({
       value: createNumberPropConfig("value", "Change", 0),
-      pokemon: createSelectPropConfig(
+      pokemonUuid: createSelectPropConfig(
         pokemonList.map((pkm) => ({
           value: pkm.uuid,
           label: `${pkm.name || "(Unnamed)"} the ${
             pkm.species || "(Unknown Pokemon)"
           }`,
         })),
-        "pokemon",
+        "pokemonUuid",
         "Pokemon",
         1
       ),
@@ -127,7 +127,7 @@ const BondPage: NextPage = () => {
             bondRepo.create({
               value: 0,
               pokemon: pokemonList[0].uuid as any,
-              date: dayjs().utc(),
+              date: LocalDate.now(ZoneId.UTC),
             })
           )
         );

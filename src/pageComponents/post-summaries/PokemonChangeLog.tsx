@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import {
   BondLog,
   ChangeLogBase,
@@ -14,6 +13,7 @@ import {
 import { PokemonContestStat } from "~/orm/enums";
 import { ReactNode } from "react";
 import { v4 as uuidv4 } from "uuid";
+import { LocalDate, ZoneId } from "@js-joda/core";
 
 export enum PokemonChangeOption {
   Obtained = "Obtained New Pokemon",
@@ -222,7 +222,7 @@ export class PokemonChangeLog {
     private pokemon: Pokemon,
     public idInArray: number | null,
     private url: string | null,
-    private date: dayjs.Dayjs | null,
+    private date: LocalDate | null,
     private defaultNote: string = ""
   ) {
     const { keys, dataType } = ChangeOptionPropsMap[changeOption];
@@ -252,7 +252,7 @@ export class PokemonChangeLog {
 
   public updateInfo(
     url: string,
-    date: dayjs.Dayjs | null,
+    date: LocalDate | null,
     defaultNote: string
   ): PokemonChangeLog {
     this.url = url.trim();
@@ -324,7 +324,7 @@ ${this.changeOption}, ${this.url}, ${this.dataValue}${
       log.sourceNote = this.noteValue || this.defaultNote;
       log.sourceUrl = this.url;
       if (this.changeOption === PokemonChangeOption.Bond) {
-        (log as BondLog).date = this.date ?? dayjs.utc();
+        (log as BondLog).date = this.date ?? LocalDate.now(ZoneId.UTC);
       } else if (this.changeOption === PokemonChangeOption.ContestStat) {
         (log as ContestStatLog).stat =
           this.contestStat ?? PokemonContestStat.ALL;

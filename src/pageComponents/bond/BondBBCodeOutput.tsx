@@ -2,6 +2,7 @@ import { BondLog, BondStylingConfig } from "~/orm/entities";
 import { Pokemon } from "~/orm/entities";
 import { useMemo } from "react";
 import { BBCodeArea } from "~/components";
+import { LocalDateFormatter } from "~/util";
 
 export interface BondBbCodeOutputProps {
   bondLogs: BondLog[];
@@ -67,7 +68,7 @@ export function BondBbCodeOutput({
         (l) =>
           `${l.sourceUrl ? `[url=${l.sourceUrl}]` : ""}${
             l.value > 0 ? "+" : ""
-          }${l.value} - ${l.sourceNote} (${l.date.format("DD-MMM-YYYY")})${
+          }${l.value} - ${l.sourceNote} (${l.date.format(LocalDateFormatter)})${
             l.sourceUrl ? "[/url]" : ""
           }\n`
       );

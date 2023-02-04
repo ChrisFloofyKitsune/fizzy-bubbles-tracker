@@ -25,8 +25,9 @@ import { debounce } from "~/util";
 import { SettingEnum } from "~/settingEnum";
 import { Setting } from "~/orm/entities";
 import FileSaver from "file-saver";
-import dayjs from "dayjs";
 import { useListState } from "@mantine/hooks";
+import { DateTimeFormatter, LocalDateTime } from "@js-joda/core";
+import { Locale } from "@js-joda/locale_en-us";
 
 export type DataSourceOptions = Partial<
   Omit<
@@ -143,9 +144,12 @@ export class DBService {
     if (!DBService.dataSource) return;
 
     const data = DBService.dataSource.sqljsManager.exportDatabase();
+    const formatter = DateTimeFormatter.ofPattern(
+      "mm-hha-dd-MMM-yyyy"
+    ).withLocale(Locale.ENGLISH);
     FileSaver.saveAs(
       new Blob([data]),
-      `${dayjs().format("mm-hha-DD-MMM-YYYY")}.fbtrack.db`
+      `${LocalDateTime.now().format(formatter)}.fbtrack.db`
     );
   }
 

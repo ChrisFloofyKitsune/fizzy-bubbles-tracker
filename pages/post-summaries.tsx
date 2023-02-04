@@ -23,11 +23,12 @@ import { AddIcon, CancelIcon, PokeDollarIcon } from "~/appIcons";
 import { PostSummary } from "~/pageComponents/post-summaries/PostSummary";
 import { EditModeToggle } from "~/components";
 import { css } from "@emotion/react";
-import { DatePicker } from "@mantine/dates";
+import { DatePicker } from "~/mantine-dates-joda";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { countWordsInBBCode } from "~/wordCountUtil";
 import { CurrencyType } from "~/orm/enums";
-import dayjs from "dayjs";
+import { LocalDate, ZoneId } from "@js-joda/core";
+import { LocalDateFormatter } from "~/util";
 
 const getMissingUrlsQuery = `
     SELECT note, url, date
@@ -157,7 +158,7 @@ async function initUrlNotes(ds: DataSource): Promise<any> {
     const newNote = new UrlNote();
     newNote.url = url;
     newNote.label = label;
-    newNote.date = date ? dayjs(date).utc() : null;
+    newNote.date = date ? LocalDate.now(ZoneId.UTC) : null;
     result.push(newNote);
   }
 
@@ -185,7 +186,7 @@ const PostSummariesPage: NextPage = () => {
   const modalForm = useForm({
     initialValues: {
       url: "",
-      date: dayjs().utc().toDate(),
+      date: LocalDate.now(ZoneId.UTC),
       label: "",
       rpRewards: "none",
       postText: "",
@@ -239,7 +240,7 @@ const PostSummariesPage: NextPage = () => {
             currencyType: CurrencyType.POKE_DOLLAR,
             sourceUrl: values.url,
             sourceNote: values.label + ` (${wordCount} Words)`,
-            date: dayjs(values.date).utc(),
+            date: values.date,
             quantityChange: pokedollarReward,
             verifiedInShopUpdate: false,
           })
@@ -247,12 +248,7 @@ const PostSummariesPage: NextPage = () => {
       }
 
       const urlNoteRepo = ds.getRepository(UrlNote);
-      const newUrlNote = await urlNoteRepo.save(
-        urlNoteRepo.create({
-          ...values,
-          date: dayjs(values.date).utc(),
-        })
-      );
+      const newUrlNote = await urlNoteRepo.save(urlNoteRepo.create(values));
       urlNotesHandler.setState(await urlNoteRepo.find());
       setSelectedUrl(newUrlNote);
       setEditModeOn(true);
@@ -284,7 +280,7 @@ const PostSummariesPage: NextPage = () => {
                 sx={{ width: "7em" }}
                 label="Date"
                 clearable={false}
-                inputFormat="DD-MMM-YYYY"
+                inputFormat="dd-MMM-yyyy"
                 firstDayOfWeek="sunday"
                 required
                 styles={{
@@ -387,7 +383,7 @@ const PostSummariesPage: NextPage = () => {
           itemComponent={UrlNoteSelectItem}
           data={urlNotes.map((n) => ({
             label: `${n.label!} (${
-              n.date?.format("DD-MMM-YYYY") ?? "Not Dated"
+              n.date?.format(LocalDateFormatter) ?? "Not Dated"
             })`,
             value: n.url,
           }))}

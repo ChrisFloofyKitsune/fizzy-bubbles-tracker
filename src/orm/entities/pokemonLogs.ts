@@ -52,6 +52,9 @@ export class BondLog extends ShopTrackedChangeLog {
   @Column("integer")
   value: number;
 
+  @Column()
+  pokemonUuid: string;
+
   @ManyToOne(() => Pokemon, (pokemon) => pokemon.levelLogs, {
     nullable: false,
     orphanedRowAction: "delete",

@@ -1,15 +1,18 @@
 import { PropConfigEntry } from "~/components/dataTable/dataTable";
 import { Text, Box, NumberInput } from "@mantine/core";
 
-export function createNumberPropConfig<T extends {}, P extends keyof T>(
-  prop: P,
+export function createNumberPropConfig<
+  Object extends {},
+  Property extends keyof Object
+>(
+  prop: Property,
   headerLabel: string,
   order?: number
-): PropConfigEntry<T, P> {
+): PropConfigEntry<Object, Property, number> {
   return {
     headerLabel,
     order,
-    viewComponent: (value: any) => (
+    viewComponent: (value: number) => (
       <Box
         key={"number-prop-view"}
         sx={{
@@ -22,7 +25,10 @@ export function createNumberPropConfig<T extends {}, P extends keyof T>(
         </Text>
       </Box>
     ),
-    editorComponent: (value: any, onChange: any) => (
+    editorComponent: (
+      value: number,
+      onChange: (value: number) => Promise<void>
+    ) => (
       <Box
         key={"number-prop-edit"}
         sx={{
@@ -34,9 +40,11 @@ export function createNumberPropConfig<T extends {}, P extends keyof T>(
           key={"number-prop-input"}
           size="sm"
           value={value ?? 0}
-          onChange={async (value) =>
-            typeof value !== "undefined" && onChange(value)
-          }
+          onChange={async (value) => {
+            if (typeof value !== "undefined") {
+              await onChange(value);
+            }
+          }}
           styles={{
             input: {
               minHeight: "2em",

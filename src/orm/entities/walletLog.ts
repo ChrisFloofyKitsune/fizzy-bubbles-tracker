@@ -1,6 +1,7 @@
 import { Column, Entity } from "typeorm";
 import { CurrencyType } from "../enums";
 import { ShopTrackedChangeLog } from "./changeLogBase";
+import { LocalDateFormatter } from "~/util";
 
 @Entity({
   orderBy: {
@@ -79,7 +80,7 @@ export class WalletLog extends ShopTrackedChangeLog {
         sourceNote ? " - " + sourceNote : ""
       }`;
       const end = sourceUrl ? "[/URL]" : "";
-      return `${start}${middle} (${date.format("DD-MMM-YYYY")})${end}`;
+      return `${start}${middle} (${date.format(LocalDateFormatter)})${end}`;
     }
 
     return `Starting ${
