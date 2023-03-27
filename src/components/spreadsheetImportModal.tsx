@@ -413,6 +413,7 @@ function Inner_ButtonOpenSpreadsheetImportModal(
           title: <Title order={2}>Import from Spreadsheet</Title>,
           size: "lg",
           innerProps: {},
+          closeOnClickOutside: false,
         })
       }
     >

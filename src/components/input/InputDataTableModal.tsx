@@ -71,6 +71,7 @@ function Inner_InputDataTableModel<T extends {}>(
           title: modalTitle,
           centered: true,
           size: "xl",
+          closeOnClickOutside: false,
           children: (
             <DataTableModalContent
               {...modalProps}

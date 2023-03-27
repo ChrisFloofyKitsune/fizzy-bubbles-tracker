@@ -19,7 +19,7 @@ import { useForm } from "@mantine/form";
 import {
   ItemCategorySelectItem,
   ItemCategorySelectItemProps,
-} from "~/pageComponents/items/InventorySelectItems";
+} from "~/page-components/items/InventorySelectItems";
 import { filterUnique } from "~/util";
 import { AvatarIconImage } from "~/components/AvatarIconImage";
 import {
@@ -183,7 +183,7 @@ export function EditInventoryModal({
         if (!props) return;
         // this modal only exists as a "save file" when the
         // delete confirmation is open so... edit that save file
-        props.itemLogs = props.itemLogs.filter((l) => l.id !== log.id);
+        props.itemLogs = logs.filter((l) => l.id !== log.id);
       },
       rowsPerPage: 6,
     }),

@@ -1,5 +1,5 @@
 import { Pokemon, Trainer } from "~/orm/entities";
-import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
+import { usePokemonBBCodeTemplate } from "~/bbcode/usePokemonBBCodeTemplate";
 import { useListState } from "@mantine/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { sha1 } from "object-hash";

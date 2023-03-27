@@ -18,8 +18,8 @@ import { useListState } from "@mantine/hooks";
 import { useAsyncEffect } from "use-async-effect";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { SettingEnum } from "~/settingEnum";
-import { PokemonProfileExample } from "~/pageComponents/settings/PokemonProfileExample";
-import { PokemonTemplatesEditor } from "~/pageComponents/settings/PokemonTemplatesEditor";
+import { PokemonProfileExample } from "~/page-components/settings/PokemonProfileExample";
+import { PokemonTemplatesEditor } from "~/page-components/settings/PokemonTemplatesEditor";
 import { AccordionSpoiler } from "~/components/AccordionSpoiler";
 
 const SettingsPage: NextPage = () => {

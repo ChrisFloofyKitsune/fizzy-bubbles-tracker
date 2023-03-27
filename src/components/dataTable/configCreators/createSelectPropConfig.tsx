@@ -4,7 +4,7 @@ import { Text, Box, SelectItem, Select } from "@mantine/core";
 export function createSelectPropConfig<
   Object extends {},
   Property extends keyof Object,
-  Type extends string = string
+  Type extends string | null = string
 >(
   selectOptions: SelectItem[],
   prop: Property,

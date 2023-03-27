@@ -12,11 +12,11 @@ import {
 import {
   InventoryLine,
   InventoryLineProps,
-} from "~/pageComponents/items/InventoryLine";
+} from "~/page-components/items/InventoryLine";
 import { IconType } from "react-icons";
 import { ItemDefinition } from "~/orm/entities";
 import { useMemo, useState } from "react";
-import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
+import { InventoryCategoryLabel } from "~/page-components/items/InventoryCategoryLabel";
 import { DeleteIcon, EditIcon } from "~/appIcons";
 import { openConfirmModal } from "@mantine/modals";
 
