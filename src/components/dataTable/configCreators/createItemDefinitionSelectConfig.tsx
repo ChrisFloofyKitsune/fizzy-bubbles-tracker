@@ -4,7 +4,7 @@ import { v4 as uuid } from "uuid";
 import { AvatarIconImage } from "~/components";
 import { AddIcon } from "~/appIcons";
 import { Group, Select, Text } from "@mantine/core";
-import { OpenCreateItemDefModal } from "~/pageComponents/post-summaries/CreateItemDefModal";
+import { OpenCreateItemDefModal } from "~/page-components/post-summaries/CreateItemDefModal";
 import { ComponentPropsWithoutRef, forwardRef, ReactNode } from "react";
 
 export function createItemDefinitionSelectConfig(

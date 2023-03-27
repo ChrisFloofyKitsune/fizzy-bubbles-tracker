@@ -30,21 +30,21 @@ import {
 } from "~/components/dataTable/dataTable";
 import { openContextModal, openModal } from "@mantine/modals";
 import { AddIcon, EditIcon, ViewIcon } from "~/appIcons";
-import { InventoryLine } from "~/pageComponents/items/InventoryLine";
+import { InventoryLine } from "~/page-components/items/InventoryLine";
 import {
   InventoryCurrent,
   InventoryCurrentProps,
-} from "~/pageComponents/items/InventoryCurrent";
-import { InventoryEditItemDefModalContext } from "~/pageComponents/items/InventoryEditItemDefModal";
+} from "~/page-components/items/InventoryCurrent";
+import { InventoryEditItemDefModalContext } from "~/page-components/items/InventoryEditItemDefModal";
 import {
   LogDataTable,
   LogDataTableProps,
 } from "~/components/dataTable/logDataTable";
-import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
+import { InventoryCategoryLabel } from "~/page-components/items/InventoryCategoryLabel";
 import { AvatarIconImage } from "~/components/AvatarIconImage";
 import { ModalName } from "~/modalsList";
-import { EditInventoryModalContext } from "~/pageComponents/items/EditInventoryModal";
-import { InventoryBBCodeOutput } from "~/pageComponents/items/InventoryBBCodeOutput";
+import { EditInventoryModalContext } from "~/page-components/items/EditInventoryModal";
+import { InventoryBBCodeOutput } from "~/page-components/items/InventoryBBCodeOutput";
 import {
   createImagePropConfig,
   createLocalDatePropConfig,
@@ -222,6 +222,7 @@ const ItemsPage: NextPage = () => {
           categoryIcons,
           onSaveCallback,
         } as InventoryEditItemDefModalContext,
+        closeOnClickOutside: false,
       }),
     [categoryIcons, itemDefs]
   );
@@ -311,6 +312,7 @@ const ItemsPage: NextPage = () => {
           categoryIcons,
           dataTableClasses: dataTableStyles.classes,
           onSaveCallback: editInventoryModalSaveCallback,
+          closeOnClickOutside: false,
         } as EditInventoryModalContext,
       });
     },

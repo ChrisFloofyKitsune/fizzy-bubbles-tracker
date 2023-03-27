@@ -20,12 +20,12 @@ import {
   Title,
 } from "@mantine/core";
 import { AddIcon, CancelIcon, PokeDollarIcon } from "~/appIcons";
-import { PostSummary } from "~/pageComponents/post-summaries/PostSummary";
+import { PostSummary } from "~/page-components/post-summaries/PostSummary";
 import { EditModeToggle } from "~/components";
 import { css } from "@emotion/react";
 import { DatePicker } from "~/mantine-dates-joda";
 import { isNotEmpty, useForm } from "@mantine/form";
-import { countWordsInBBCode } from "~/wordCountUtil";
+import { countWordsInBBCode } from "~/util/wordCountUtil";
 import { CurrencyType } from "~/orm/enums";
 import { LocalDate, ZoneId } from "@js-joda/core";
 import { LocalDateFormatter } from "~/util";
@@ -272,6 +272,7 @@ const PostSummariesPage: NextPage = () => {
           },
         }}
         title={<Title align="center">Create New Post Summary</Title>}
+        closeOnClickOutside={false}
       >
         <form onSubmit={modalForm.onSubmit(onSubmit)}>
           <Stack>

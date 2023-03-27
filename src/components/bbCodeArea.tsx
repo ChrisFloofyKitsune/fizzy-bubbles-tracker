@@ -1,26 +1,21 @@
-import {
-  Box,
-  Tooltip,
-  TypographyStylesProvider,
-  ActionIcon,
-} from "@mantine/core";
+import { ActionIcon, Box, Tooltip } from "@mantine/core";
 
-import BBCodeParser from "~/BBCodeUpn";
-import { ReactNode, useMemo } from "react";
+import BBCodeParser from "~/bbcode/BBCodeUpn";
+import { Fragment, ReactNode, useMemo } from "react";
 import { useClipboard, useDisclosure } from "@mantine/hooks";
 import { Prism } from "@mantine/prism";
 import { CopyIcon } from "~/components/CopyIcon";
 import { TbCode, TbCodeOff } from "react-icons/tb";
+import { UpnBBCodeStyling } from "~/components/UpnBBCodeStyling";
 
 export type BBCodeAreaProps = {
   label?: ReactNode;
-  bbCode: string;
+  bbCode: string | Record<string, string>;
   stickyLabel?: boolean;
 };
-export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
-  const parsedBBCode = useMemo(() => BBCodeParser.parse(bbCode), [bbCode]);
-  const [showBBCode, showBBCodeHandler] = useDisclosure(false);
 
+export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
+  const [showBBCode, showBBCodeHandler] = useDisclosure(false);
   const clipboard = useClipboard();
 
   return (
@@ -71,60 +66,22 @@ export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
         </ActionIcon>
       </Tooltip>
       {!showBBCode ? (
-        <TypographyStylesProvider
-          sx={{
-            border: "#444 solid 1px",
-            borderRadius: "0.5em",
-            padding: "0.5em",
-            backgroundColor: "#252525",
-            color: "#ccc",
-            fontSize: "10pt!important",
-            fontFamily:
-              'verdana, geneva, lucida, "lucida grande", arial, helvetica, sans-serif',
-            lineHeight: "normal",
-            a: {
-              color: "white",
-              "&:hover": {
-                color: "#898989",
-                textDecoration: "none",
-              },
-            },
-            ".smallfont": {
-              fontSize: "11px",
-            },
-            hr: {
-              display: "block",
-              unicodeBidi: "isolate",
-              marginBlockStart: "0.5em",
-              marginBlockEnd: "0.5em",
-              marginInlineStart: "auto",
-              marginInlineEnd: "auto",
-              overflow: "hidden",
-              borderStyle: "inset",
-              borderWidth: "1px",
-              borderBottomWidth: "0px",
-            },
-            ".bbCodeLabel": !stickyLabel
-              ? {}
-              : {
-                  position: "sticky",
-                  top: "0px",
-                  backgroundColor: "#252525",
-                },
-          }}
-        >
-          {!label ? (
-            ""
+        <UpnBBCodeStyling label={label} stickyLabel={stickyLabel}>
+          {typeof bbCode === "string" ? (
+            <BBCodeSection key="bbCodeSection" bbCode={bbCode} />
+          ) : typeof bbCode === "object" ? (
+            Object.entries(bbCode).map(([key, bbCode], index, array) => (
+              <Fragment key={`${key}_fragment`}>
+                <BBCodeSection key={key} bbCode={bbCode} />
+                {index !== array.length - 1 ? (
+                  <br key={`${key}_linebreak`} />
+                ) : null}
+              </Fragment>
+            ))
           ) : (
-            <div className="bbCodeLabel">
-              <div className="smallfont">
-                <strong>{label}</strong>
-              </div>
-              <hr />
-            </div>
+            "something went wrong"
           )}
-          <div dangerouslySetInnerHTML={{ __html: parsedBBCode }} />
-        </TypographyStylesProvider>
+        </UpnBBCodeStyling>
       ) : (
         <Prism
           language={"bbcode" as any}
@@ -139,9 +96,21 @@ export const BBCodeArea = ({ label, bbCode, stickyLabel }: BBCodeAreaProps) => {
             },
           }}
         >
-          {bbCode}
+          {typeof bbCode === "string"
+            ? bbCode
+            : typeof bbCode === "object"
+            ? Object.values(bbCode).join("\n\n")
+            : "something went wrong"}
         </Prism>
       )}
     </Box>
   );
 };
+
+function BBCodeSection({ bbCode }: { bbCode: string }) {
+  const parsedBBCode = useMemo(
+    () => BBCodeParser.parse(bbCode) + "\n",
+    [bbCode]
+  );
+  return <div dangerouslySetInnerHTML={{ __html: parsedBBCode }} />;
+}

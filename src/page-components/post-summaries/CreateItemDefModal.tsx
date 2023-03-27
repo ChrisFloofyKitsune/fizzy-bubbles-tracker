@@ -163,5 +163,6 @@ export function OpenCreateItemDefModal(innerProps: CreateItemDefModalProps) {
     centered: true,
     trapFocus: false,
     withFocusReturn: false,
+    closeOnClickOutside: false,
   });
 }

@@ -9,7 +9,6 @@ import { useListState } from "@mantine/hooks";
 import { useAsyncEffect } from "use-async-effect";
 import { Repository } from "typeorm";
 import {
-  Box,
   createStyles,
   Group,
   Paper,
@@ -17,21 +16,24 @@ import {
   Stack,
   Title,
 } from "@mantine/core";
-import { EditModeToggle } from "~/components";
+import { AccordionSpoiler, BBCodeArea, EditModeToggle } from "~/components";
 import React, { useCallback, useMemo, useState } from "react";
-import { BondSummary } from "~/pageComponents/bond/BondSummary";
-import { BondConfigEditor } from "~/pageComponents/bond/BondConfigEditor";
 import { DataTableProps, PropConfig } from "~/components/dataTable/dataTable";
 import {
   createNumberPropConfig,
   createSelectPropConfig,
 } from "~/components/dataTable/configCreators";
-import { LogDataTable } from "~/components/dataTable/logDataTable";
-import { BondBbCodeOutput } from "~/pageComponents/bond/BondBBCodeOutput";
 import { css } from "@emotion/react";
 import { LocalDate, ZoneId } from "@js-joda/core";
+import { useBondInfos } from "~/page-components/bond/use-bond-infos";
+import { LogDataTable } from "~/components/dataTable/logDataTable";
+import { BondSummary2 } from "~/page-components/bond/bond-summary-2";
+import { EditBondModalSaveCallback } from "~/page-components/bond/edit-bond-modal";
 
 const useDataTableStyles = createStyles({
+  value: {
+    maxWidth: "2em",
+  },
   pokemon: {
     minWidth: "10em",
   },
@@ -61,7 +63,7 @@ const BondPage: NextPage = () => {
     if (!bondConfigRepo || !bondRepo || !pokemonRepo) return;
     await waitForTransactions(bondRepo);
     bondLogsHandler.setState(
-      await bondRepo.find({ loadEagerRelations: false, loadRelationIds: true })
+      await bondRepo.find({ loadEagerRelations: false })
     );
 
     await waitForTransactions(pokemonRepo);
@@ -82,19 +84,10 @@ const BondPage: NextPage = () => {
 
   const [editModeOn, setEditModeOn] = useState<boolean>(false);
 
-  const saveBondConfig = useDebouncedRepoSave(bondConfigRepo);
-
-  const onBondConfigEdit = useCallback(
-    (
-      config: BondStylingConfig,
-      prop: keyof BondStylingConfig,
-      value: BondStylingConfig[typeof prop]
-    ) => {
-      const index = bondConfigs.indexOf(config);
-      bondConfigsHandler.setItemProp(index, prop, value);
-      saveBondConfig(config, { [prop]: value });
-    },
-    [bondConfigs, bondConfigsHandler, saveBondConfig]
+  const [bondInfos, updateInfoConfig, updateInfoLogs] = useBondInfos(
+    pokemonList,
+    bondConfigs,
+    bondLogs
   );
 
   const dataTablePropConfig: PropConfig<BondLog> = useMemo(
@@ -119,14 +112,14 @@ const BondPage: NextPage = () => {
 
   const dataTableConfig: Omit<DataTableProps<BondLog>, "rowObjs"> = useMemo(
     () => ({
-      rowObjToId: (log) => log.pokemon as any,
+      rowObjToId: (log) => log.id,
       propConfig: dataTablePropConfig,
       add: async () => {
         bondLogsHandler.append(
           await bondRepo.save(
             bondRepo.create({
               value: 0,
-              pokemon: pokemonList[0].uuid as any,
+              pokemonUuid: pokemonList[0].uuid,
               date: LocalDate.now(ZoneId.UTC),
             })
           )
@@ -154,6 +147,51 @@ const BondPage: NextPage = () => {
 
   const dataTableStyles = useDataTableStyles();
 
+  const onModalSaveChanges: EditBondModalSaveCallback = useCallback(
+    async (bondConfig, bondLogsToSave, bondLogsToRemove) => {
+      const savedBondConfig = await bondConfigRepo.save(bondConfig);
+      bondConfigsHandler.setState((prevState) => {
+        const prevIndex = prevState.findIndex(
+          (c) => c.pokemonUuid === bondConfig.pokemonUuid
+        );
+        prevState[prevIndex] = savedBondConfig;
+        return Array.from(prevState);
+      });
+      updateInfoConfig(savedBondConfig);
+
+      const removedLogs = await bondRepo.remove(bondLogsToRemove);
+      const savedLogs = await bondRepo.save(bondLogsToSave);
+
+      bondLogsHandler.setState((prevState) => {
+        if (removedLogs.length > 0) {
+          prevState = prevState.filter((l) =>
+            removedLogs.some((removed) => removed.id !== l.id)
+          );
+        }
+
+        for (const savedLog of savedLogs) {
+          const existingIndex = prevState.findIndex(
+            (l) => l.id === savedLog.id
+          );
+          if (existingIndex === -1) {
+            prevState.push(savedLog);
+          } else {
+            prevState[existingIndex] = Object.assign(
+              new BondLog(),
+              prevState[existingIndex],
+              savedLog
+            );
+          }
+        }
+
+        return Array.from(prevState);
+      });
+
+      updateInfoLogs(savedBondConfig.pokemonUuid, savedLogs);
+    },
+    [bondConfigRepo, bondRepo, updateInfoConfig, updateInfoLogs]
+  );
+
   if (!bondConfigRepo || !bondRepo || !pokemonRepo) return <>Loading...</>;
 
   return (
@@ -178,58 +216,45 @@ const BondPage: NextPage = () => {
             <EditModeToggle checked={editModeOn} onToggle={setEditModeOn} />
           </div>
         </Group>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "20em 1fr",
-          }}
-        >
-          <Title order={3} mb={"0.5em"}>
-            Summary
-          </Title>
-          <Title order={3} mb={"0.5em"}>
-            Bond Styling
-          </Title>
-          <BondSummary
-            bondLogs={bondLogs}
-            bondConfigs={bondConfigs}
-            pokemonList={pokemonList}
-          />
-          <ScrollArea
-            type={"auto"}
-            sx={(theme) => ({ backgroundColor: theme.colors.dark[8] })}
+        <Title order={3} mb={"0.5em"}>
+          Summary
+        </Title>
+        <BondSummary2
+          bondInfos={bondInfos}
+          isEditMode={editModeOn}
+          onSave={onModalSaveChanges}
+        />
+        <AccordionSpoiler label={<Title order={3}>Detail</Title>}>
+          <Paper
+            sx={(theme) => ({
+              borderRadius: "0.5em",
+              border: "1px solid " + theme.colors.gray[7],
+              backgroundColor: theme.fn.darken(theme.colors.gray[9], 0.2),
+              overflow: "clip",
+            })}
           >
-            <BondConfigEditor
-              bondConfigs={bondConfigs}
-              onChange={onBondConfigEdit}
-            />
-          </ScrollArea>
-        </Box>
-        <Title order={3}>Detail</Title>
-        <Paper
-          sx={(theme) => ({
-            margin: "0.5em",
-            borderRadius: "0.5em",
-            border: "1px solid " + theme.colors.gray[7],
-            backgroundColor: theme.fn.darken(theme.colors.gray[9], 0.2),
-            overflow: "clip",
-          })}
-        >
-          <ScrollArea.Autosize maxHeight="40vh">
-            <LogDataTable
-              rowObjs={bondLogs}
-              isShopLog={true}
-              isEditMode={editModeOn}
-              propsToMantineClasses={dataTableStyles.classes}
-              {...dataTableConfig}
-            />
-          </ScrollArea.Autosize>
-        </Paper>
+            <ScrollArea.Autosize maxHeight="40vh">
+              <LogDataTable
+                rowObjs={bondLogs}
+                isShopLog={true}
+                isEditMode={editModeOn}
+                propsToMantineClasses={dataTableStyles.classes}
+                {...dataTableConfig}
+              />
+            </ScrollArea.Autosize>
+          </Paper>
+        </AccordionSpoiler>
         <Title order={3}>Output</Title>
-        <BondBbCodeOutput
-          bondLogs={bondLogs}
-          bondConfigs={bondConfigs}
-          pokemonList={pokemonList}
+        <BBCodeArea
+          label="Bond Output"
+          bbCode={Object.fromEntries(
+            bondInfos
+              .filter((output) => output.hasBBCodeOutput)
+              .map((output) => [
+                output.pokemon.uuid,
+                output.getOutput() ?? "something went wrong",
+              ])
+          )}
         />
       </Stack>
     </>

@@ -47,7 +47,7 @@ import {
 import { CurrencyTypeSelectItems } from "~/orm/enums";
 import { EntityEditor } from "~/components/input";
 import { DatePicker } from "~/mantine-dates-joda";
-import { PokemonChangeDataTable } from "~/pageComponents/post-summaries/PokemonChangeDataTable";
+import { PokemonChangeDataTable } from "~/page-components/post-summaries/PokemonChangeDataTable";
 import { AddIcon } from "~/appIcons";
 import { css } from "@emotion/react";
 import {
@@ -59,11 +59,11 @@ import { IconPencilPlus, IconQuestionCircle } from "@tabler/icons";
 import { createBlankPokemon, debounce } from "~/util";
 import { createItemDefinitionSelectConfig } from "~/components/dataTable/configCreators/createItemDefinitionSelectConfig";
 import { TbSearch } from "react-icons/tb";
-import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
-import { PokemonChangeLog } from "~/pageComponents/post-summaries/PokemonChangeLog";
+import { OpenAddPokemonChangeModal } from "~/page-components/post-summaries/AddPokemonChangeOptionModal";
+import { PokemonChangeLog } from "~/page-components/post-summaries/PokemonChangeLog";
 import { openContextModal } from "@mantine/modals";
 import { ModalName } from "~/modalsList";
-import { PokemonImportFromFizzyDexModalProps } from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
+import { PokemonImportFromFizzyDexModalProps } from "~/page-components/pokemon/PokemonImportFromFizzyDexModal";
 import { LocalDate, ZoneId } from "@js-joda/core";
 
 interface PostSummaryProps {
@@ -348,6 +348,7 @@ export function PostSummary({
       modal: ModalName.PokemonImportFromFizzyDex,
       title: <Title order={2}>Record New Pokemon</Title>,
       size: "lg",
+      closeOnClickOutside: false,
       innerProps: {
         async onImportSubmit(pokemonData) {
           if (!pokemonRepo) return;

@@ -1,5 +1,5 @@
 import { Prism } from "@mantine/prism";
-import { getCircularReplacer } from "~/util";
+import { getCircularJsonReplacer } from "~/util";
 
 export function PrismJSON({ value }: { value: any }) {
   return (
@@ -13,7 +13,7 @@ export function PrismJSON({ value }: { value: any }) {
         },
       }}
     >
-      {JSON.stringify(value ?? "", getCircularReplacer(), 2)}
+      {JSON.stringify(value ?? "", getCircularJsonReplacer(), 2)}
     </Prism>
   );
 }

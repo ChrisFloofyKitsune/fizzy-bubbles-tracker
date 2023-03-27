@@ -1,4 +1,4 @@
-import { InventoryCurrentProps } from "~/pageComponents/items/InventoryCurrent";
+import { InventoryCurrentProps } from "~/page-components/items/InventoryCurrent";
 import { useMemo } from "react";
 import { BBCodeArea } from "~/components";
 

@@ -1,11 +1,12 @@
-import { InventoryEditItemDefModal } from "~/pageComponents/items/InventoryEditItemDefModal";
-import { EditInventoryModal } from "~/pageComponents/items/EditInventoryModal";
+import { InventoryEditItemDefModal } from "~/page-components/items/InventoryEditItemDefModal";
+import { EditInventoryModal } from "~/page-components/items/EditInventoryModal";
 import { FunctionComponent } from "react";
 import { ContextModalProps } from "@mantine/modals";
 import { SpreadsheetImportModal } from "~/components/spreadsheetImportModal";
-import { PokemonImportFromFizzyDexModal } from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
-import { CreateItemDefModal } from "~/pageComponents/post-summaries/CreateItemDefModal";
-import { AddPokemonChangeOptionModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
+import { PokemonImportFromFizzyDexModal } from "~/page-components/pokemon/PokemonImportFromFizzyDexModal";
+import { CreateItemDefModal } from "~/page-components/post-summaries/CreateItemDefModal";
+import { AddPokemonChangeOptionModal } from "~/page-components/post-summaries/AddPokemonChangeOptionModal";
+import { EditBondModal } from "~/page-components/bond/edit-bond-modal";
 
 export enum ModalName {
   ItemDefEditor = "ItemDefEditor",
@@ -14,6 +15,7 @@ export enum ModalName {
   PokemonImportFromFizzyDex = "PokemonImportFromFizzyDex",
   CreateItemDef = "CreateItemDef",
   AddPokemonChangeOption = "AddPokemonChangeOption",
+  EditBondConfig = "EditBondConfig",
 }
 
 export const Modals: Record<
@@ -26,4 +28,5 @@ export const Modals: Record<
   [ModalName.PokemonImportFromFizzyDex]: PokemonImportFromFizzyDexModal,
   [ModalName.CreateItemDef]: CreateItemDefModal,
   [ModalName.AddPokemonChangeOption]: AddPokemonChangeOptionModal,
+  [ModalName.EditBondConfig]: EditBondModal,
 };

@@ -51,18 +51,18 @@ import {
 } from "~/components/dataTable/configCreators";
 import { PropConfig } from "~/components/dataTable/dataTable";
 import { createBlankPokemon } from "~/util";
-import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
-import { CombinedPokemonOutput } from "~/pageComponents/pokemon/CombinedPokemonOutput";
+import { usePokemonBBCodeTemplate } from "~/bbcode/usePokemonBBCodeTemplate";
+import { CombinedPokemonOutput } from "~/page-components/pokemon/CombinedPokemonOutput";
 import { useListState } from "@mantine/hooks";
 import { AccordionSpoiler } from "~/components/AccordionSpoiler";
-import { MovesTextStack } from "~/pageComponents/pokemon/MovesTextStack";
-import { LevelUpMovesDisplay } from "~/pageComponents/pokemon/LevelUpMovesDisplay";
-import { ContestStatsDisplay } from "~/pageComponents/pokemon/ContestStatsDisplay";
+import { MovesTextStack } from "~/page-components/pokemon/MovesTextStack";
+import { LevelUpMovesDisplay } from "~/page-components/pokemon/LevelUpMovesDisplay";
+import { ContestStatsDisplay } from "~/page-components/pokemon/ContestStatsDisplay";
 import {
   ButtonOpenFizzyDexImportModal,
   ImportFieldExistsMap,
   PokemonImportFromFizzyDexModalProps,
-} from "~/pageComponents/pokemon/PokemonImportFromFizzyDexModal";
+} from "~/page-components/pokemon/PokemonImportFromFizzyDexModal";
 import { LocalDate, ZoneId } from "@js-joda/core";
 
 const useEditorStyle = createStyles((theme) => ({
