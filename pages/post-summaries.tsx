@@ -27,7 +27,7 @@ import { DatePicker } from "~/mantine-dates-joda";
 import { isNotEmpty, useForm } from "@mantine/form";
 import { countWordsInBBCode } from "~/util/wordCountUtil";
 import { CurrencyType } from "~/orm/enums";
-import { LocalDate, ZoneId } from "@js-joda/core";
+import { DateTimeFormatter, Instant, LocalDate, ZoneId } from "@js-joda/core";
 import { LocalDateFormatter } from "~/util";
 
 const getMissingUrlsQuery = `
@@ -35,22 +35,24 @@ const getMissingUrlsQuery = `
     from (SELECT DISTINCT coalesce(sourceNote, 'wallet change: ' || wallet_log.currencyType || ' ' ||
                                                wallet_log.quantityChange) as note,
                           sourceUrl                                       as url,
-                          date(date / 1000, 'unixepoch')                  as 'date'
+                          date                                            as 'date'
           FROM wallet_log
           UNION ALL
           SELECT DISTINCT coalesce(sourceNote, 'item change: ' || idef.name || ' ' || item_log.quantityChange) as note,
                           sourceUrl                                                                            as url,
-                          date(date / 1000, 'unixepoch')                                                       as 'date'
+                          date                                                                                 as 'date'
           FROM item_log
                    LEFT JOIN item_definition idef on item_log.itemDefinitionId = idef.id
           UNION ALL
-          SELECT DISTINCT coalesce(sourceNote, 'level change to: ' || level_log.value || ' for ' || p.name) as note, sourceUrl as url, null as 'date'
+          SELECT DISTINCT coalesce(sourceNote, 'level change to: ' || level_log.value || ' for ' || p.name) as note,
+                          sourceUrl                                                                         as url,
+                          null                                                                              as 'date'
           FROM level_log
                    LEFT JOIN pokemon p on p.uuid = level_log.pokemonUuid
           UNION ALL
           SELECT DISTINCT coalesce(sourceNote, 'bond change for ' || p.name) as note,
                           sourceUrl                                          as url,
-                          date(date / 1000, 'unixepoch')                     as 'date'
+                          date                                               as 'date'
           FROM bond_log
                    LEFT JOIN pokemon p on p.uuid = bond_log.pokemonUuid
           UNION ALL
@@ -135,14 +137,28 @@ const getMissingUrlsQuery = `
           FROM other_move_log
                    LEFT JOIN pokemon p on p.uuid = other_move_log.pokemonUuid)
     WHERE url IS NOT NULL
-      AND url NOT IN (SELECT un.url
-                      FROM url_note un)
+      AND url NOT IN (SELECT un.url FROM url_note un)
 `;
 
+const formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
 async function initUrlNotes(ds: DataSource): Promise<any> {
-  const missingUrls: Record<"note" | "url" | "date", string>[] = await ds.query(
-    getMissingUrlsQuery
-  );
+  const missingUrls: {
+    note: string;
+    url: string;
+    date: any;
+  }[] = await ds.query(getMissingUrlsQuery);
+
+  for (const item of missingUrls) {
+    if (!!item.date) {
+      item.date =
+        typeof item.date === "number"
+          ? LocalDate.ofInstant(Instant.ofEpochMilli(item.date), ZoneId.UTC)
+          : LocalDate.parse(item.date, formatter);
+    } else {
+      item.date = null;
+    }
+  }
 
   const urlSet = new Set(missingUrls.map((m) => m.url));
   const result: UrlNote[] = [];
@@ -158,7 +174,7 @@ async function initUrlNotes(ds: DataSource): Promise<any> {
     const newNote = new UrlNote();
     newNote.url = url;
     newNote.label = label;
-    newNote.date = date ? LocalDate.now(ZoneId.UTC) : null;
+    newNote.date = date ?? null;
     result.push(newNote);
   }
 
@@ -186,7 +202,6 @@ const PostSummariesPage: NextPage = () => {
   const modalForm = useForm({
     initialValues: {
       url: "",
-      date: LocalDate.now(ZoneId.UTC),
       label: "",
       rpRewards: "none",
       postText: "",
@@ -203,6 +218,10 @@ const PostSummariesPage: NextPage = () => {
     },
     validateInputOnBlur: true,
   });
+
+  const [modalDate, setModalDate] = useState<LocalDate | null>(
+    LocalDate.now(ZoneId.UTC)
+  );
 
   const cancelModal = useCallback(() => {
     setCreateModelOpened(false);
@@ -231,7 +250,9 @@ const PostSummariesPage: NextPage = () => {
   }, [modalForm.values.postText, modalForm.values.rpRewards]);
 
   const onSubmit = useCallback(
-    async (values: typeof modalForm.values) => {
+    async (values: typeof modalForm.values | typeof modalForm.values) => {
+      const date = modalDate ?? LocalDate.now(ZoneId.UTC);
+
       if (!ds) return;
       if (pokedollarReward > 0) {
         const walletRepo = ds.getRepository(WalletLog);
@@ -240,7 +261,7 @@ const PostSummariesPage: NextPage = () => {
             currencyType: CurrencyType.POKE_DOLLAR,
             sourceUrl: values.url,
             sourceNote: values.label + ` (${wordCount} Words)`,
-            date: values.date,
+            date,
             quantityChange: pokedollarReward,
             verifiedInShopUpdate: false,
           })
@@ -248,13 +269,15 @@ const PostSummariesPage: NextPage = () => {
       }
 
       const urlNoteRepo = ds.getRepository(UrlNote);
-      const newUrlNote = await urlNoteRepo.save(urlNoteRepo.create(values));
+      const newUrlNote = await urlNoteRepo.save(
+        urlNoteRepo.create({ ...values, date })
+      );
       urlNotesHandler.setState(await urlNoteRepo.find());
       setSelectedUrl(newUrlNote);
       setEditModeOn(true);
       cancelModal();
     },
-    [modalForm, ds, pokedollarReward, cancelModal, wordCount]
+    [modalForm, modalDate, ds, pokedollarReward, cancelModal, wordCount]
   );
 
   return (
@@ -287,7 +310,8 @@ const PostSummariesPage: NextPage = () => {
                 styles={{
                   input: { textAlign: "center" },
                 }}
-                {...modalForm.getInputProps("date")}
+                value={modalDate}
+                onChange={setModalDate}
               />
               <TextInput
                 required
