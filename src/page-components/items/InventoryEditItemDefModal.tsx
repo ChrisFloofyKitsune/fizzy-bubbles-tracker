@@ -11,7 +11,7 @@ import {
   ItemCategorySelectItemProps,
   ItemDefSelectItem,
   ItemDefSelectItemProps,
-} from "~/pageComponents/items/InventorySelectItems";
+} from "~/page-components/items/InventorySelectItems";
 
 export type InventoryEditItemDefModalContext = {
   existingItemDef?: ItemDefinition;

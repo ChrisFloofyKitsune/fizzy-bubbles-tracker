@@ -412,6 +412,7 @@ function Inner_ButtonOpenFizzyDexImportModal(
           title: <Title order={2}>Import from FizzyDex</Title>,
           size: "lg",
           innerProps: props,
+          closeOnClickOutside: false,
         })
       }
     >

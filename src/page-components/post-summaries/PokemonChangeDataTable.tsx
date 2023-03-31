@@ -5,7 +5,7 @@ import {
   ChangeOptionPropsMap,
   PokemonChangeLog,
   PokemonChangeOption,
-} from "~/pageComponents/post-summaries/PokemonChangeLog";
+} from "~/page-components/post-summaries/PokemonChangeLog";
 import {
   Box,
   createStyles,
@@ -28,7 +28,7 @@ import {
 import { PokemonContestStat } from "~/orm/enums";
 import { toHeaderCase } from "js-convert-case";
 import { css } from "@emotion/react";
-import { OpenAddPokemonChangeModal } from "~/pageComponents/post-summaries/AddPokemonChangeOptionModal";
+import { OpenAddPokemonChangeModal } from "~/page-components/post-summaries/AddPokemonChangeOptionModal";
 import { useDebouncedRepoSave, useRepository } from "~/services";
 import { LocalDate } from "@js-joda/core";
 

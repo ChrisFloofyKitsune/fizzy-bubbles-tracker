@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { BBCodeReplacementConfig, LevelUpMove, Pokemon } from "~/orm/entities";
-import { usePokemonBBCodeTemplate } from "~/usePokemonBBCodeTemplate";
+import { usePokemonBBCodeTemplate } from "~/bbcode/usePokemonBBCodeTemplate";
 import { BBCodeArea } from "~/components";
 import { PokemonContestStat } from "~/orm/enums";
 import {

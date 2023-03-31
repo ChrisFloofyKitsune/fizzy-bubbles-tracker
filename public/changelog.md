@@ -1,3 +1,11 @@
+### v0.2.1
+- Calendars now properly show dates using the UTC timezone
+- Bond Page rework
+  - Summary section redone to allow for editing one Pokemon's bond logs and bond styling output options in a modal
+  - BBCode output reworked so the page will no longer be redoing everything when any single thing changes
+- The modal forms that show up when editing things no longer close when clicking outside of them
+- Post Summaries page "Add New Summary" modal no longer crashes upon touching anything at all
+
 ### v0.2.0
 - New Feature Added: Post Summaries
   - Warning: Page may sometimes freeze up as the code thinks really hard.

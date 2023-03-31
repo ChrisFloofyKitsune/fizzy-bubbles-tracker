@@ -16,7 +16,7 @@ import {
 import { HiOutlineQuestionMarkCircle } from "react-icons/hi";
 import { ItemDefinition } from "~/orm/entities";
 import { useMemo } from "react";
-import { filterUnique } from "~/util";
+import { filterUnique } from "./util";
 import { IconType } from "react-icons";
 
 export const CategoryIconPatterns = {

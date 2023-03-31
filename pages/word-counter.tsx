@@ -7,7 +7,7 @@ import { useAsyncEffect } from "use-async-effect";
 import { MiscValue } from "~/orm/entities/miscValue";
 import { debounce } from "~/util";
 import { Repository } from "typeorm";
-import { countWordsInBBCode } from "~/wordCountUtil";
+import { countWordsInBBCode } from "~/util/wordCountUtil";
 import { PokeDollarIcon } from "~/appIcons";
 
 const WordCounterPage: NextPage = () => {

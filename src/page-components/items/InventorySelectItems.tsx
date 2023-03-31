@@ -1,7 +1,7 @@
 import { ComponentPropsWithoutRef, forwardRef } from "react";
 import { ItemDefinition } from "~/orm/entities";
-import { InventoryLine } from "~/pageComponents/items/InventoryLine";
-import { InventoryCategoryLabel } from "~/pageComponents/items/InventoryCategoryLabel";
+import { InventoryLine } from "~/page-components/items/InventoryLine";
+import { InventoryCategoryLabel } from "~/page-components/items/InventoryCategoryLabel";
 import { IconType } from "react-icons";
 
 interface ItemCategorySelectItemProps extends ComponentPropsWithoutRef<"div"> {

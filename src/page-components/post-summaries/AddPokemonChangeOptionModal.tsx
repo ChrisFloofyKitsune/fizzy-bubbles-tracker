@@ -2,7 +2,7 @@ import {
   canCreateSingletonOption,
   ChangeOptionPropsMap,
   PokemonChangeOption,
-} from "~/pageComponents/post-summaries/PokemonChangeLog";
+} from "~/page-components/post-summaries/PokemonChangeLog";
 import { ContextModalProps, openContextModal } from "@mantine/modals";
 import { ModalName } from "~/modalsList";
 import { Select, Stack, Flex, Button } from "@mantine/core";
@@ -87,5 +87,6 @@ export function OpenAddPokemonChangeModal(
     title: "Select Pokemon Change",
     innerProps: props,
     centered: true,
+    closeOnClickOutside: false,
   });
 }
