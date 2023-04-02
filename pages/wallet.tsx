@@ -110,6 +110,22 @@ const WalletPage: NextPage = () => {
     };
   }, []);
 
+  const bbcodeOutput = useMemo(
+    () =>
+      `[size=+1][b]${CurrencyTypeDisplayName.rarecandy[1]}[/b][/size]
+
+${WalletLog.createBBCode(walletLogs, CurrencyType.RARE_CANDY)}
+
+[size=+1][b]${CurrencyTypeDisplayName.pokedollar[1]}[/b][/size]
+
+${WalletLog.createBBCode(walletLogs, CurrencyType.POKE_DOLLAR)}
+
+[size=+1][b]${CurrencyTypeDisplayName.watts[1]}[/b][/size]
+
+${WalletLog.createBBCode(walletLogs, CurrencyType.WATTS)}`,
+    [walletLogs]
+  );
+
   return (
     <>
       <Stack>
@@ -174,6 +190,15 @@ const WalletPage: NextPage = () => {
           </Group>
 
           <Group>
+            <Text>{CurrencyTypeDisplayName["rarecandy"][1]}</Text>
+            <Text>
+              {`${(currentBalances.rarecandy ?? 0).toLocaleString("en-US")}`}
+            </Text>
+            <Text>
+              <TbCandy size="1.3em" />
+            </Text>
+          </Group>
+          <Group>
             <Text>{CurrencyTypeDisplayName["pokedollar"][1]}</Text>
             <Text>
               {`${(currentBalances.pokedollar ?? 0).toLocaleString("en-US")}`}
@@ -187,20 +212,47 @@ const WalletPage: NextPage = () => {
             <Text>{`${(currentBalances.watts ?? 0).toLocaleString(
               "en-US"
             )}`}</Text>
-            <Text weight={500}>W</Text>
-          </Group>
-          <Group>
-            <Text>{CurrencyTypeDisplayName["rarecandy"][1]}</Text>
-            <Text>
-              {`${(currentBalances.rarecandy ?? 0).toLocaleString("en-US")}`}
-            </Text>
-            <Text>
-              <TbCandy size="1.3em" />
-            </Text>
+            <Text weight={500}>LP</Text>
           </Group>
         </Box>
 
         <Title order={3}>Detail</Title>
+
+        <AccordionSpoiler
+          label={
+            <Title order={4}>
+              {CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1]}
+            </Title>
+          }
+        >
+          <Paper
+            m={-10}
+            sx={{
+              overflow: "clip",
+              clipPath: "border-box",
+              borderRadius: "0.5em",
+              border: "solid 1px dimgray",
+            }}
+          >
+            <ScrollArea.Autosize
+              maxHeight="40vh"
+              styles={{
+                scrollbar: {
+                  zIndex: 10,
+                },
+              }}
+            >
+              <LogDataTable
+                key={`log-data-table-${CurrencyType.RARE_CANDY}`}
+                {...staticDataTableProps}
+                {...currencyTypeOptions[CurrencyType.RARE_CANDY]}
+                isEditMode={editModeOn}
+                propsToMantineClasses={walletLogPropStyles.classes}
+              />
+            </ScrollArea.Autosize>
+          </Paper>
+        </AccordionSpoiler>
+
         <AccordionSpoiler
           label={
             <Title order={4}>
@@ -271,50 +323,9 @@ const WalletPage: NextPage = () => {
           </Paper>
         </AccordionSpoiler>
 
-        <AccordionSpoiler
-          label={
-            <Title order={4}>
-              {CurrencyTypeDisplayName[CurrencyType.RARE_CANDY][1]}
-            </Title>
-          }
-        >
-          <Paper
-            m={-10}
-            sx={{
-              overflow: "clip",
-              clipPath: "border-box",
-              borderRadius: "0.5em",
-              border: "solid 1px dimgray",
-            }}
-          >
-            <ScrollArea.Autosize
-              maxHeight="40vh"
-              styles={{
-                scrollbar: {
-                  zIndex: 10,
-                },
-              }}
-            >
-              <LogDataTable
-                key={`log-data-table-${CurrencyType.RARE_CANDY}`}
-                {...staticDataTableProps}
-                {...currencyTypeOptions[CurrencyType.RARE_CANDY]}
-                isEditMode={editModeOn}
-                propsToMantineClasses={walletLogPropStyles.classes}
-              />
-            </ScrollArea.Autosize>
-          </Paper>
-        </AccordionSpoiler>
-
         <Title order={3}>Output</Title>
         <Stack>
-          {Object.values(CurrencyType).map((ct) => (
-            <BBCodeArea
-              key={`output-${ct}`}
-              label={CurrencyTypeDisplayName[ct][1] + " Log"}
-              bbCode={WalletLog.createBBCode(walletLogs, ct)}
-            />
-          ))}
+          <BBCodeArea bbCode={bbcodeOutput} />
         </Stack>
       </Stack>
     </>

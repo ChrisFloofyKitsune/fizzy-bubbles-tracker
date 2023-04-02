@@ -1,5 +1,5 @@
 import { Column, Entity } from "typeorm";
-import { CurrencyType } from "../enums";
+import { CurrencyType, CurrencyTypeDisplayName } from "../enums";
 import { ShopTrackedChangeLog } from "./changeLogBase";
 import { LocalDateFormatter } from "~/util";
 
@@ -63,9 +63,17 @@ export class WalletLog extends ShopTrackedChangeLog {
         case CurrencyType.POKE_DOLLAR:
           return `${signText}$${value}`;
         case CurrencyType.WATTS:
-          return `${signText}${value} Watt${value === 1 ? "" : "s"}`;
+          return `${signText}${value} ${
+            value === 1
+              ? CurrencyTypeDisplayName.watts[0]
+              : CurrencyTypeDisplayName.watts[1]
+          }`;
         case CurrencyType.RARE_CANDY:
-          return `${signText}${value} Rare Cand${value === 1 ? "y" : "ies"}`;
+          return `${signText}${value} ${
+            value === 1
+              ? CurrencyTypeDisplayName.rarecandy[0]
+              : CurrencyTypeDisplayName.rarecandy[1]
+          }`;
       }
     }
 
@@ -83,9 +91,7 @@ export class WalletLog extends ShopTrackedChangeLog {
       return `${start}${middle} (${date.format(LocalDateFormatter)})${end}`;
     }
 
-    return `Starting ${
-      type === CurrencyType.RARE_CANDY ? "Total" : "Balance"
-    }: ${fmtQ(data.starting)}
+    return `Starting Balance: ${fmtQ(data.starting)}
 
 Deposits:
 ${data.deposits.map((l) => fmtLog(l)).join("\n")}${
@@ -99,9 +105,7 @@ ${data.withdrawals.map((l) => fmtLog(l)).join("\n")}${
         ? ""
         : `\nSubtotal: ${fmtQ(data.depositSubtotal, true)}\n`
     }
-Ending ${type === CurrencyType.RARE_CANDY ? "Total" : "Balance"}: ${fmtQ(
-      data.ending
-    )}
+Ending Balance: ${fmtQ(data.ending)}
 `;
   }
 }

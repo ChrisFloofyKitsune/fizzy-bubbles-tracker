@@ -24,15 +24,15 @@ export enum PokemonMoveSourceCategory {
 }
 
 export enum CurrencyType {
+  RARE_CANDY = "rarecandy",
   POKE_DOLLAR = "pokedollar",
   WATTS = "watts",
-  RARE_CANDY = "rarecandy",
 }
 
 export const CurrencyTypeDisplayName = {
   [CurrencyType.POKE_DOLLAR]: ["Pokédollar", "Pokédollars"],
   [CurrencyType.RARE_CANDY]: ["Rare Candy", "Rare Candies"],
-  [CurrencyType.WATTS]: ["Watt", "Watts"],
+  [CurrencyType.WATTS]: ["League Point", "League Points"],
 } as {
   [value in CurrencyType]: [singular: string, plural: string];
 };

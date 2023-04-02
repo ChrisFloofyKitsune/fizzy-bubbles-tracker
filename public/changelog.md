@@ -1,3 +1,8 @@
+### v0.2.2
+- Add Terra Type to Pokemon info
+- Combine Wallet Output, change Watts to LP
+- Fix bug on Bond page if Pokemon had no current bond logs
+
 ### v0.2.1
 - Calendars now properly show dates using the UTC timezone
 - Bond Page rework
