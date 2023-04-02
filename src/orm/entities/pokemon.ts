@@ -64,6 +64,8 @@ export class Pokemon {
 
   @Column("text", { nullable: true })
   type: string | null = "";
+  @Column("text", { nullable: true })
+  terraType: string | null = "";
 
   @Column("text", { nullable: true })
   nature: string | null = "";

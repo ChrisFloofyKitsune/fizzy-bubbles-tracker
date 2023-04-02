@@ -96,11 +96,6 @@ export class BondPokemonInfo {
         { pastLogs: [] as BondLog[], currentLogs: [] as BondLog[] }
       );
 
-    if (currentLogs.length === 0) {
-      this._hasBBCodeOutput = false;
-      return;
-    }
-
     this._startBond = Math.min(
       30,
       pastLogs.reduce((sum, l) => sum + l.value, 0)
@@ -129,7 +124,7 @@ export class BondPokemonInfo {
         null as BondLog | null
       )?.sourceUrl ?? null;
 
-    this._hasBBCodeOutput = true;
+    this._hasBBCodeOutput = currentLogs.length !== 0;
 
     this.bbCodeHeader = `Starting Bond: ${
       this._startLink ? `[url=${this._startLink}]` : ""

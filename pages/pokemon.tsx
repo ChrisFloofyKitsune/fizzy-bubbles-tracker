@@ -71,9 +71,10 @@ const useEditorStyle = createStyles((theme) => ({
     gap: "0.5em",
     [theme.fn.largerThan("md")]: {
       gridTemplateAreas: `nme spe dex lvl bnd
-                          typ abl obt pkb hld
-                          nat gen obl pkl hll
-                          trn sst sub sub img
+                          typ ter abl nat gen 
+                          obt pkb hld trn trn
+                          obl pkl hll img img
+                          sst sst sub sub sub
                           des des des des des
                           ev1 e2m ev2 e3m ev3
                           .   e2l .   e3l .
@@ -86,13 +87,14 @@ const useEditorStyle = createStyles((theme) => ({
       gridTemplateColumns: "repeat(5, 1fr)",
     },
     [theme.fn.smallerThan("md")]: {
-      gridTemplateAreas: `nme lvl bnd
-                          spe dex typ
-                          abl nat gen
+      gridTemplateAreas: `nme spe .
+                          dex lvl bnd
+                          typ ter abl
+                          nat gen .  
                           obt pkb hld
                           obl pkl hll
-                          trn sst img
-                          sub sub   .
+                          trn img img
+                          sst sub sub
                           des des des
                           ev1 ev2 ev3
                           .   e2m e3m
@@ -111,6 +113,7 @@ const useEditorStyle = createStyles((theme) => ({
     ".input-species": { gridArea: "spe" },
     ".input-dexNum": { gridArea: "dex" },
     ".input-type": { gridArea: "typ" },
+    ".input-terra-type": { gridArea: "ter" },
     ".input-level": { gridArea: "lvl" },
     ".input-bond": { gridArea: "bnd" },
     ".input-ability": { gridArea: "abl" },
@@ -638,6 +641,12 @@ const PokemonPage: NextPage = () => {
                   id="input-type"
                   className="input-type"
                   {...inputPropMap.type}
+                />
+                <TextInput
+                  label="Terra Type"
+                  id="input-terra-type"
+                  className="input-terra-type"
+                  {...inputPropMap.terraType}
                 />
                 <TextInput
                   label="Ability"
