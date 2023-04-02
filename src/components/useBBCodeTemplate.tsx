@@ -100,9 +100,10 @@ export function useBBCodeTemplate<T extends ObjectLiteral>(
                 ? object[replaceWithProperty]?.toString()
                 : customTemplate || customTemplateDefault) ?? null;
           }
-          if (targetResult !== null) {
-            result = result.replaceAll(execResult, String(targetResult));
+          if (targetResult === null) {
+            targetResult = "";
           }
+          result = result.replaceAll(execResult, String(targetResult));
         }
         findRegex = new RegExp(
           `{{[^\\s{}]+(?<!${Array.from(foundTargets).join("|")})}}`,
